@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    
+    <HorizontalScrollView
+    android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        
+      <LinearLayout 
+	     android:layout_width="fill_parent"  
+	     android:layout_height="fill_parent"  
+	     >  
+		    <Button
+			    android:id="@+id/button_focus"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:text="焦點新聞"
+		    />
+		      <Button
+			    android:id="@+id/button_tech"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:text="科技"
+		    />
+		      <Button
+			    android:id="@+id/button_sports"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:text="體育"
+		    />
+		      <Button
+		        android:id="@+id/button_relax"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:text="娛樂"
+		    />
+		     
+      </LinearLayout>     
+       </HorizontalScrollView>
+       
+      <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        
+		<Gallery 
+			android:id="@+id/gallery"
+	        android:background="#55000000"
+	        android:layout_width="fill_parent"
+	        android:layout_height="20dp"
+	        android:layout_alignParentBottom="true"
+	        android:layout_alignParentLeft="true"
+	        android:gravity="center_vertical"
+	        android:spacing="16dp"
+	    />
+	 </LinearLayout>
+
+</LinearLayout>
