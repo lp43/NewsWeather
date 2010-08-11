@@ -18,15 +18,21 @@ public final class R {
         public static final int icon=0x7f020004;
     }
     public static final class id {
-        public static final int button_focus=0x7f050000;
-        public static final int button_relax=0x7f050003;
-        public static final int button_sports=0x7f050002;
-        public static final int button_tech=0x7f050001;
-        public static final int gallery=0x7f050004;
-        public static final int listnews=0x7f050005;
+        public static final int bigtext=0x7f050000;
+        public static final int button_focus=0x7f050004;
+        public static final int button_relax=0x7f050007;
+        public static final int button_sports=0x7f050006;
+        public static final int button_tech=0x7f050005;
+        public static final int gallery=0x7f050008;
+        public static final int icon=0x7f050002;
+        public static final int listnews=0x7f050009;
+        public static final int listview=0x7f050003;
+        public static final int smalltext=0x7f050001;
     }
     public static final class layout {
-        public static final int main=0x7f030000;
+        public static final int file_row=0x7f030000;
+        public static final int listcontent=0x7f030001;
+        public static final int main=0x7f030002;
     }
     public static final class string {
         public static final int app_name=0x7f040001;
