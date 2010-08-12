@@ -10,10 +10,10 @@ public class ListContent extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.main);
+		setContentView(R.layout.listcontent);
 		
-		ListView listView = (ListView) findViewById(R.id.listnews);
-		listView.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,new String[]{"123","456","789"}));
+		ListView listView = (ListView) findViewById(R.id.list);
+		listView.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,new String[]{"123","456","789","123","456","789","123","456","789"}));
 	}
 
 }

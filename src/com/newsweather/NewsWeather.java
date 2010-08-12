@@ -1,7 +1,9 @@
 package com.newsweather;
 
+
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.view.View;
@@ -32,13 +34,23 @@ public class NewsWeather extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-//        button_foucs = (Button) findViewById(R.id.button_focus);
-//        button_tech = (Button) findViewById(R.id.button_tech);
-//        button_sports = (Button) findViewById(R.id.button_sports);
-//        button_relax = (Button) findViewById(R.id.button_relax);
+        button_foucs = (Button) findViewById(R.id.button_focus);
+        button_tech = (Button) findViewById(R.id.button_tech);
+        button_sports = (Button) findViewById(R.id.button_sports);
+        button_relax = (Button) findViewById(R.id.button_relax);
         g = (Gallery) findViewById(R.id.gallery);
         
         g.setAdapter(new NewsAdapter(this));
+        
+        button_foucs.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent i = new Intent();
+                i.setClass(NewsWeather.this, ListContent.class);
+                startActivity(i);
+                NewsWeather.this.finish();
+            }
+        });
+
     }
     
     
@@ -49,8 +61,9 @@ public class NewsWeather extends Activity {
     	
     	int mGalleryItemBackground;
     	public Context mContext;
-    	private Integer[] mImageIds = {
-    			R.drawable.gallery_photo_1,
+    	private Object[] mImageIds = {
+//    			R.drawable.gallery_photo_1,
+    			new ListContent(),
     			R.drawable.gallery_photo_2,
     			R.drawable.gallery_photo_3,
     			R.drawable.gallery_photo_4
@@ -86,16 +99,18 @@ public class NewsWeather extends Activity {
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			ImageView i = new ImageView(mContext);
-			
-			i.setImageResource(mImageIds[position]);
-			i.setScaleType(ImageView.ScaleType.FIT_XY);
-			i.setLayoutParams(new Gallery.LayoutParams(800, 480));
+//			ImageView i = new ImageView(mContext);
+			ListView l = new ListView(mContext);
+//			i.setImageResource(mImageIds[position]);
+//			i.setScaleType(ImageView.ScaleType.FIT_XY);
+//			i.setLayoutParams(new Gallery.LayoutParams(800, 480));
 			
 			// The preferred Gallery item background
-            i.setBackgroundResource(mGalleryItemBackground);
+//            i.setBackgroundResource(mGalleryItemBackground);
             
-			return i;
+//			return i;
+			
+			return l;
 		}
     	
     }

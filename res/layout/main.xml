@@ -146,11 +146,11 @@
 			android:id="@+id/gallery"
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content" />
-	    <ListView
+	   <ListView
 			android:id="@+id/listnews"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
-			android:layout_marginTop="50px"
+			
          />
 
 </LinearLayout>

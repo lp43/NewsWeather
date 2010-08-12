@@ -12,7 +12,8 @@
             </intent-filter>
         </activity>
 
-    </application>
+    <activity android:name="ListContent"></activity>
+</application>
     <uses-sdk android:targetSdkVersion="4" android:minSdkVersion="3"/>
 
 </manifest> 
