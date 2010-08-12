@@ -40,117 +40,135 @@
 			    android:text="娛樂"
 		    />
 		      <Button
-			    android:id="@+id/button_focus"
+			    android:id="@+id/button_backto"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="往前一頁"
+		    />
+		      <Button
+			    android:id="@+id/button_nextto"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:text="往後一頁"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="測試專用"
 		    />
 		    
 		    
 		     
       </LinearLayout>-->   
        </HorizontalScrollView>
-       
-        <!-- 建立一個Gallery --> 
-		<Gallery 
-			android:id="@+id/gallery"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content" />
-	   <ListView
-			android:id="@+id/listnews"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			
-         />
-
+     <HorizontalScrollView
+     	android:id="@+id/hsv"
+    android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+        
+      <LinearLayout android:background="#ff666666"
+      android:orientation="horizontal"
+	     android:layout_width="fill_parent"  
+	     android:layout_height="wrap_content">
+	       
+		<ListView
+		android:id="@+id/list"
+		android:layout_width="800dip"
+		android:layout_height="fill_parent"/>		    
+		 	<ListView
+		android:id="@+id/list2"
+		android:layout_width="800dip"
+		android:layout_height="fill_parent"/>	
+			<ListView
+		android:id="@+id/list3"
+		android:layout_width="800dip"
+		android:layout_height="fill_parent"/>	   
+		 			<ListView
+		android:id="@+id/list4"
+		android:layout_width="800dip"
+		android:layout_height="fill_parent"/>    
+      </LinearLayout> 
+       </HorizontalScrollView>
+		    
+		   
 </LinearLayout>
