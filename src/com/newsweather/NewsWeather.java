@@ -43,8 +43,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	HorizontalScrollView slv;
 	//用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑
 	double getend,getstart=0;
-	//宣告一個陣列來存手勢的值
-	private List list = new ArrayList();
+
 	
     /** Called when the activity is first created. */
     @Override
@@ -113,9 +112,25 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		
-		list.add(event.getX());
-		Log.i("end:", String.valueOf(list));
-		Log.i("end:", String.valueOf(list.get(0)));
+		
+		if(getstart==0){
+			getstart = event.getX();
+			Log.i("start:", String.valueOf(getstart));
+		}else if(event.getAction()!=event.ACTION_MOVE){
+			getend =event.getX();
+			Log.i("end:", String.valueOf(getend));
+			
+			if (getstart-getend >0){
+				slv.smoothScrollBy(800, 0);
+			}else{
+				slv.smoothScrollBy(-800, 0);
+			}
+			
+			getstart=0;
+		}
+		
+		
+		
 //		if(list.get(list.))
 //		if(event.getAction()!=event.ACTION_MOVE){
 //			getend = event.getX();
