@@ -40,18 +40,6 @@
 			    android:text="娛樂"
 		    />
 		      <Button
-			    android:id="@+id/button_backto"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="往前一頁"
-		    />
-		      <Button
-			    android:id="@+id/button_nextto"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="往後一頁"
-		    />
-		      <Button
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"

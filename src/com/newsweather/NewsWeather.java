@@ -30,12 +30,11 @@ import android.widget.Toast;
 
 public class NewsWeather extends Activity implements OnTouchListener {
 	//宣告最上面的5個新聞標題按鈕
-	private Button button_foucs,
-	button_tech,
-	button_sports,
-	button_relax,
-	button_backto,
-	button_nextto;
+	private Button button_foucs,//按鈕[焦點新聞]
+	button_tech,//按鈕[科技]
+	button_sports,//按鈕[運動]
+	button_relax;//按鈕[影劇]
+
 	private LayoutInflater mInflater;
 	//先初始化4個ListView
 	private ListView llv,llv2,llv3,llv4;
@@ -56,15 +55,15 @@ public class NewsWeather extends Activity implements OnTouchListener {
         button_tech = (Button) findViewById(R.id.button_tech);
         button_sports = (Button) findViewById(R.id.button_sports);
         button_relax = (Button) findViewById(R.id.button_relax);
-        button_backto = (Button) findViewById(R.id.button_backto);
-        button_nextto = (Button) findViewById(R.id.button_nextto);
+       
         llv = (ListView) findViewById(R.id.list);
         llv2 = (ListView) findViewById(R.id.list2);
         llv3 = (ListView) findViewById(R.id.list3);
         llv4 = (ListView) findViewById(R.id.list4);
         slv = (HorizontalScrollView) findViewById(R.id.hsv);
         
-        llv.setAdapter(new ArrayAdapter(NewsWeather.this,android.R.layout.simple_list_item_1,new String[]{"王建民輸球","阿姆斯狀其實沒有登陸月球","小s想再生第3胎","456","456","456","456","456","456","456","456","456","456","456","456"}));
+        //設定ListView的樣版和文字來源
+        llv.setAdapter(new NewsAdapter(NewsWeather.this));
         llv2.setAdapter(new ArrayAdapter(NewsWeather.this,android.R.layout.simple_list_item_1,new String[]{"阿姆斯狀其實沒有登陸月球","456","456","456","456","456","456","456","456","456","456","456","456","456","456"}));
         llv3.setAdapter(new ArrayAdapter(NewsWeather.this,android.R.layout.simple_list_item_1,new String[]{"王建民輸球","456","456","456","456","456","456","456","456","456","456","456","456","456","456"}));
         llv4.setAdapter(new ArrayAdapter(NewsWeather.this,android.R.layout.simple_list_item_1,new String[]{"小s想再生第3胎","456","456","456","456","456","456","456","456","456","456","456","456","456","456"}));
@@ -95,16 +94,6 @@ public class NewsWeather extends Activity implements OnTouchListener {
             	slv.smoothScrollTo(2400,0);
             }
         });
-        button_backto.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	slv.smoothScrollBy(-800, 0);
-            }
-        });
-        button_nextto.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	slv.smoothScrollBy(800, 0);
-            }
-        });
        
         slv.setOnTouchListener(this);
     }
@@ -127,104 +116,84 @@ public class NewsWeather extends Activity implements OnTouchListener {
 			}
 			
 			getstart=0;
-		}
-		
-		
-		
-//		if(list.get(list.))
-//		if(event.getAction()!=event.ACTION_MOVE){
-//			getend = event.getX();
-//			Log.i("end:", String.valueOf(getend));
-//
-//		}else{
-//			getstart = event.getX();
-//			Log.i("start:", String.valueOf(getstart));
-//		}
-//		
-//		if(getend>getstart){
-//		slv.smoothScrollBy(800, 0);
-//		} else{slv.smoothScrollBy(-800, 0);}
-		
+		}		
 		return true;
 	}
     
     
     
     
+	//ListView使用自訂義版面
+    public class NewsAdapter extends BaseAdapter{
+    	
+    	public Context mContext;
+    	private Bitmap mIcon;
+    	
+    	private String[][] mDataIds = {
+    			{"123456789101111","2010/08/12"},
+    			{"123456789","2010/08/14"}   		
+    	};
+    		
+    	public NewsAdapter(Context c){
+    		mInflater = LayoutInflater.from(c);
+    		mIcon = BitmapFactory.decodeResource(c.getResources(), R.drawable.gallery_photo_1);
+    		mContext = c;
+    		 Log.i("alreadyNewAdapter", "Success");
+    	}
+    	
+		@Override
+		public int getCount() {
+			return mDataIds.length;//這行的數量影響了程式是否能被開啟			
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return position;
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+
+			ViewHolder holder;         
+
+			if(convertView ==null){
+			//使用自定義的file_row作為Layout
+			convertView = mInflater.inflate(R.layout.file_row, null);
+			//初始化holder的2個text和img
+			holder = new ViewHolder();
+			
+			
+			holder.cont=(TextView) convertView.findViewById(R.id.news_cont);
+			holder.info=(TextView) convertView.findViewById(R.id.news_info);
+			holder.img=(ImageView) convertView.findViewById(R.id.news_img);
+			
+			convertView.setTag(holder);
+			}else{
+				holder=(ViewHolder) convertView.getTag();
+			}
+			Log.i("start=", String.valueOf(position));
+			holder.cont.setText(mDataIds[position][0]);
+			Log.i("first=", mDataIds[position][0]);
+			holder.info.setText(mDataIds[position][1]);
+			holder.img.setImageBitmap(mIcon);
+			Log.i("second", String.valueOf(position));
+		return convertView;	
+
+		}
+    	
+    }
     
-//    public class NewsAdapter extends BaseAdapter{
-//    	
-//    	int mGalleryItemBackground;
-//    	public Context mContext;
-//    	
-//    	private Bitmap mIcon;
+    //為了讓每一格LIST都有固定格式，將此設為一類別，生產出來的每行都是不同的物件實體
+    private class ViewHolder{
     	
-    	
-//    	private String[][] mDataIds = {
-//    			{"1234567","2010/08/12"},
-//    			{"123456789","2010/08/14"}   		
-//    	};
-//    	
-    	
-//    	public NewsAdapter(Context c){
-//    		mInflater = LayoutInflater.from(c);
-//    		mIcon = BitmapFactory.decodeResource(c.getResources(), R.drawable.gallery_photo_1);
-//    		mContext = c;
-//    		 Log.i("alreadyNewAdapter", "Success");
-//    	}
-//    	
-//		@Override
-//		public int getCount() {
-//			return 5;//這行的數量影響了程式是否能被開啟			
-//		}
-//
-//		@Override
-//		public Object getItem(int position) {
-//			return position;
-//		}
-//
-//		@Override
-//		public long getItemId(int position) {
-//			return position;
-//		}
-//
-//		@Override
-//		public View getView(int position, View convertView, ViewGroup parent) {
-//
-//			ViewHolder holder;         
-//
-//			if(convertView ==null){
-////			//使用自定義的file_rwo作為Layout
-//			convertView = mInflater.inflate(R.layout.listcontent, null);
-////			//初始化holder的2個text和icon
-//			holder = new ViewHolder();
-//			holder.lv= (ListView) convertView.findViewById(R.id.list);
-//			holder.testtext=(TextView)convertView.findViewById(R.id.testtext);
-//////			holder.tag=(TextView) convertView.findViewById(R.id.text_cont);
-//////			holder.info=(TextView) convertView.findViewById(R.id.text_info);
-//////			holder.icon=(ImageView) convertView.findViewById(R.id.icon);
-//			
-//			convertView.setTag(holder);
-//			}else{
-//				holder=(ViewHolder) convertView.getTag();
-//			}
-////			holder.tag.setText(mDataIds[0][0]);//程式在這裡出現NullPointerException,檢查一下holder實體還在不在
-//////			holder.info.setText(mDataIds[0][1]);
-//////			holder.icon.setImageBitmap(mIcon);
-//			holder.lv.setAdapter(new ArrayAdapter(NewsWeather.this,android.R.layout.simple_list_item_1,new String[]{"123","456","456","456","456","456","456","456","456","456","456","456","456","456","456"}));
-////			holder.testtext.setText("1234");
-////			
-//		return convertView;	
-//
-//		}
-//    	
-//    }
-//    
-//    //為了讓每一格LIST都有固定格式，將此設為一類別，生產出來的每行都是不同的物件實體
-//    private class ViewHolder{
-//    	ListView lv;
-//    	TextView tag,info;
-//    	ImageView icon;
-//    	TextView testtext;
-//    }
+    	ListView lv;
+    	TextView cont,info;
+    	ImageView img;
+
+    }
 }

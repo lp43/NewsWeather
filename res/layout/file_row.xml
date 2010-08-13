@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
-  android:orientation="horizontal">
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
   
-  <TextView
-  android:id="@+id/text_cont"
-  android:textSize="16dp"
-  />
-  <TextView
-  android:id="@+id/text_info"
-  android:textSize="12dp"
-  />
-  <ImageView
-  android:id="@+id/icon"
-  />
-</LinearLayout>
+     <TextView
+	  android:id="@+id/news_cont"
+	  android:textSize="28dp"
+	  android:layout_width="wrap_content"
+	  android:layout_height="wrap_content"
+	  android:layout_marginLeft="10sp"/>
+     <TextView
+	  android:id="@+id/news_info"
+	  android:textSize="12dp"
+	  android:layout_width="wrap_content"
+	  android:layout_height="wrap_content"
+	  android:layout_below="@id/news_cont"
+	  android:layout_marginLeft="10sp"/>
+     <ImageView
+	  android:id="@+id/news_img"
+	  android:layout_width="wrap_content"
+	  android:layout_height="wrap_content"
+	  android:layout_alignParentRight="true"
+	  android:layout_marginRight="15sp"/>
+	  
+</RelativeLayout>
