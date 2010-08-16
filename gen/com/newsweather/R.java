@@ -27,9 +27,9 @@ public final class R {
         public static final int list2=0x7f050009;
         public static final int list3=0x7f05000a;
         public static final int list4=0x7f05000b;
-        public static final int news_cont=0x7f050000;
+        public static final int news_date=0x7f050001;
         public static final int news_img=0x7f050002;
-        public static final int news_info=0x7f050001;
+        public static final int news_title=0x7f050000;
     }
     public static final class layout {
         public static final int file_row=0x7f030000;
