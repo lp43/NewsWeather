@@ -50,7 +50,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	//用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑
 	double getend,getstart=0;
 	private List<News> li = new ArrayList<News>();
-	String path="http://n.yam.com/RSS/Rss_life.xml";
+	String path="http://www.cw.com.tw/RSS/cw_content.xml";
 	
     /** Called when the activity is first created. */
     @Override
@@ -58,7 +58,6 @@ public class NewsWeather extends Activity implements OnTouchListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);  
         li = getRss(path);
-        if(li==null){Log.i("tag", "li is null");}else{Log.i("tag", String.valueOf(li.size()));}
 
         button_foucs = (Button) findViewById(R.id.button_focus);
         button_tech = (Button) findViewById(R.id.button_tech);
@@ -120,13 +119,9 @@ public class NewsWeather extends Activity implements OnTouchListener {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position,
 				long id) {
-			
-			Log.i("what", li.get(position).getLink());
 			String temp = li.get(position).getLink();
-		
-//			Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://c.yam.com/news/rss/r.c?http://n.yam.com/business/life/201008/20100816204762.html"));
-//			Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(li.get(position).getLink()));
-//			Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse("http://n.yam.com/business/life/201008/20100816204762.html"));
+			Log.i("what", temp);
+			
 			Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(temp));
 			startActivity(browserIntent);
 
@@ -143,10 +138,8 @@ public class NewsWeather extends Activity implements OnTouchListener {
 		
 		if(getstart==0){
 			getstart = event.getX();
-			Log.i("start:", String.valueOf(getstart));
 		}else if(event.getAction()!=event.ACTION_MOVE){
 			getend =event.getX();
-			Log.i("end:", String.valueOf(getend));
 			
 			if (getstart-getend >0){
 				slv.smoothScrollBy(800, 0);
@@ -170,17 +163,21 @@ public class NewsWeather extends Activity implements OnTouchListener {
 			url = new URL(path);;				
 			
 			//使用sax解析
-			SAXParserFactory spf = SAXParserFactory.newInstance();
-			SAXParser sp = spf.newSAXParser();
-			XMLReader xr = sp.getXMLReader();
+//			SAXParserFactory spf = SAXParserFactory.newInstance();
+//			SAXParser sp = spf.newSAXParser();
+//			XMLReader xr = sp.getXMLReader();
+//			MyHandler myHandler = new MyHandler();
+//			xr.setContentHandler(myHandler);;				
+//			xr.parse(new InputSource(url.openStream()));
 			MyHandler myHandler = new MyHandler();
-			xr.setContentHandler(myHandler);;				
-			xr.parse(new InputSource(url.openStream()));
+			android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);
+			
+			
 			//取得RSS標題與內容列表
 			data = myHandler.getParasedData();
 
 		}catch(Exception e){
-			Log.d("tag", "wrong!");
+			Log.d("tag", "wrong! "+e.getMessage());
 		}
 		return data;
 	}

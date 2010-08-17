@@ -10,14 +10,23 @@ import android.util.Log;
 
 public class MyHandler extends DefaultHandler {
 	
-	private boolean in_item=false;
-	private boolean in_link=false;
-	private boolean in_date=false;
-	private boolean in_title=false;
-	private boolean in_desc=false;
+	private boolean itemswitch =false;
+	final int in_item=1;
+	final int in_title=2;
+	final int in_link=3;
+	final int in_guid=4;
+	final int in_desc=5;
+	final int in_encoded=6;
+	final int in_date=7;
+	final int in_category=8;
+	final int in_comments=9;
+	final int in_mainTitle = 10;
+	final int in_author=11;
+	final int in_img=12;
+	final int in_url=13;
 	private List<News> li;
 	private News news;
-	private StringBuffer buf = new StringBuffer();
+	int currentcase = 0;
 	
 	//將轉換成List<News>的XML資料回傳
 	public List<News> getParasedData(){
@@ -27,9 +36,53 @@ public class MyHandler extends DefaultHandler {
 	@Override//覆寫characters
 	public void characters(char[] ch, int start, int length)
 			throws SAXException {
-			if(this.in_item){
-				//將char[]加入Stringuffer
-				buf.append(ch, start, length);
+			String bufString = new String(ch,start,length);
+			switch(currentcase){
+			case in_title:
+				news.setTitle(bufString);
+				currentcase=0;
+				break;
+			case in_link:
+				news.setLink(bufString);
+				currentcase=0;
+				break;
+			case in_guid:
+				news.setGuid(bufString);
+				currentcase=0;
+				break;
+			case in_desc:
+				news.setDesc(bufString);
+				currentcase=0;
+				break;
+			case in_encoded:
+				news.setEncoded(bufString);
+				currentcase=0;
+				break;
+			case in_date:
+				news.setDate(bufString);
+				currentcase=0;
+				break;
+			case in_category:
+				news.setCategory(bufString);
+				currentcase=0;
+				break;
+			case in_comments:
+				news.setComments(bufString);
+				currentcase=0;
+				break;
+			case in_mainTitle:	
+				currentcase=0;
+				break;
+			case in_author:
+				currentcase=0;
+				break;
+			case in_img:
+				currentcase=0;
+				break;
+			case in_url:
+				currentcase=0;
+				break;
+			default:return;
 			}
 	}
 
@@ -45,64 +98,51 @@ public class MyHandler extends DefaultHandler {
 	@Override//解析到Element開頭時的method
 	public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException {
-		if(localName.equals("item")){
-			this.in_item=true;
-			//當解析到的字為"item"時，馬上new一個新物件
-			news = new News();
+		if(localName.equals("channel")){
+			currentcase=0;
+			return;
+		}else if(localName.equals("item")){
+			currentcase=in_item;
+			itemswitch=true;
+			news= new News();
+			return;
 		}else if(localName.equals("title")){
-			if(this.in_item){
-				this.in_title=true;
-			}
+			if(itemswitch)currentcase=in_title;
+			return;
 		}else if(localName.equals("link")){
-			if(this.in_item){
-				this.in_link=true;
-			}
+			if(itemswitch)currentcase=in_link;
+			return;
 		}else if(localName.equals("description")){
-			if(this.in_item){
-				this.in_desc=true;
-			}
+			if(itemswitch)currentcase=in_desc;
+			return;
 		}else if(localName.equals("pubDate")){
-			if(this.in_item){
-				this.in_date=true;
-			}
+			if(itemswitch)currentcase=in_date;
+			return;
+		}else if(localName.equals("author")){
+			if(itemswitch)currentcase=in_author;
+			return;
+		}else if(localName.equals("guid")){
+			if(itemswitch)currentcase=in_guid;
+			return;
+		}else if(localName.equals("image")){
+			if(itemswitch)currentcase=in_img;
+			return;
+		}else if(localName.equals("url")){
+			if(itemswitch)currentcase=in_url;
+			return;
+		}else{
+			currentcase =0;
+			return;
 		}
+		
+		
 	}
 	
 	@Override//結析到Element結尾時用的method
 	public void endElement(String uri, String localName, String qName)
 			throws SAXException {
 		if(localName.equals("item")){
-			this.in_item=false;
-			//當解析到item結尾時，將News物件(item內的資料)放進List中
-			li.add(news);
-		}else if(localName.equals("title")){
-			if(this.in_item){
-				//設定News物件的title
-				news.setTitle(buf.toString().trim());
-				buf.setLength(0);
-				this.in_title=false;
-			}
-		}else if(localName.equals("link")){
-			if(this.in_item){
-				//設定News物件的link
-				news.setLink(buf.toString().trim());
-				buf.setLength(0);
-				this.in_link=false;
-			}
-		}else if(localName.equals("description")){
-			if(this.in_item){
-				//設定News物件的description
-				news.setDesc(buf.toString().trim());
-				buf.setLength(0);
-				this.in_desc=false;
-			}
-		}else if(localName.equals("pubDate")){
-			if(this.in_item){
-				//設定News物件的pubDate
-				news.setDate(buf.toString().trim());
-				buf.setLength(0);
-				this.in_date=false;
-			}
+				li.add(news);
 		}
 	}
 

@@ -25,7 +25,7 @@ public class NewsAdapter extends BaseAdapter{
 		
 	public NewsAdapter(Context c, List<News> it){
 		mInflater = LayoutInflater.from(c);
-		mIcon = BitmapFactory.decodeResource(c.getResources(), R.drawable.gallery_photo_1);
+//		mIcon = BitmapFactory.decodeResource(c.getResources(), R.drawable.gallery_photo_1);
 		 Log.i("alreadyNewAdapter", "Success");
 		 items=it;
 	}
@@ -68,7 +68,7 @@ public class NewsAdapter extends BaseAdapter{
 		News tmpN = items.get(position);
 		holder.title.setText(tmpN.getTitle());
 		holder.date.setText(tmpN.getDate());
-		holder.img.setImageBitmap(mIcon);
+//		holder.img.setImageBitmap(mIcon);
 	
 	return convertView;	
 
