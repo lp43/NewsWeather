@@ -1,10 +1,20 @@
 package com.newsweather;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -19,6 +29,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -50,14 +61,23 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	//用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑
 	double getend,getstart=0;
 	private List<News> li = new ArrayList<News>();
-	String path="http://www.cw.com.tw/RSS/cw_content.xml";
+/*	
+	String path="http://tw.news.yahoo.com/rss/realtime";//雅虎UTF-8*/
+	
+	String path="http://www.cw.com.tw/RSS/cw_content.xml";//天下雜誌BIG5
+	String b;
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);  
-        li = getRss(path);
+        setContentView(R.layout.main);
+        
+        //進行big5→utf-8轉碼
+        big52utf8(path);
+        
+        li = getRss();
+           
 
         button_foucs = (Button) findViewById(R.id.button_focus);
         button_tech = (Button) findViewById(R.id.button_tech);
@@ -113,7 +133,44 @@ public class NewsWeather extends Activity implements OnTouchListener {
         slv.setOnTouchListener(this);
     }
     
-    //按下列表所要觸發的事件
+    
+    /*因XML無法解析BIG5，會出現paraexception(not-well formed(invalid tocken))
+      所以只要網址一進來，一定存到utf-8的buffxml.xml檔裡*/
+    private void big52utf8(String path) {
+    	
+    	  URL url = null;
+			   try {
+				   url = new URL(path);
+				   InputStream is = url.openConnection().getInputStream();
+				   InputStreamReader isr = new InputStreamReader(is,"BIG5");
+				   BufferedReader br = new BufferedReader(isr);
+				   FileOutputStream fos = openFileOutput("buffxml.xml", Context.MODE_PRIVATE);
+				   
+				   String a = br.readLine();
+				   while(a !=null){
+					   a = br.readLine();
+					   b = new String(a.getBytes(),"UTF-8");
+					   fos.write(b.getBytes());
+					   fos.write('\r');
+				   }
+				    fos.flush();
+				    fos.close();
+				    
+				}  catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}   catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();	
+		} 
+				
+		
+	}
+
+	//按下列表所要觸發的事件
     OnItemClickListener listtener = new OnItemClickListener(){
 
 		@Override
@@ -153,25 +210,30 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	}
     
 	//使用XML解析器
-	private List<News> getRss(String path){
+	private List<News> getRss(){
 
 		List<News> data = new ArrayList<News>();
-		URL url = null;
+//		URL url = null;
 		
 
 		try{
-			url = new URL(path);;				
+//			url = new URL(path);				
 			
-			//使用sax解析
-//			SAXParserFactory spf = SAXParserFactory.newInstance();
-//			SAXParser sp = spf.newSAXParser();
-//			XMLReader xr = sp.getXMLReader();
-//			MyHandler myHandler = new MyHandler();
-//			xr.setContentHandler(myHandler);;				
-//			xr.parse(new InputSource(url.openStream()));
+			/*//使用sax解析
+			SAXParserFactory spf = SAXParserFactory.newInstance();
+			SAXParser sp = spf.newSAXParser();
+			XMLReader xr = sp.getXMLReader();
 			MyHandler myHandler = new MyHandler();
-			android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);
+			xr.setContentHandler(myHandler);;				
+			xr.parse(new InputSource(url.openStream()));*/
 			
+			//使用android解析器
+			MyHandler myHandler = new MyHandler();
+			
+			/*android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);*/
+			
+			FileInputStream fis = openFileInput("buffxml.xml");
+			android.util.Xml.parse(fis, Xml.Encoding.UTF_8, myHandler);
 			
 			//取得RSS標題與內容列表
 			data = myHandler.getParasedData();

@@ -126,7 +126,7 @@
 		    
 		    
 		     
-      </LinearLayout>-->   
+      </LinearLayout> 
        </HorizontalScrollView>
      <HorizontalScrollView
      	android:id="@+id/hsv"
