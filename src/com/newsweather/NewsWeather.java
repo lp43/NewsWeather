@@ -19,6 +19,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,18 +56,26 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	button_tech,//按鈕[科技]
 	button_sports,//按鈕[運動]
 	button_relax;//按鈕[影劇]
-	//先初始化4個ListView
-	private ListView llv,llv2,llv3,llv4;
-	//為了讓下面的新聞欄可以左右滑動，需把HorizontalScrollView宣告出來
-	HorizontalScrollView slv;
-	//用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑
-	double getend,getstart=0;
-	private List<News> li = new ArrayList<News>();
-/*	
-	String path="http://tw.news.yahoo.com/rss/realtime";//雅虎UTF-8*/
+	private ListView llv,llv2,llv3,llv4;//先初始化4個ListView
+	private HorizontalScrollView slv;//為了讓下面的新聞欄可以左右滑動，需把HorizontalScrollView宣告出來
+	double getend,getstart=0;//用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑
+	private List<News> li = new ArrayList<News>();//容器
+	String Encode;  //判斷xml文件編碼並儲存在Encode
+	String bufferb;  //bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間
 	
-	String path="http://www.cw.com.tw/RSS/cw_content.xml";//天下雜誌BIG5
-	String b;
+//	String path="http://tw.news.yahoo.com/rss/realtime";//雅虎UTF-8	
+//	String path="http://www.cw.com.tw/RSS/cw_content.xml";//天下雜誌BIG5	
+//	String path="http://rss.chinatimes.com/rss/focus-u.rss"; //中時UTF-8
+//	String path="http://www.zdnet.com.tw/rss/news_daily.htm";  ////中時BIG5
+//	String path="http://tw.nextmedia.com/rss/create/type/1077";//蘋果utf8
+//	String path="http://inews.mingpao.com/rss/INews/gb.xml";//明報BIG5
+//	String path="http://www.lib.ntu.edu.tw/rss/newsrss.xml";//台灣大學圖書館UTF8
+//	String path="http://www.ait.org.tw/zh/press-releases.rss";//美國在台協會UTF8→有編碼的問題(來源檔有亂碼)
+//	String path="http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp";//台東大學圖書館BIG5
+	String path="http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx";//交通部公路總局UTF8
+	
+	
+	
 	
     /** Called when the activity is first created. */
     @Override
@@ -73,11 +83,10 @@ public class NewsWeather extends Activity implements OnTouchListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        //進行big5→utf-8轉碼
-        big52utf8(path);
-        
-        li = getRss();
-           
+        checkEncode(path);  //先判斷xml的編碼格式
+        encodeTransfer(path);  //進行big5→utf-8轉碼
+        li = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡
+//        li = getRss(path); //直接解析UTF8
 
         button_foucs = (Button) findViewById(R.id.button_focus);
         button_tech = (Button) findViewById(R.id.button_tech);
@@ -133,41 +142,78 @@ public class NewsWeather extends Activity implements OnTouchListener {
         slv.setOnTouchListener(this);
     }
     
+    private void checkEncode(String path){//判斷此xml的格式
+    	URL url = null;
+    	String encode="";
+    	int a,b;
+    	 try {
+    		   
+			   url = new URL(path);
+			   URLConnection l =url.openConnection();
+			   String i = l.getHeaderField("Content-Type");
+			   InputStream is = url.openConnection().getInputStream();
+			   InputStreamReader isr = new InputStreamReader(is);
+			   BufferedReader br = new BufferedReader(isr);
+			   String buffera = br.readLine();
+			   br.close();
+			   a=buffera.indexOf("\"", 25)+1;
+			   b=buffera.indexOf("\"", a+1);
+			   encode = buffera.substring(a, b);
+			   Log.i("test", "test");
+    	 }catch (IOException e) {
+				Log.i("IOException+", e.getMessage());
+ 		} 
+    	 
+	    	   if(encode.equals("big5")|encode.equals("BIG5")){
+	    		 Encode ="BIG5";  
+			   }else if(encode.equals("utf-8")|encode.equals("UTF-8")|encode.equals("Utf-8")){
+				 Encode ="UTF-8";
+			   }	
+	    	   
+    }
+    
+    
     
     /*因XML無法解析BIG5，會出現paraexception(not-well formed(invalid tocken))
       所以只要網址一進來，一定存到utf-8的buffxml.xml檔裡*/
-    private void big52utf8(String path) {
+    private void encodeTransfer(String path) {
     	
     	  URL url = null;
+    	  String buffera="";
 			   try {
 				   url = new URL(path);
 				   InputStream is = url.openConnection().getInputStream();
-				   InputStreamReader isr = new InputStreamReader(is,"BIG5");
+				   InputStreamReader isr = new InputStreamReader(is,Encode);
 				   BufferedReader br = new BufferedReader(isr);
 				   FileOutputStream fos = openFileOutput("buffxml.xml", Context.MODE_PRIVATE);
 				   
-				   String a = br.readLine();
-				   while(a !=null){
-					   a = br.readLine();
-					   b = new String(a.getBytes(),"UTF-8");
-					   fos.write(b.getBytes());
+				   
+				   do{
+					   buffera = br.readLine();
+					   if(buffera!=null){
+					   bufferb = new String(buffera.getBytes(),"UTF-8");
+					   fos.write(bufferb.getBytes());
 					   fos.write('\r');
+					   }else{/*else這段避免XML原文最下面有一行空白行，卻還要for.write(b.getBytes())給出值的冏境
+					       導致造成NullPointerException*/
+					   bufferb="";
 				   }
-				    fos.flush();
+					   
+				   } while(buffera !=null);
+					  
+				   
+				    fos.flush();			    
 				    fos.close();
-				    
+				    Log.i("fos.close()+", "pass");
 				}  catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.i("unsupportex", e.getMessage());
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.i("FileNotFoundException", e.getMessage());
 			}   catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();	
+				Log.i("IOException+", e.getMessage());
 		} 
 				
-		
+			Log.i("big52utf8()+", "pass");
 	}
 
 	//按下列表所要觸發的事件
@@ -177,8 +223,6 @@ public class NewsWeather extends Activity implements OnTouchListener {
 		public void onItemClick(AdapterView<?> parent, View view, int position,
 				long id) {
 			String temp = li.get(position).getLink();
-			Log.i("what", temp);
-			
 			Intent browserIntent = new Intent("android.intent.action.VIEW", Uri.parse(temp));
 			startActivity(browserIntent);
 
@@ -213,33 +257,78 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	private List<News> getRss(){
 
 		List<News> data = new ArrayList<News>();
-//		URL url = null;
-		
+//		URL url = null;//編碼為UTF-8直接解析的寫法		
 
 		try{
-//			url = new URL(path);				
+//            url = new URL(path);//編碼為UTF-8直接解析的寫法				
 			
 			/*//使用sax解析
 			SAXParserFactory spf = SAXParserFactory.newInstance();
 			SAXParser sp = spf.newSAXParser();
 			XMLReader xr = sp.getXMLReader();
 			MyHandler myHandler = new MyHandler();
-			xr.setContentHandler(myHandler);;				
-			xr.parse(new InputSource(url.openStream()));*/
+			xr.setContentHandler(myHandler);
+			FileInputStream fis = openFileInput("buffxml.xml");
+			InputSource A =new InputSource(path);
+		
+			String encode =A.getEncoding();//返回n u l l 
+			xr.parse(A);*/
 			
 			//使用android解析器
 			MyHandler myHandler = new MyHandler();
+			Log.i("myHandler", "pass");
 			
-			/*android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);*/
+			/*//編碼為UTF-8直接解析的寫法
+//			android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);*/
 			
+			
+	
 			FileInputStream fis = openFileInput("buffxml.xml");
 			android.util.Xml.parse(fis, Xml.Encoding.UTF_8, myHandler);
-			
+			Log.i("parse", "pass");
 			//取得RSS標題與內容列表
 			data = myHandler.getParasedData();
-
+			Log.i("getParasedData", "pass");
 		}catch(Exception e){
-			Log.d("tag", "wrong! "+e.getMessage());
+			Log.i("tag", "wrong! "+e.getMessage());
+		}
+		return data;
+	}
+	
+	//直接解析UTF8XML解析器
+	private List<News> getRss(String path){
+
+		List<News> data = new ArrayList<News>();
+		URL url = null;//編碼為UTF-8直接解析的寫法		
+
+		try{
+            url = new URL(path);//編碼為UTF-8直接解析的寫法				
+			
+			/*//使用sax解析
+			SAXParserFactory spf = SAXParserFactory.newInstance();
+			SAXParser sp = spf.newSAXParser();
+			XMLReader xr = sp.getXMLReader();
+			MyHandler myHandler = new MyHandler();
+			xr.setContentHandler(myHandler);
+			FileInputStream fis = openFileInput("buffxml.xml");
+			InputSource A =new InputSource(path);
+		
+			String encode =A.getEncoding();//返回n u l l 
+			xr.parse(A);*/
+			
+			//使用android解析器
+			MyHandler myHandler = new MyHandler();
+			Log.i("myHandler", "pass");
+			
+			//編碼為UTF-8直接解析的寫法
+			android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);
+			
+			Log.i("parse", "pass");
+			//取得RSS標題與內容列表
+			data = myHandler.getParasedData();
+			Log.i("getParasedData", "pass");
+		}catch(Exception e){
+			Log.i("tag", "wrong! "+e.getMessage());
 		}
 		return data;
 	}

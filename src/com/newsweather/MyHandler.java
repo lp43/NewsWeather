@@ -36,6 +36,7 @@ public class MyHandler extends DefaultHandler {
 	@Override//覆寫characters
 	public void characters(char[] ch, int start, int length)
 			throws SAXException {
+		Log.i("characters", "start");
 			String bufString = new String(ch,start,length);
 			switch(currentcase){
 			case in_title:
@@ -89,6 +90,7 @@ public class MyHandler extends DefaultHandler {
 	@Override//XML文件開始解析時呼叫此方法
 	public void startDocument() throws SAXException {
 		li = new ArrayList<News>();
+		Log.i("startDocument", "pass");
 	}
 	
 	@Override//XML文件結束解析時呼叫此方法
@@ -98,6 +100,7 @@ public class MyHandler extends DefaultHandler {
 	@Override//解析到Element開頭時的method
 	public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException {
+		Log.i("startElement", "start");
 		if(localName.equals("channel")){
 			currentcase=0;
 			return;
@@ -144,6 +147,7 @@ public class MyHandler extends DefaultHandler {
 		if(localName.equals("item")){
 				li.add(news);
 		}
+		Log.i("endElement", "pass");
 	}
 
 }
