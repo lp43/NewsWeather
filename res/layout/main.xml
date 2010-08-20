@@ -19,25 +19,25 @@
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="焦點新聞"
+			    android:text="雅虎新聞"
 		    />
 		      <Button
 			    android:id="@+id/button_tech"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="科技"
+			    android:text="天下雜誌"
 		    />
 		      <Button
 			    android:id="@+id/button_sports"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="體育"
+			    android:text="中時新聞"
 		    />
 		      <Button
 		        android:id="@+id/button_relax"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="娛樂"
+			    android:text="公路總局"
 		    />
 		      <Button
 			    android:id="@+id/button_focus"
