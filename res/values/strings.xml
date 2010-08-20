@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="hello">Hello World, NewsWeather!</string>
     <string name="app_name">NewsWeather</string>
+    <string name="str_dialog_title">請稍待片刻</string>
+    <string name="str_dialog_body">新聞載入中...</string>
 </resources>

@@ -22,11 +22,15 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.util.Xml;
 import android.view.MotionEvent;
@@ -54,8 +58,10 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	private List<News> li1,li2,li3,li4 = new ArrayList<News>();//容器
 	String Encode;  //判斷xml文件編碼並儲存在Encode
 	String bufferb;  //bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間
+	private HashMap<String,String> path;//存放網址路徑的容器
+	public ProgressDialog myDialog;
 	
-	private HashMap<String,String> path;
+	
 	String path1="http://tw.news.yahoo.com/rss/realtime";//雅虎UTF-8	
 	String path2="http://www.cw.com.tw/RSS/cw_content.xml";//天下雜誌BIG5	
 	String path3="http://rss.chinatimes.com/rss/focus-u.rss"; //中時UTF-8
@@ -68,6 +74,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	String path4="http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx";//交通部公路總局UTF8
 	int frequently;
 	int nowview=1;
+	private Handler handler,handler2;
 	
 	
 	
@@ -76,8 +83,14 @@ public class NewsWeather extends Activity implements OnTouchListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        Log.i("startProgress", "start");
+        progressDialog();
         
-        path=new HashMap<String,String>();
+        
+        
+        Thread brother = new Thread(){
+        	public void run(){
+        	path=new HashMap<String,String>();
         	path.put("path1", "http://tw.news.yahoo.com/rss/realtime");
         	path.put("path2", "http://www.cw.com.tw/RSS/cw_content.xml");
         	path.put("path3", "http://rss.chinatimes.com/rss/focus-u.rss");
@@ -90,6 +103,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
             	
             		checkEncode(path.get("path"+frequently));  //先判斷xml的編碼格式
                     encodeTransfer(path.get("path"+frequently));  //進行big5→utf-8轉碼
+
                     switch(frequently){
                     	case 1:
                     		li1 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
@@ -107,9 +121,6 @@ public class NewsWeather extends Activity implements OnTouchListener {
                            
             }
         	    	
-        	
-        	
-
         button_foucs = (Button) findViewById(R.id.button_focus);
         button_tech = (Button) findViewById(R.id.button_tech);
         button_sports = (Button) findViewById(R.id.button_sports);
@@ -120,47 +131,87 @@ public class NewsWeather extends Activity implements OnTouchListener {
         llv3 = (ListView) findViewById(R.id.list3);
         llv4 = (ListView) findViewById(R.id.list4);
         slv = (HorizontalScrollView) findViewById(R.id.hsv);
-        
-        //設定ListView的樣版和文字來源
-        llv1.setAdapter(new NewsAdapter(NewsWeather.this,li1));
-        llv2.setAdapter(new NewsAdapter(NewsWeather.this,li2));
-        llv3.setAdapter(new NewsAdapter(NewsWeather.this,li3));
-        llv4.setAdapter(new NewsAdapter(NewsWeather.this,li4));
        
-        //讓列表有點選的功能
-        llv1.setOnItemClickListener(listtener);
-        llv2.setOnItemClickListener(listtener);
-        llv3.setOnItemClickListener(listtener);
-        llv4.setOnItemClickListener(listtener);
-        
-        
-        button_foucs.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	slv.smoothScrollTo(0,0);
-            	nowview=1;
-            }
-        });
-        button_tech.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	slv.smoothScrollTo(800,0);
-            	nowview=2;
-            }
-        });
-        button_sports.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	slv.smoothScrollTo(1600,0);
-            	nowview=3;
-            }
-        });
-        button_relax.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	slv.smoothScrollTo(2400,0);
-            	nowview=4;
-            }
-        });
-       
-        slv.setOnTouchListener(this);
+        //寄簡訊請主執行緒的Handler繼續處理事件
+        Message message = handler.obtainMessage(1);
+        handler.sendMessage(message);
+        Log.i("handlestatus", "endsendmess");
+        	}
+    };
+    brother.start();
+    
+    handler = new Handler(){
+	    @Override 
+	    public void handleMessage(Message msg){ 
+	    	switch(msg.what){
+	    		
+	    		case 1:
+	    	slv.setOnTouchListener(NewsWeather.this);
+	        //設定ListView的樣版和文字來源
+	        llv1.setAdapter(new NewsAdapter(NewsWeather.this,li1));
+	        llv2.setAdapter(new NewsAdapter(NewsWeather.this,li2));
+	        llv3.setAdapter(new NewsAdapter(NewsWeather.this,li3));
+	        llv4.setAdapter(new NewsAdapter(NewsWeather.this,li4));
+	        
+	        //讓列表有點選的功能
+	        llv1.setOnItemClickListener(listtener);
+	        llv2.setOnItemClickListener(listtener);
+	        llv3.setOnItemClickListener(listtener);
+	        llv4.setOnItemClickListener(listtener);
+	        
+	        
+	        button_foucs.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	            	slv.smoothScrollTo(0,0);
+	            	nowview=1;
+	            }
+	        });
+	        button_tech.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	            	slv.smoothScrollTo(800,0);
+	            	nowview=2;
+	            }
+	        });
+	        button_sports.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	            	slv.smoothScrollTo(1600,0);
+	            	nowview=3;
+	            }
+	        });
+	        button_relax.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	            	slv.smoothScrollTo(2400,0);
+	            	nowview=4;
+	            }
+	        });
+	        
+	        //把ProgressDialog關掉
+	        myDialog.dismiss();
+	        
+	    	break;
+	    	
+	    	}
+	    
+	    }
+	    
+      };
+    
+   
     }
+    
+    //ProgressDialog對話框
+    private void progressDialog(){
+    	final CharSequence strDialogTitle = getString(R.string.str_dialog_title);
+    	final CharSequence strDialogBody = getString(R.string.str_dialog_body);
+    	
+    	//顯示Progress對話方塊
+    	myDialog = ProgressDialog.show(NewsWeather.this, strDialogTitle,strDialogBody);
+    	 Log.i("startProgressThread", "start");
+    	 
+    }
+    
+	
+    
     
     private void checkEncode(String path){//判斷此xml的格式
     	URL url = null;
