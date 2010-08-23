@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -33,6 +35,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.util.Xml;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -59,7 +63,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	String Encode;  //判斷xml文件編碼並儲存在Encode
 	String bufferb;  //bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間
 	private HashMap<String,String> path;//存放網址路徑的容器
-	public ProgressDialog myDialog;
+	public ProgressDialog myDialog;  //資料載入中的等待視窗
 	
 	
 	String path1="http://tw.news.yahoo.com/rss/realtime";//雅虎UTF-8	
@@ -75,7 +79,8 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	int frequently;
 	int nowview=1;
 	private Handler handler,handler2;
-	
+	private DB myDB;
+	private Cursor cursor;
 	
 	
     /** Called when the activity is first created. */
@@ -84,42 +89,70 @@ public class NewsWeather extends Activity implements OnTouchListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         Log.i("startProgress", "start");
+        myDB = new DB(this);
+//        myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime");
+//        myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml");
+//        myDB.insert("chinatimes", "http://rss.chinatimes.com/rss/focus-u.rss");
+//        myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx");
         progressDialog();
         
         
         
         Thread brother = new Thread(){
         	public void run(){
+        		
+        		Looper.prepare();	//不懂為什麼這行寫出來後，都不用抓錯，就直接跳進空白的程式了
+        		
         	path=new HashMap<String,String>();
         	path.put("path1", "http://tw.news.yahoo.com/rss/realtime");
         	path.put("path2", "http://www.cw.com.tw/RSS/cw_content.xml");
         	path.put("path3", "http://rss.chinatimes.com/rss/focus-u.rss");
         	path.put("path4", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx");
         
-        	
-            for(int i =1; i<5;i++){
-            	Log.i("foreach", String.valueOf(i));
-            	frequently=i;
+        	Log.i("loadpath", "startToLoadData");
+//        	try{	
+	            for(int i =1; i<5;i++){
+	            	Log.i("foreach", String.valueOf(i));
+	            	frequently=i;
+	            		Log.i("intoforloop", "this is " +frequently+" time to do this.");
+	            		checkEncode(path.get("path"+frequently));  //先判斷xml的編碼格式
+	                    encodeTransfer(path.get("path"+frequently));  //進行big5→utf-8轉碼
+	            	
+	                    switch(frequently){
+	                    	case 1:
+	                    		li1 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
+	                    		break;
+	                    	case 2:
+	                    		li2 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
+	                    		break;
+	                    	case 3:
+	                    		li3 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
+	                    		break;
+	                    	case 4:
+	                    		li4 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
+	                    		break;
+	                    }
+	            }
+//            }catch(Exception e){
+//            	new AlertDialog.Builder(NewsWeather.this)
+//				.setMessage("請確認您的網路連線...")
+//				.setTitle("出錯了")
+//				
+//				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+//					
+//					@Override
+//					public void onClick(DialogInterface dialog, int which) {
+//						NewsWeather.this.finish();	
+//						
+//					}
+//				})
+//				.show();
+//            	Log.i("Exception",e.getMessage());
             	
-            		checkEncode(path.get("path"+frequently));  //先判斷xml的編碼格式
-                    encodeTransfer(path.get("path"+frequently));  //進行big5→utf-8轉碼
-
-                    switch(frequently){
-                    	case 1:
-                    		li1 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
-                    		break;
-                    	case 2:
-                    		li2 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
-                    		break;
-                    	case 3:
-                    		li3 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
-                    		break;
-                    	case 4:
-                    		li4 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
-                    		break;
-                    }
+            	
+//            }
                            
-            }
+            
         	    	
         button_foucs = (Button) findViewById(R.id.button_focus);
         button_tech = (Button) findViewById(R.id.button_tech);
@@ -138,9 +171,11 @@ public class NewsWeather extends Activity implements OnTouchListener {
         Log.i("handlestatus", "endsendmess");
         	}
     };
+    Log.i("startbrother", "start");
     brother.start();
     
     handler = new Handler(){
+    	
 	    @Override 
 	    public void handleMessage(Message msg){ 
 	    	switch(msg.what){
@@ -185,9 +220,10 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	            }
 	        });
 	        
+	    
 	        //把ProgressDialog關掉
 	        myDialog.dismiss();
-	        
+	        Log.i("prepareToClosePD", "closed");
 	    	break;
 	    	
 	    	}
@@ -218,7 +254,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
     	String encode="";
     	int a,b;
     	 try {
-    		   Log.i("intoCeckEncode:"+frequently, "pass");
+    		   Log.i("intoCeckEncode: ",frequently+ "pass");
 			   url = new URL(path);
 
 			   InputStream is = url.openConnection().getInputStream();
@@ -230,8 +266,8 @@ public class NewsWeather extends Activity implements OnTouchListener {
 			   b=buffera.indexOf("\"", a+1);
 			   encode = buffera.substring(a, b);
 			   Log.i("test", "test");
-    	 }catch (IOException e) {
-				Log.i("IOException+", e.getMessage());
+    	 }catch (Exception e) {
+				Log.i("Exception+", e.getMessage());
 				
 				new AlertDialog.Builder(NewsWeather.this)
 				.setTitle("很抱歉！")
@@ -404,6 +440,44 @@ public class NewsWeather extends Activity implements OnTouchListener {
 			Log.i("tag", "wrong! "+e.getMessage());
 		}
 		return data;
+	}
+	
+	//建立Menu清單
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		
+		menu.add(0, 0, 0, "設定");
+		menu.add(0, 1, 1, "關於");
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	//建立Menu清單的觸發事件
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch(item.getItemId()){
+			case 0:
+				Intent intent = new Intent();
+				intent.setClass(NewsWeather.this, Setting.class);
+				startActivity(intent);
+				NewsWeather.this.finish();
+				break;
+			case 1:
+				new AlertDialog.Builder(NewsWeather.this)
+				.setMessage("作者：Camangi")
+				.setTitle("關於")
+				
+				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+		
+					}
+				})
+				.show();
+		}
+		return super.onOptionsItemSelected(item);
 	}
 	
 

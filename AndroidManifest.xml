@@ -14,6 +14,7 @@
         </activity>
 
     
+<activity android:name="Setting"></activity>
 </application>
   <uses-permission android:name="android.permission.INTERNET"/>
 
