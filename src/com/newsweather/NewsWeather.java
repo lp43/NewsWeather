@@ -90,18 +90,19 @@ public class NewsWeather extends Activity implements OnTouchListener {
         setContentView(R.layout.main);
         Log.i("startProgress", "start");
         myDB = new DB(this);
-//        myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime");
-//        myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml");
-//        myDB.insert("chinatimes", "http://rss.chinatimes.com/rss/focus-u.rss");
-//        myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx");
-        progressDialog();
+        myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",1);
+//        myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",1);
+//        myDB.insert("chinatimes", "http://rss.chinatimes.com/rss/focus-u.rss",1);
+//        myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",1);
+        
+        myDB.close();
+//        progressDialog();
         
         
-        
+      /*  
         Thread brother = new Thread(){
         	public void run(){
         		
-        		Looper.prepare();	//不懂為什麼這行寫出來後，都不用抓錯，就直接跳進空白的程式了
         		
         	path=new HashMap<String,String>();
         	path.put("path1", "http://tw.news.yahoo.com/rss/realtime");
@@ -151,7 +152,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
             	
             	
 //            }
-                           
+*/                           
             
         	    	
         button_foucs = (Button) findViewById(R.id.button_focus);
@@ -164,7 +165,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
         llv3 = (ListView) findViewById(R.id.list3);
         llv4 = (ListView) findViewById(R.id.list4);
         slv = (HorizontalScrollView) findViewById(R.id.hsv);
-       
+      /* 
         //寄簡訊請主執行緒的Handler繼續處理事件
         Message message = handler.obtainMessage(1);
         handler.sendMessage(message);
@@ -172,21 +173,21 @@ public class NewsWeather extends Activity implements OnTouchListener {
         	}
     };
     Log.i("startbrother", "start");
-    brother.start();
-    
+    brother.start();*/
+   /* 
     handler = new Handler(){
     	
 	    @Override 
 	    public void handleMessage(Message msg){ 
 	    	switch(msg.what){
 	    		
-	    		case 1:
+	    		case 1:*/
 	    	slv.setOnTouchListener(NewsWeather.this);
 	        //設定ListView的樣版和文字來源
-	        llv1.setAdapter(new NewsAdapter(NewsWeather.this,li1));
+	      /*  llv1.setAdapter(new NewsAdapter(NewsWeather.this,li1));
 	        llv2.setAdapter(new NewsAdapter(NewsWeather.this,li2));
 	        llv3.setAdapter(new NewsAdapter(NewsWeather.this,li3));
-	        llv4.setAdapter(new NewsAdapter(NewsWeather.this,li4));
+	        llv4.setAdapter(new NewsAdapter(NewsWeather.this,li4));*/
 	        
 	        //讓列表有點選的功能
 	        llv1.setOnItemClickListener(listtener);
@@ -220,17 +221,17 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	            }
 	        });
 	        
-	    
+	    /*
 	        //把ProgressDialog關掉
 	        myDialog.dismiss();
 	        Log.i("prepareToClosePD", "closed");
-	    	break;
+	    	break;*/
 	    	
-	    	}
+	/*    	}
 	    
 	    }
 	    
-      };
+      };*/
     
    
     }
@@ -465,7 +466,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 				break;
 			case 1:
 				new AlertDialog.Builder(NewsWeather.this)
-				.setMessage("作者：Camangi")
+				.setMessage("作者：Camangi Coproator")
 				.setTitle("關於")
 				
 				.setPositiveButton("確認", new DialogInterface.OnClickListener() {

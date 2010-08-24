@@ -9,15 +9,18 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DB extends SQLiteOpenHelper{
 	private static final String DATABASE_NAME = "database.db";
-	private static final int DATABASE_VERSION=1;
-	private static final String DATABASE_TABLE = "defaultpath";
+	private static final int DATABASE_VERSION=2;
+	private static final String DATABASE_TABLE = "allpath";
 	private static final String DATABASE_CREATE=
-		"create table defaultpath("
-		+"id INTEGER PRIMARY KEY,"
-		+"sourcename TEXT,"
-		+"path TEXT"
+		"create table "+ DATABASE_TABLE +" ("
+		+"_id INTEGER PRIMARY KEY,"
+		+"_name TEXT,"
+		+"_path TEXT,"
+		+"_open INTEGER"  
 		+");";
-		
+		//0 is false
+	
+	
 		public DB(Context context){
 		super(context, DATABASE_NAME,null,DATABASE_VERSION);	
 		}
@@ -35,18 +38,20 @@ public class DB extends SQLiteOpenHelper{
 			onCreate(db);
 		}
 		
-		public Cursor getSourcename(){
+		
+		public Cursor getAll(){
 			SQLiteDatabase db = this.getReadableDatabase();
-			Cursor cursor = db.query(DATABASE_TABLE, new String[]{"sourcename"}, null, null, null, null, null);
+			Cursor cursor = db.query(DATABASE_TABLE, new String[]{"_id","_name","_path","_open"}, null, null, null, null, null);
 			return cursor;
 		}
 		
-		public void insert(String source,String path){
+		public void insert(String name,String path,Integer open){
 			SQLiteDatabase db = this.getWritableDatabase();
 			//將新增的值放入ContentValues
 			ContentValues cv = new ContentValues();
-			cv.put("sourcename", source);
-			cv.put("path", path);
+			cv.put("_name", name);
+			cv.put("_path", path);
+			cv.put("_open", open);
 			db.insert(DATABASE_TABLE, null, cv);
 		}
 		
