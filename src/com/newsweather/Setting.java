@@ -18,18 +18,30 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ResourceCursorAdapter;
 import android.widget.SimpleAdapter;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class Setting extends Activity {
 
 	private DB myDB;
+	@Override
+	protected void onPause() {
+		Setting.this.finish();
+		Intent intent = new Intent();
+		intent.setClass(Setting.this, NewsWeather.class);
+		startActivity(intent);
+		super.onPause();
+	}
+
 	private Cursor cursor;
 	private ListView lv;
 	public CheckBox myCheckBox;
@@ -44,39 +56,45 @@ public class Setting extends Activity {
 		myDB = new DB(this);		
  		cursor = myDB.getAll();
 
+ 		lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(Setting.this, android.R.layout.simple_list_item_multiple_choice,cursor, new String[]{"_name"}, new int[]{android.R.id.text1});
-
-		lv.setAdapter(adapter);  
-		lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		lv.setAdapter(adapter);
+		while(cursor.moveToNext()){
+		String a=cursor.getString(cursor.getColumnIndex("_open"));
 		
+			if(a.equals("0")){
+				lv.setItemChecked(cursor.getPosition(), false);
+			}else{
+				lv.setItemChecked(cursor.getPosition(), true);
+			}
+		}
+
+
 		lv.setOnItemClickListener(new OnItemClickListener(){
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				SparseBooleanArray d=null;
+				CheckedTextView ct = (CheckedTextView) view;
 				
-				if(position==0){
-					 d=lv.getCheckedItemPositions();
-						boolean /e=d.get(0);
+				String name=ct.getText().toString();
+				Toast.makeText(Setting.this, "你點擊的是"+name,
+	                    300).show();
 				
-						e=d.get(3);
-						e=d.get(4);
-						e=d.get(5);
-						e=d.get(6);
-						e=d.get(7);
-						e=d.get(8);
-						e=d.get(9);
-						e=d.get(10);
-						e=d.get(11);
-						e=d.get(12);
-						e=d.get(13);
-						e=d.get(14);
-						e=d.get(15);
+				//如果原本有被點選，再按一次就將database的資料改成false，取消點選
+					if(ct.isChecked()){
+						myDB.update(id,false);
+					}else{
+						myDB.update(id,true);
+					}
+				Log.i("checkedname", name);
+				
+			
+						
 				}
 			
 				
-			}
+			
 			
 		});
 		

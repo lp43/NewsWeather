@@ -1,6 +1,7 @@
 package com.newsweather;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -28,6 +29,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -64,6 +66,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	String bufferb;  //bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間
 	private HashMap<String,String> path;//存放網址路徑的容器
 	public ProgressDialog myDialog;  //資料載入中的等待視窗
+	File file;
 	
 	
 	String path1="http://tw.news.yahoo.com/rss/realtime";//雅虎UTF-8	
@@ -83,19 +86,27 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	private Cursor cursor;
 	
 	
+	private void getDefaultData(){
+		myDB = new DB(this);
+	      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",false);
+	      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);
+	      myDB.insert("chinatimes", "http://rss.chinatimes.com/rss/focus-u.rss",true);
+	      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",true);
+		myDB.close();
+		
+	}
+	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         Log.i("startProgress", "start");
-        myDB = new DB(this);
-        myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",1);
-//        myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",1);
-//        myDB.insert("chinatimes", "http://rss.chinatimes.com/rss/focus-u.rss",1);
-//        myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",1);
-        
-        myDB.close();
+      
+        //如果沒有資料庫，才建立預設資料
+        File file = new File("/data/data/com.newsweather/databases/database.db");
+        if(!file.exists())getDefaultData();//取得預設的新聞資料
+
 //        progressDialog();
         
         
@@ -466,7 +477,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 				break;
 			case 1:
 				new AlertDialog.Builder(NewsWeather.this)
-				.setMessage("作者：Camangi Coproator")
+				.setMessage("作者：Camangi Coporation")
 				.setTitle("關於")
 				
 				.setPositiveButton("確認", new DialogInterface.OnClickListener() {

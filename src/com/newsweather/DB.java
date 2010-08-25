@@ -16,7 +16,7 @@ public class DB extends SQLiteOpenHelper{
 		+"_id INTEGER PRIMARY KEY,"
 		+"_name TEXT,"
 		+"_path TEXT,"
-		+"_open INTEGER"  
+		+"_open BOOLEAN"  
 		+");";
 		//0 is false
 	
@@ -45,7 +45,7 @@ public class DB extends SQLiteOpenHelper{
 			return cursor;
 		}
 		
-		public void insert(String name,String path,Integer open){
+		public void insert(String name,String path,Boolean open){
 			SQLiteDatabase db = this.getWritableDatabase();
 			//將新增的值放入ContentValues
 			ContentValues cv = new ContentValues();
@@ -58,6 +58,13 @@ public class DB extends SQLiteOpenHelper{
 		public void delete(){
 			SQLiteDatabase db = this.getWritableDatabase();
 			//更多程式碼
+		}
+		
+		public void update(long id,Boolean open){
+			SQLiteDatabase db = this.getWritableDatabase();
+			ContentValues cv = new ContentValues();
+			cv.put("_open", open);
+			db.update(DATABASE_TABLE, cv, "_id=?", new String[]{String.valueOf(id)});
 		}
 		
 }
