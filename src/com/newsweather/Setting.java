@@ -33,14 +33,8 @@ import android.widget.Toast;
 public class Setting extends Activity {
 
 	private DB myDB;
-	@Override
-	protected void onPause() {
-		Setting.this.finish();
-		Intent intent = new Intent();
-		intent.setClass(Setting.this, NewsWeather.class);
-		startActivity(intent);
-		super.onPause();
-	}
+
+
 
 	private Cursor cursor;
 	private ListView lv;

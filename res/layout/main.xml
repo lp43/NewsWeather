@@ -43,87 +43,9 @@
 			    android:id="@+id/button_focus"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
-			    android:text="測試專用"
+			    android:text="按我新增"
 		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="測試專用"
-		    />
-		    
+		
 		    
 		     
       </LinearLayout> 

@@ -166,7 +166,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 */                           
             
         	    	
-        button_foucs = (Button) findViewById(R.id.button_focus);
+     /*   button_foucs = (Button) findViewById(R.id.button_focus);
         button_tech = (Button) findViewById(R.id.button_tech);
         button_sports = (Button) findViewById(R.id.button_sports);
         button_relax = (Button) findViewById(R.id.button_relax);
@@ -175,7 +175,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
         llv2 = (ListView) findViewById(R.id.list2);
         llv3 = (ListView) findViewById(R.id.list3);
         llv4 = (ListView) findViewById(R.id.list4);
-        slv = (HorizontalScrollView) findViewById(R.id.hsv);
+        slv = (HorizontalScrollView) findViewById(R.id.hsv);*/
       /* 
         //寄簡訊請主執行緒的Handler繼續處理事件
         Message message = handler.obtainMessage(1);
@@ -193,7 +193,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	    	switch(msg.what){
 	    		
 	    		case 1:*/
-	    	slv.setOnTouchListener(NewsWeather.this);
+	    	/*slv.setOnTouchListener(NewsWeather.this);*/
 	        //設定ListView的樣版和文字來源
 	      /*  llv1.setAdapter(new NewsAdapter(NewsWeather.this,li1));
 	        llv2.setAdapter(new NewsAdapter(NewsWeather.this,li2));
@@ -201,6 +201,67 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	        llv4.setAdapter(new NewsAdapter(NewsWeather.this,li4));*/
 	        
 	        //讓列表有點選的功能
+	       /* llv1.setOnItemClickListener(listtener);
+	        llv2.setOnItemClickListener(listtener);
+	        llv3.setOnItemClickListener(listtener);
+	        llv4.setOnItemClickListener(listtener);
+	        
+	        
+	        button_foucs.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	            	slv.smoothScrollTo(0,0);
+	            	nowview=1;
+	            }
+	        });
+	        button_tech.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	            	slv.smoothScrollTo(800,0);
+	            	nowview=2;
+	            }
+	        });
+	        button_sports.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	            	slv.smoothScrollTo(1600,0);
+	            	nowview=3;
+	            }
+	        });
+	        button_relax.setOnClickListener(new View.OnClickListener() {
+	            public void onClick(View v) {
+	            	slv.smoothScrollTo(2400,0);
+	            	nowview=4;
+	            }
+	        });*/
+	        
+	    /*
+	        //把ProgressDialog關掉
+	        myDialog.dismiss();
+	        Log.i("prepareToClosePD", "closed");
+	    	break;*/
+	    	
+	/*    	}
+	    
+	    }
+	    
+      };*/
+    
+   
+    }
+    
+    @Override
+	protected void onResume() {
+	
+		super.onResume();
+		   button_foucs = (Button) findViewById(R.id.button_focus);
+	        button_tech = (Button) findViewById(R.id.button_tech);
+	        button_sports = (Button) findViewById(R.id.button_sports);
+	        button_relax = (Button) findViewById(R.id.button_relax);
+	       
+	        llv1 = (ListView) findViewById(R.id.list);
+	        llv2 = (ListView) findViewById(R.id.list2);
+	        llv3 = (ListView) findViewById(R.id.list3);
+	        llv4 = (ListView) findViewById(R.id.list4);
+	        slv = (HorizontalScrollView) findViewById(R.id.hsv);
+	        slv.setOnTouchListener(NewsWeather.this);
 	        llv1.setOnItemClickListener(listtener);
 	        llv2.setOnItemClickListener(listtener);
 	        llv3.setOnItemClickListener(listtener);
@@ -231,23 +292,10 @@ public class NewsWeather extends Activity implements OnTouchListener {
 	            	nowview=4;
 	            }
 	        });
-	        
-	    /*
-	        //把ProgressDialog關掉
-	        myDialog.dismiss();
-	        Log.i("prepareToClosePD", "closed");
-	    	break;*/
-	    	
-	/*    	}
-	    
-	    }
-	    
-      };*/
-    
-   
-    }
-    
-    //ProgressDialog對話框
+		
+	}
+
+	//ProgressDialog對話框
     private void progressDialog(){
     	final CharSequence strDialogTitle = getString(R.string.str_dialog_title);
     	final CharSequence strDialogBody = getString(R.string.str_dialog_body);
@@ -473,7 +521,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 				Intent intent = new Intent();
 				intent.setClass(NewsWeather.this, Setting.class);
 				startActivity(intent);
-				NewsWeather.this.finish();
+
 				break;
 			case 1:
 				new AlertDialog.Builder(NewsWeather.this)
