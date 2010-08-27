@@ -81,7 +81,6 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 //	String path="http://www.ait.org.tw/zh/press-releases.rss";//美國在台協會UTF8→有編碼的問題(來源檔有亂碼)
 //	String path="http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp";//台東大學圖書館BIG5
 	String path4="http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx";//交通部公路總局UTF8
-	int newscount;//這個值用來計算總共有幾篇新聞
 	int frequently;
 	int nowview=1;
 	private Handler handler,handler2;
@@ -89,6 +88,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	private Cursor cursor;
 	String name,path;//將資料庫的name,path,int存到hashmap用的變數
 	int id;
+	int button_order;//記錄頻道按鈕的排序位置
 	
 	LinearLayout up_layout,down_layout;
 	private HashMap<Integer,String> namelist;
@@ -272,8 +272,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	up_layout.removeAllViews();
 	down_layout.removeAllViews();
 	
-	//初始化新聞加總newscount值為0
-	newscount=1;
+	button_order=1;
 	
 	//專門用來放每一筆的name，好讓刪除視窗出現時，能對應到
 	namelist = new HashMap();
@@ -293,7 +292,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
             button.setOnLongClickListener(this);
             button.setId(id);
             button.setOnClickListener(this);
-
+            button.setTag(button_order);
             
             
             //動態新增ListView
@@ -306,7 +305,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
             //將取出來的name存入容器
             namelist.put(id,name);
             
-            
+            button_order++;
 		}
         
 			//滑動選單的初始設定
@@ -470,10 +469,10 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 			if (getstart-getend >0){
 				slv.smoothScrollBy(800, 0);
 				
-					if(nowview<=4){
+					if(nowview<=button_order){
 						nowview++;
 					}else{
-						nowview=4;
+						nowview=button_order;
 					}
 				
 			}else{
@@ -571,8 +570,8 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	
 	@Override//Button的觸發事件
 	public void onClick(View v) {
-
-    	slv.smoothScrollTo((v.getId()-1)*800,0);
+		int a=Integer.parseInt(v.getTag().toString());
+    	slv.smoothScrollTo(((a-1)*800),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
     	
 //		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
     	
@@ -609,13 +608,13 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 			}
 		})
 		
-		.show();
+		.show(); 
 		
 		}catch(Exception e){
 			new AlertDialog.Builder(NewsWeather.this)
 		
 		
-		.setMessage("已經剩1筆了，不要刪了吧！")
+		.setMessage("程式出錯了，將返回！")
 		.setTitle("注意！")
 		
 		.setPositiveButton("確認", new DialogInterface.OnClickListener() {
