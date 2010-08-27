@@ -311,6 +311,14 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
             
             button_order++;
 		}
+		
+			//最後生產一個新增頻道按鈕
+			button = new Button(NewsWeather.this);
+			button.setText("新增頻道");
+			LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
+			up_layout.addView(button,param);
+			button.setOnClickListener(this);
+			button.setId(99);
         
 			//滑動選單的初始設定
 	        slv = (HorizontalScrollView) findViewById(R.id.hsv);
@@ -536,7 +544,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// TODO Auto-generated method stub
 		
-		menu.add(0, 0, 0, "設定");
+		menu.add(0, 0, 0, "頻道清單");
 		menu.add(0, 1, 1, "關於");
 		menu.getItem(0).setIcon(R.drawable.setting);
 		menu.getItem(1).setIcon(R.drawable.about);
@@ -574,10 +582,69 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	
 	@Override//Button的觸發事件
 	public void onClick(View v) {
+		switch(v.getId()){
+		
+		case 99:
+			Log.i("into", "99");
+			LayoutInflater factory = LayoutInflater.from(NewsWeather.this);
+            final View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
+				new AlertDialog.Builder(NewsWeather.this)
+				.setTitle("新增頻道")
+				.setView(addchannel_layout)
+				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog, int which) {	
+							
+								
+								EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
+								String newchannelname=new_channel_name.getText().toString();
+								EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
+								String newchannelpath=new_channel_path.getText().toString();
+								
+								if(newchannelname.equals("") ||newchannelpath.equals("")){
+									new AlertDialog.Builder(NewsWeather.this)
+									.setTitle("錯誤！")
+									.setMessage("請輸入完整方可新增...")
+									.setIcon(R.drawable.alert_dialog_icon)
+									.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+
+										@Override
+										public void onClick(DialogInterface dialog, int which) {}
+										})
+									
+									.show();
+									
+									
+								}else{
+									myDB=new DB(NewsWeather.this);
+									myDB.insert(newchannelname, newchannelpath, true);
+									onResume();
+	
+								}
+								
+						}
+						})
+				
+				.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+					
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							onResume();
+						}
+				})
+				.show(); 
+			break;
+			
+		default:
+			Log.i("into", "default");
 		int a=Integer.parseInt(v.getTag().toString());
     	slv.smoothScrollTo(((a-1)*800),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
     	
 //		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
+    		break;
+		}
+		
     	
     
 	}
@@ -591,6 +658,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 		new AlertDialog.Builder(NewsWeather.this)
 //		.setView(R.layout.file_row)
 		.setTitle("對於 "+namelist.get(v.getId())+" 頻道，你想要...？")
+		.setIcon(R.drawable.q01)
 		.setItems(new String[]{"隱藏","重新命名","刪除"}, new DialogInterface.OnClickListener(){
 			
 			@Override
@@ -605,7 +673,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 					LayoutInflater factory = LayoutInflater.from(NewsWeather.this);
 			            final View rename_layout = factory.inflate(R.layout.alert_dialog_rename, null);
 							new AlertDialog.Builder(NewsWeather.this)
-							.setTitle("替"+namelist.get(v.getId())+"重新命名")
+							.setTitle("替 "+namelist.get(v.getId())+" 重新命名")
 							.setView(rename_layout)
 							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
 
@@ -614,8 +682,25 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 											
 											EditText edit_rename = (EditText) rename_layout.findViewById(R.id.edit_rename);
 											String rename=edit_rename.getText().toString();
+											
+											if(rename.equals("")){
+												new AlertDialog.Builder(NewsWeather.this)
+												.setTitle("錯誤！")
+												.setMessage("請輸入完整才能更名...")
+												.setIcon(R.drawable.alert_dialog_icon)
+												.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+
+													@Override
+													public void onClick(DialogInterface dialog, int which) {}
+													})
+												
+												.show();
+												
+												
+											}else{
 											myDB.reName(v.getId(), rename);
 											onResume();
+											}
 
 									}
 									})

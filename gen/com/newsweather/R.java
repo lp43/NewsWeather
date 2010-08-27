@@ -21,24 +21,28 @@ public final class R {
         public static final int gallery_photo_3=0x7f020004;
         public static final int gallery_photo_4=0x7f020005;
         public static final int icon=0x7f020006;
-        public static final int setting=0x7f020007;
+        public static final int q01=0x7f020007;
+        public static final int setting=0x7f020008;
     }
     public static final class id {
         public static final int dialog_rename=0x7f060000;
-        public static final int down_layout=0x7f060007;
-        public static final int edit_rename=0x7f060001;
-        public static final int hsv=0x7f060006;
-        public static final int news_date=0x7f060003;
-        public static final int news_img=0x7f060004;
-        public static final int news_title=0x7f060002;
-        public static final int setView=0x7f060008;
-        public static final int up_layout=0x7f060005;
+        public static final int down_layout=0x7f060009;
+        public static final int edit_rename=0x7f060003;
+        public static final int hsv=0x7f060008;
+        public static final int new_channel_name=0x7f060001;
+        public static final int new_channel_path=0x7f060002;
+        public static final int news_date=0x7f060005;
+        public static final int news_img=0x7f060006;
+        public static final int news_title=0x7f060004;
+        public static final int setView=0x7f06000a;
+        public static final int up_layout=0x7f060007;
     }
     public static final class layout {
-        public static final int alert_dialog_rename=0x7f030000;
-        public static final int file_row=0x7f030001;
-        public static final int main=0x7f030002;
-        public static final int setting=0x7f030003;
+        public static final int alert_dialog_newchannel=0x7f030000;
+        public static final int alert_dialog_rename=0x7f030001;
+        public static final int file_row=0x7f030002;
+        public static final int main=0x7f030003;
+        public static final int setting=0x7f030004;
     }
     public static final class string {
         public static final int app_name=0x7f050000;
