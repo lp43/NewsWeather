@@ -11,74 +11,32 @@
         android:scrollbars="none">
         
       <LinearLayout 
+      android:id="@+id/up_layout"
       android:orientation="horizontal"
-	     android:layout_width="fill_parent"  
+	     android:layout_width="fill_parent"       
 	     android:layout_height="wrap_content">
-	       
-		    <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="雅虎新聞"
-		    />
-		      <Button
-			    android:id="@+id/button_tech"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="天下雜誌"
-		    />
-		      <Button
-			    android:id="@+id/button_sports"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="中時新聞"
-		    />
-		      <Button
-		        android:id="@+id/button_relax"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="公路總局"
-		    />
-		      <Button
-			    android:id="@+id/button_focus"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:text="按我新增"
-		    />
-		
-		    
-		     
+
+     
       </LinearLayout> 
-       </HorizontalScrollView>
-     <HorizontalScrollView
+   </HorizontalScrollView>
+       
+       
+   <HorizontalScrollView
      	android:id="@+id/hsv"
-    android:layout_width="fill_parent"
+    	android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none">
         
-      <LinearLayout android:background="#ff666666"
-      android:orientation="horizontal"
+      <LinearLayout 
+         android:id="@+id/down_layout"
+         android:background="#ff666666"
+         android:orientation="horizontal"
 	     android:layout_width="fill_parent"  
 	     android:layout_height="wrap_content">
-	       
-		<ListView
-		android:id="@+id/list"
-		android:layout_width="800dip"
-		android:layout_height="fill_parent"/>		    
-		 	<ListView
-		android:id="@+id/list2"
-		android:layout_width="800dip"
-		android:layout_height="fill_parent"/>	
-			<ListView
-		android:id="@+id/list3"
-		android:layout_width="800dip"
-		android:layout_height="fill_parent"/>	   
-		 			<ListView
-		android:id="@+id/list4"
-		android:layout_width="800dip"
-		android:layout_height="fill_parent"/>    
+	   
+	   
       </LinearLayout> 
-       </HorizontalScrollView>
+   </HorizontalScrollView>
 		    
 		   
 </LinearLayout>

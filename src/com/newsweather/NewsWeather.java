@@ -41,6 +41,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.webkit.WebView;
 import android.widget.AdapterView;
@@ -48,25 +50,25 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
-public class NewsWeather extends Activity implements OnTouchListener {
+public class NewsWeather extends Activity implements OnTouchListener,OnClickListener,OnLongClickListener {
 	
 	//宣告最上面的5個新聞標題按鈕
-	private Button button_foucs,//按鈕[焦點新聞]
-	button_tech,//按鈕[科技]
-	button_sports,//按鈕[運動]
-	button_relax;//按鈕[影劇]
+	private Button button;
 	private ListView llv1,llv2,llv3,llv4;//先初始化4個ListView
 	private HorizontalScrollView slv;//為了讓下面的新聞欄可以左右滑動，需把HorizontalScrollView宣告出來
 	double getend,getstart=0;//用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑
 	private List<News> li1,li2,li3,li4 = new ArrayList<News>();//容器
 	String Encode;  //判斷xml文件編碼並儲存在Encode
 	String bufferb;  //bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間
-	private HashMap<String,String> path;//存放網址路徑的容器
+//	private HashMap<String,String> path;//存放網址路徑的容器
 	public ProgressDialog myDialog;  //資料載入中的等待視窗
-	File file;
+	File file;//用來檢查資料庫在不在
 	
 	
 	String path1="http://tw.news.yahoo.com/rss/realtime";//雅虎UTF-8	
@@ -79,11 +81,17 @@ public class NewsWeather extends Activity implements OnTouchListener {
 //	String path="http://www.ait.org.tw/zh/press-releases.rss";//美國在台協會UTF8→有編碼的問題(來源檔有亂碼)
 //	String path="http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp";//台東大學圖書館BIG5
 	String path4="http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx";//交通部公路總局UTF8
+	int newscount;//這個值用來計算總共有幾篇新聞
 	int frequently;
 	int nowview=1;
 	private Handler handler,handler2;
 	private DB myDB;
 	private Cursor cursor;
+	String name,path;//將資料庫的name,path,int存到hashmap用的變數
+	int id;
+	
+	LinearLayout up_layout,down_layout;
+	private HashMap<Integer,String> namelist;
 	
 	
 	private void getDefaultData(){
@@ -106,6 +114,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
         //如果沒有資料庫，才建立預設資料
         File file = new File("/data/data/com.newsweather/databases/database.db");
         if(!file.exists())getDefaultData();//取得預設的新聞資料
+        Log.i("checkdatabase", "pass");
 
 //        progressDialog();
         
@@ -249,49 +258,66 @@ public class NewsWeather extends Activity implements OnTouchListener {
     
     @Override
 	protected void onResume() {
+	Log.i("onResum", "into");
+	super.onResume();
 	
-		super.onResume();
-		   button_foucs = (Button) findViewById(R.id.button_focus);
-	        button_tech = (Button) findViewById(R.id.button_tech);
-	        button_sports = (Button) findViewById(R.id.button_sports);
-	        button_relax = (Button) findViewById(R.id.button_relax);
-	       
-	        llv1 = (ListView) findViewById(R.id.list);
-	        llv2 = (ListView) findViewById(R.id.list2);
-	        llv3 = (ListView) findViewById(R.id.list3);
-	        llv4 = (ListView) findViewById(R.id.list4);
+    up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
+    down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置
+    
+	//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException	
+	myDB = new DB(this);
+	cursor =myDB.getTruePath();
+	
+	//一開始先清空所有的view，避免每次都重覆創建子view
+	up_layout.removeAllViews();
+	down_layout.removeAllViews();
+	
+	//初始化新聞加總newscount值為0
+	newscount=1;
+	
+	//專門用來放每一筆的name，好讓刪除視窗出現時，能對應到
+	namelist = new HashMap();
+	
+		while(cursor.moveToNext()){
+			
+			//將資料庫內的內容取出放到Button上
+			name=cursor.getString(cursor.getColumnIndex("_name"));
+			path=cursor.getString(cursor.getColumnIndex("_path"));
+			id = cursor.getInt(cursor.getColumnIndex("_id"));
+			
+			//動態新增按鈕
+			button = new Button(NewsWeather.this);
+            button.setText(name);
+            LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
+            up_layout.addView(button,param);
+            button.setOnLongClickListener(this);
+            button.setId(id);
+            button.setOnClickListener(this);
+
+            
+            
+            //動態新增ListView
+            ListView newlv = new ListView(NewsWeather.this);
+            LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(800,460);
+            down_layout.addView(newlv,param2);
+            
+            
+            
+            //將取出來的name存入容器
+            namelist.put(id,name);
+            
+            
+		}
+        
+			//滑動選單的初始設定
 	        slv = (HorizontalScrollView) findViewById(R.id.hsv);
 	        slv.setOnTouchListener(NewsWeather.this);
-	        llv1.setOnItemClickListener(listtener);
-	        llv2.setOnItemClickListener(listtener);
-	        llv3.setOnItemClickListener(listtener);
-	        llv4.setOnItemClickListener(listtener);
+	        
+//	        llv4.setOnItemClickListener(listtener);
 	        
 	        
-	        button_foucs.setOnClickListener(new View.OnClickListener() {
-	            public void onClick(View v) {
-	            	slv.smoothScrollTo(0,0);
-	            	nowview=1;
-	            }
-	        });
-	        button_tech.setOnClickListener(new View.OnClickListener() {
-	            public void onClick(View v) {
-	            	slv.smoothScrollTo(800,0);
-	            	nowview=2;
-	            }
-	        });
-	        button_sports.setOnClickListener(new View.OnClickListener() {
-	            public void onClick(View v) {
-	            	slv.smoothScrollTo(1600,0);
-	            	nowview=3;
-	            }
-	        });
-	        button_relax.setOnClickListener(new View.OnClickListener() {
-	            public void onClick(View v) {
-	            	slv.smoothScrollTo(2400,0);
-	            	nowview=4;
-	            }
-	        });
+	  
+
 		
 	}
 
@@ -509,6 +535,8 @@ public class NewsWeather extends Activity implements OnTouchListener {
 		
 		menu.add(0, 0, 0, "設定");
 		menu.add(0, 1, 1, "關於");
+		menu.getItem(0).setIcon(R.drawable.setting);
+		menu.getItem(1).setIcon(R.drawable.about);
 		return super.onCreateOptionsMenu(menu);
 	}
 
@@ -525,7 +553,7 @@ public class NewsWeather extends Activity implements OnTouchListener {
 				break;
 			case 1:
 				new AlertDialog.Builder(NewsWeather.this)
-				.setMessage("作者：Camangi Coporation")
+				.setMessage("作者：Camangi Corporation")
 				.setTitle("關於")
 				
 				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
@@ -538,6 +566,68 @@ public class NewsWeather extends Activity implements OnTouchListener {
 				.show();
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	
+	@Override//Button的觸發事件
+	public void onClick(View v) {
+
+    	slv.smoothScrollTo((v.getId()-1)*800,0);
+    	
+//		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
+    	
+    
+	}
+	
+	//按鈕長按事件
+	@Override
+	public boolean onLongClick(final View v) {
+		
+		try{
+		myDB=new DB(this);
+		
+		String a =namelist.get(v.getId()).toString();
+		new AlertDialog.Builder(NewsWeather.this)
+		
+		.setMessage("刪除頻道"+namelist.get(v.getId())+"？")
+		.setTitle("注意！")
+		
+		.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				myDB.delete(v.getId());
+				onResume();
+			}
+		})
+		
+		.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				onResume();
+			}
+		})
+		
+		.show();
+		
+		}catch(Exception e){
+			new AlertDialog.Builder(NewsWeather.this)
+		
+		
+		.setMessage("已經剩1筆了，不要刪了吧！")
+		.setTitle("注意！")
+		
+		.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				onResume();
+			}
+		})
+		.show();
+		}
+		return false;
 	}
 	
 

@@ -38,10 +38,17 @@ public class DB extends SQLiteOpenHelper{
 			onCreate(db);
 		}
 		
-		
+		//查詢全部資料表，供Setting讀取用
 		public Cursor getAll(){
 			SQLiteDatabase db = this.getReadableDatabase();
 			Cursor cursor = db.query(DATABASE_TABLE, new String[]{"_id","_name","_path","_open"}, null, null, null, null, null);
+			return cursor;
+		}
+		
+		//專門查尾巴是True的path，供動態新增NewsWeather用
+		public Cursor getTruePath(){
+			SQLiteDatabase db = this.getReadableDatabase();
+			Cursor cursor = db.query(DATABASE_TABLE, new String[]{"_id","_name","_path"}, new String("_open=?"), new String[]{"1"}, null, null, null);
 			return cursor;
 		}
 		
@@ -55,8 +62,9 @@ public class DB extends SQLiteOpenHelper{
 			db.insert(DATABASE_TABLE, null, cv);
 		}
 		
-		public void delete(){
+		public void delete(int id){
 			SQLiteDatabase db = this.getWritableDatabase();
+			db.delete(DATABASE_TABLE, new String("_id=?"), new String[]{Integer.toString(id)});
 			//更多程式碼
 		}
 		
