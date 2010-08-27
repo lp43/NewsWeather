@@ -72,14 +72,14 @@ public class Setting extends Activity {
 				CheckedTextView ct = (CheckedTextView) view;
 				
 				String name=ct.getText().toString();
-				Toast.makeText(Setting.this, "你點擊的是"+name,
-	                    300).show();
+//				Toast.makeText(Setting.this, "你點擊的是"+name,
+//	                    300).show();
 				
 				//如果原本有被點選，再按一次就將database的資料改成false，取消點選
 					if(ct.isChecked()){
-						myDB.update(id,false);
+						myDB.channelSwitch(id,false);
 					}else{
-						myDB.update(id,true);
+						myDB.channelSwitch(id,true);
 					}
 				Log.i("checkedname", name);
 				

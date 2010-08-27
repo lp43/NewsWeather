@@ -68,10 +68,19 @@ public class DB extends SQLiteOpenHelper{
 			//更多程式碼
 		}
 		
-		public void update(long id,Boolean open){
+		//勾選CheckedBox更改資料庫_open欄位的true/false
+		public void channelSwitch(long id,Boolean open){
 			SQLiteDatabase db = this.getWritableDatabase();
 			ContentValues cv = new ContentValues();
 			cv.put("_open", open);
+			db.update(DATABASE_TABLE, cv, "_id=?", new String[]{String.valueOf(id)});
+		}
+		
+		//依照id位置更改資料名稱
+		public void reName(long id,String name){
+			SQLiteDatabase db = this.getWritableDatabase();
+			ContentValues cv = new ContentValues();
+			cv.put("_name", name);
 			db.update(DATABASE_TABLE, cv, "_id=?", new String[]{String.valueOf(id)});
 		}
 		

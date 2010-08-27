@@ -22,8 +22,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -37,6 +39,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.util.Xml;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -49,6 +52,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -582,50 +586,110 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	@Override
 	public boolean onLongClick(final View v) {
 		
-		try{
-		myDB=new DB(this);
+		myDB=new DB(NewsWeather.this);
 		
-		String a =namelist.get(v.getId()).toString();
 		new AlertDialog.Builder(NewsWeather.this)
-		
-		.setMessage("刪除頻道"+namelist.get(v.getId())+"？")
-		.setTitle("注意！")
-		
-		.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+//		.setView(R.layout.file_row)
+		.setTitle("對於 "+namelist.get(v.getId())+" 頻道，你想要...？")
+		.setItems(new String[]{"隱藏","重新命名","刪除"}, new DialogInterface.OnClickListener(){
 			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				myDB.delete(v.getId());
-				onResume();
+				switch(which){
+				case 0:
+					myDB.channelSwitch(v.getId(), false);
+					onResume();
+					break;
+							
+				case 1:		
+					LayoutInflater factory = LayoutInflater.from(NewsWeather.this);
+			            final View rename_layout = factory.inflate(R.layout.alert_dialog_rename, null);
+							new AlertDialog.Builder(NewsWeather.this)
+							.setTitle("替"+namelist.get(v.getId())+"重新命名")
+							.setView(rename_layout)
+							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+
+									@Override
+									public void onClick(DialogInterface dialog, int which) {	
+											
+											EditText edit_rename = (EditText) rename_layout.findViewById(R.id.edit_rename);
+											String rename=edit_rename.getText().toString();
+											myDB.reName(v.getId(), rename);
+											onResume();
+
+									}
+									})
+							
+							.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+								
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										onResume();
+									}
+							})
+							.show(); 
+							
+					break;
+					
+				case 2:
+					try{
+
+//							String a =namelist.get(v.getId()).toString();
+							new AlertDialog.Builder(NewsWeather.this)
+							.setIcon(R.drawable.alert_dialog_icon)
+							.setMessage("這樣會刪除頻道 "+namelist.get(v.getId())+"\n確定嗎？")
+							.setTitle("注意！")
+							
+							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+								
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									myDB.delete(v.getId());
+									onResume();
+								}
+							})
+							
+							.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+								
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									onResume();
+								}
+							})
+							
+							.show(); 
+					
+					}catch(Exception e){
+							new AlertDialog.Builder(NewsWeather.this)
+						
+						
+								.setMessage("程式出錯了，將返回！")
+								.setTitle("注意！")
+								
+								.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+							
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								onResume();
+							}
+							})
+							.show();
+					}
+					break;
+				}
+				
 			}
-		})
-		
-		.setNegativeButton("取消", new DialogInterface.OnClickListener() {
 			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				onResume();
-			}
 		})
-		
-		.show(); 
-		
-		}catch(Exception e){
-			new AlertDialog.Builder(NewsWeather.this)
-		
-		
-		.setMessage("程式出錯了，將返回！")
-		.setTitle("注意！")
-		
-		.setPositiveButton("確認", new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				onResume();
-			}
-		})
+		.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						onResume();
+					}})
 		.show();
-		}
+		
+
 		return false;
 	}
 	
