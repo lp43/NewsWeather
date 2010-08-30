@@ -60,50 +60,39 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class NewsWeather extends Activity implements OnTouchListener,OnClickListener,OnLongClickListener {
+public class NewsWeather extends Activity implements OnTouchListener,OnClickListener,OnLongClickListener,OnItemClickListener {
 	
 	//宣告最上面的5個新聞標題按鈕
 	private Button button;
-	private ListView llv1,llv2,llv3,llv4;//先初始化4個ListView
 	private HorizontalScrollView slv;//為了讓下面的新聞欄可以左右滑動，需把HorizontalScrollView宣告出來
 	double getend,getstart=0;//用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑
-	private List<News> li1,li2,li3,li4 = new ArrayList<News>();//容器
+	private List<News> getData;//容器
 	String Encode;  //判斷xml文件編碼並儲存在Encode
 	String bufferb;  //bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間
-//	private HashMap<String,String> path;//存放網址路徑的容器
 	public ProgressDialog myDialog;  //資料載入中的等待視窗
 	File file;//用來檢查資料庫在不在
-	
-	
-	String path1="http://tw.news.yahoo.com/rss/realtime";//雅虎UTF-8	
-	String path2="http://www.cw.com.tw/RSS/cw_content.xml";//天下雜誌BIG5	
-	String path3="http://rss.chinatimes.com/rss/focus-u.rss"; //中時UTF-8
-//	String path4="http://www.zdnet.com.tw/rss/news_daily.htm";  ////中時BIG5
-//	String path="http://tw.nextmedia.com/rss/create/type/1077";//蘋果utf8
-//	String path="http://inews.mingpao.com/rss/INews/gb.xml";//明報BIG5
-//	String path="http://www.lib.ntu.edu.tw/rss/newsrss.xml";//台灣大學圖書館UTF8
-//	String path="http://www.ait.org.tw/zh/press-releases.rss";//美國在台協會UTF8→有編碼的問題(來源檔有亂碼)
-//	String path="http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp";//台東大學圖書館BIG5
-	String path4="http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx";//交通部公路總局UTF8
-	int frequently;
-	int nowview=1;
+		int nowview=1;//現在的畫面，起始為1
 	private Handler handler,handler2;
 	private DB myDB;
 	private Cursor cursor;
 	String name,path;//將資料庫的name,path,int存到hashmap用的變數
-	int id;
+	int id;//這個id是database裡的id,不一定會照順序
 	int button_order;//記錄頻道按鈕的排序位置
+	LinearLayout up_layout,down_layout;//定義上下佈局
+	private HashMap<Integer,String> namelist;//讓Button能夠取到名字的暫存容器
+	private HashMap<Integer,List<News>> liAll;//將每一筆getRSS
 	
-	LinearLayout up_layout,down_layout;
-	private HashMap<Integer,String> namelist;
-	
-	
+	//一開始是沒有資料庫的,從這個method才創立起資料庫的
 	private void getDefaultData(){
 		myDB = new DB(this);
-	      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",false);
-	      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);
-	      myDB.insert("chinatimes", "http://rss.chinatimes.com/rss/focus-u.rss",true);
-	      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",true);
+	      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
+	      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
+	      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
+	      myDB.insert("公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",true);//交通部公路總局UTF8
+	      myDB.insert("蘋果日報", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
+	      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+	      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
+	      myDB.insert("台東大圖書館", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//台東大學圖書館BIG5
 		myDB.close();
 		
 	}
@@ -122,74 +111,9 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 
 //        progressDialog();
         
-        
-      /*  
-        Thread brother = new Thread(){
-        	public void run(){
-        		
-        		
-        	path=new HashMap<String,String>();
-        	path.put("path1", "http://tw.news.yahoo.com/rss/realtime");
-        	path.put("path2", "http://www.cw.com.tw/RSS/cw_content.xml");
-        	path.put("path3", "http://rss.chinatimes.com/rss/focus-u.rss");
-        	path.put("path4", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx");
-        
-        	Log.i("loadpath", "startToLoadData");
-//        	try{	
-	            for(int i =1; i<5;i++){
-	            	Log.i("foreach", String.valueOf(i));
-	            	frequently=i;
-	            		Log.i("intoforloop", "this is " +frequently+" time to do this.");
-	            		checkEncode(path.get("path"+frequently));  //先判斷xml的編碼格式
-	                    encodeTransfer(path.get("path"+frequently));  //進行big5→utf-8轉碼
-	            	
-	                    switch(frequently){
-	                    	case 1:
-	                    		li1 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
-	                    		break;
-	                    	case 2:
-	                    		li2 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
-	                    		break;
-	                    	case 3:
-	                    		li3 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
-	                    		break;
-	                    	case 4:
-	                    		li4 = getRss();  //將複製並轉碼完的檔案做解析，並存放到li容器裡   
-	                    		break;
-	                    }
-	            }
-//            }catch(Exception e){
-//            	new AlertDialog.Builder(NewsWeather.this)
-//				.setMessage("請確認您的網路連線...")
-//				.setTitle("出錯了")
-//				
-//				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
-//					
-//					@Override
-//					public void onClick(DialogInterface dialog, int which) {
-//						NewsWeather.this.finish();	
-//						
-//					}
-//				})
-//				.show();
-//            	Log.i("Exception",e.getMessage());
-            	
-            	
-//            }
-*/                           
+                      
             
-        	    	
-     /*   button_foucs = (Button) findViewById(R.id.button_focus);
-        button_tech = (Button) findViewById(R.id.button_tech);
-        button_sports = (Button) findViewById(R.id.button_sports);
-        button_relax = (Button) findViewById(R.id.button_relax);
-       
-        llv1 = (ListView) findViewById(R.id.list);
-        llv2 = (ListView) findViewById(R.id.list2);
-        llv3 = (ListView) findViewById(R.id.list3);
-        llv4 = (ListView) findViewById(R.id.list4);
-        slv = (HorizontalScrollView) findViewById(R.id.hsv);*/
-      /* 
+/*
         //寄簡訊請主執行緒的Handler繼續處理事件
         Message message = handler.obtainMessage(1);
         handler.sendMessage(message);
@@ -204,46 +128,8 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	    @Override 
 	    public void handleMessage(Message msg){ 
 	    	switch(msg.what){
-	    		
-	    		case 1:*/
-	    	/*slv.setOnTouchListener(NewsWeather.this);*/
-	        //設定ListView的樣版和文字來源
-	      /*  llv1.setAdapter(new NewsAdapter(NewsWeather.this,li1));
-	        llv2.setAdapter(new NewsAdapter(NewsWeather.this,li2));
-	        llv3.setAdapter(new NewsAdapter(NewsWeather.this,li3));
-	        llv4.setAdapter(new NewsAdapter(NewsWeather.this,li4));*/
-	        
-	        //讓列表有點選的功能
-	       /* llv1.setOnItemClickListener(listtener);
-	        llv2.setOnItemClickListener(listtener);
-	        llv3.setOnItemClickListener(listtener);
-	        llv4.setOnItemClickListener(listtener);
-	        
-	        
-	        button_foucs.setOnClickListener(new View.OnClickListener() {
-	            public void onClick(View v) {
-	            	slv.smoothScrollTo(0,0);
-	            	nowview=1;
-	            }
-	        });
-	        button_tech.setOnClickListener(new View.OnClickListener() {
-	            public void onClick(View v) {
-	            	slv.smoothScrollTo(800,0);
-	            	nowview=2;
-	            }
-	        });
-	        button_sports.setOnClickListener(new View.OnClickListener() {
-	            public void onClick(View v) {
-	            	slv.smoothScrollTo(1600,0);
-	            	nowview=3;
-	            }
-	        });
-	        button_relax.setOnClickListener(new View.OnClickListener() {
-	            public void onClick(View v) {
-	            	slv.smoothScrollTo(2400,0);
-	            	nowview=4;
-	            }
-	        });*/
+
+ 
 	        
 	    /*
 	        //把ProgressDialog關掉
@@ -280,6 +166,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	
 	//專門用來放每一筆的name，好讓刪除視窗出現時，能對應到
 	namelist = new HashMap();
+	liAll= new HashMap<Integer,List<News>>();
 	
 		while(cursor.moveToNext()){
 			
@@ -301,10 +188,19 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
             
             //動態新增ListView
             ListView newlv = new ListView(NewsWeather.this);
-            LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(800,460);
+            LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(800,440);
             down_layout.addView(newlv,param2);
             
             
+            //開始對每一行的Cursor的網址做解析
+            checkEncode(path);//檢查這行Cursor的網址編碼
+            encodeTransfer(path);//對檢查出來的編碼做另存檔
+            getRss();
+            
+            liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+            newlv.setAdapter(new NewsAdapter(NewsWeather.this,getData));
+            newlv.setOnItemClickListener(this);
+            newlv.setId(button_order);
             
             //將取出來的name存入容器
             namelist.put(id,name);
@@ -318,18 +214,12 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 			LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
 			up_layout.addView(button,param);
 			button.setOnClickListener(this);
-			button.setId(99);
+			button.setId(9999);
         
 			//滑動選單的初始設定
 	        slv = (HorizontalScrollView) findViewById(R.id.hsv);
 	        slv.setOnTouchListener(NewsWeather.this);
-	        
-//	        llv4.setOnItemClickListener(listtener);
-	        
-	        
-	  
 
-		
 	}
 
 	//ProgressDialog對話框
@@ -351,7 +241,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
     	String encode="";
     	int a,b;
     	 try {
-    		   Log.i("intoCeckEncode: ",frequently+ "pass");
+    		   Log.i("intoCeckEncode: ",button_order+ "pass");
 			   url = new URL(path);
 
 			   InputStream is = url.openConnection().getInputStream();
@@ -395,12 +285,12 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
     	  URL url = null;
     	  String buffera="";
 			   try {
-				   Log.i("intoencodeTransfer:"+frequently, "pass");
+				   Log.i("intoencodeTransfer:"+button_order, "pass");
 				   url = new URL(path);
 				   InputStream is = url.openConnection().getInputStream();
 				   InputStreamReader isr = new InputStreamReader(is,Encode);
 				   BufferedReader br = new BufferedReader(isr);
-				   FileOutputStream fos = openFileOutput("buffxml"+frequently+".xml", Context.MODE_PRIVATE);
+				   FileOutputStream fos = openFileOutput("buffxml"+button_order+".xml", Context.MODE_PRIVATE);
 				   
 				   
 				   do{
@@ -431,41 +321,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 			Log.i("big52utf8()+", "pass");
 	}
 
-	//按下列表所要觸發的事件
-    OnItemClickListener listtener = new OnItemClickListener(){
-
-		@Override
-		public void onItemClick(AdapterView<?> parent, View view, int position,
-				long id) {
-			switch(nowview){
-				case 1:
-					String temp1 = li1.get(position).getLink();
-					Intent browserIntent1 = new Intent("android.intent.action.VIEW", Uri.parse(temp1));
-					startActivity(browserIntent1);
-					break;
-				case 2:
-					String temp2 = li2.get(position).getLink();
-					Intent browserIntent2 = new Intent("android.intent.action.VIEW", Uri.parse(temp2));
-					startActivity(browserIntent2);
-					break;
-				case 3:
-					String temp3 = li3.get(position).getLink();
-					Intent browserIntent3 = new Intent("android.intent.action.VIEW", Uri.parse(temp3));
-					startActivity(browserIntent3);
-					break;
-				case 4:
-					String temp4 = li4.get(position).getLink();
-					Intent browserIntent4 = new Intent("android.intent.action.VIEW", Uri.parse(temp4));
-					startActivity(browserIntent4);
-					break;
-					
-			}
-			
-
-
-		}
-    	
-    };
+	
     
     
 
@@ -484,7 +340,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 					if(nowview<=button_order){
 						nowview++;
 					}else{
-						nowview=button_order;
+						nowview=button_order;//button_order最後是一個呈獻筆數總值
 					}
 				
 			}else{
@@ -498,9 +354,9 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	}
     
 	//使用XML解析器
-	private List<News> getRss(){
+	private void getRss(){
 
-		List<News> data = new ArrayList<News>();
+		
 //		URL url = null;//編碼為UTF-8直接解析的寫法		
 
 		try{
@@ -527,16 +383,16 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 			
 			
 	
-			FileInputStream fis = openFileInput("buffxml"+frequently+".xml");
+			FileInputStream fis = openFileInput("buffxml"+button_order+".xml");
 			android.util.Xml.parse(fis, Xml.Encoding.UTF_8, myHandler);
 			Log.i("parse", "pass");
 			//取得RSS標題與內容列表
-			data = myHandler.getParasedData();
+			getData = new ArrayList<News>();
+			getData = myHandler.getParasedData();
 			Log.i("getParasedData", "pass");
 		}catch(Exception e){
 			Log.i("tag", "wrong! "+e.getMessage());
 		}
-		return data;
 	}
 	
 	//建立Menu清單
@@ -584,7 +440,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	public void onClick(View v) {
 		switch(v.getId()){
 		
-		case 99:
+		case 9999:
 			Log.i("into", "99");
 			LayoutInflater factory = LayoutInflater.from(NewsWeather.this);
             final View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
@@ -606,7 +462,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 									new AlertDialog.Builder(NewsWeather.this)
 									.setTitle("錯誤！")
 									.setMessage("請輸入完整方可新增...")
-									.setIcon(R.drawable.alert_dialog_icon)
+									.setIcon(R.drawable.warning01)
 									.setPositiveButton("返回", new DialogInterface.OnClickListener() {
 
 										@Override
@@ -630,7 +486,6 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 					
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							onResume();
 						}
 				})
 				.show(); 
@@ -640,7 +495,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 			Log.i("into", "default");
 		int a=Integer.parseInt(v.getTag().toString());
     	slv.smoothScrollTo(((a-1)*800),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
-    	
+    	nowview=a;
 //		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
     		break;
 		}
@@ -656,7 +511,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 		myDB=new DB(NewsWeather.this);
 		
 		new AlertDialog.Builder(NewsWeather.this)
-//		.setView(R.layout.file_row)
+		
 		.setTitle("對於 "+namelist.get(v.getId())+" 頻道，你想要...？")
 		.setIcon(R.drawable.q01)
 		.setItems(new String[]{"隱藏","重新命名","刪除"}, new DialogInterface.OnClickListener(){
@@ -687,7 +542,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 												new AlertDialog.Builder(NewsWeather.this)
 												.setTitle("錯誤！")
 												.setMessage("請輸入完整才能更名...")
-												.setIcon(R.drawable.alert_dialog_icon)
+												.setIcon(R.drawable.warning01)
 												.setPositiveButton("返回", new DialogInterface.OnClickListener() {
 
 													@Override
@@ -709,7 +564,6 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 								
 									@Override
 									public void onClick(DialogInterface dialog, int which) {
-										onResume();
 									}
 							})
 							.show(); 
@@ -718,10 +572,8 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 					
 				case 2:
 					try{
-
-//							String a =namelist.get(v.getId()).toString();
 							new AlertDialog.Builder(NewsWeather.this)
-							.setIcon(R.drawable.alert_dialog_icon)
+							.setIcon(R.drawable.warning01)
 							.setMessage("這樣會刪除頻道 "+namelist.get(v.getId())+"\n確定嗎？")
 							.setTitle("注意！")
 							
@@ -738,7 +590,6 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 								
 								@Override
 								public void onClick(DialogInterface dialog, int which) {
-									onResume();
 								}
 							})
 							
@@ -770,12 +621,22 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						onResume();
 					}})
 		.show();
 		
 
 		return false;
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
+		int i=nowview;
+		Object o=liAll.get(i);
+		String temp1 = liAll.get(nowview).get(position).getLink();
+		Intent browserIntent1 = new Intent("android.intent.action.VIEW", Uri.parse(temp1));
+		startActivity(browserIntent1);
+		
 	}
 	
 
