@@ -71,7 +71,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	String bufferb;  //bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間
 	public ProgressDialog myDialog;  //資料載入中的等待視窗
 	File file;//用來檢查資料庫在不在
-		int nowview=1;//現在的畫面，起始為1
+	int nowview=1;//現在的畫面，起始為1
 	private Handler handler,handler2;
 	private DB myDB;
 	private Cursor cursor;
@@ -80,7 +80,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	int button_order;//記錄頻道按鈕的排序位置
 	LinearLayout up_layout,down_layout;//定義上下佈局
 	private HashMap<Integer,String> namelist;//讓Button能夠取到名字的暫存容器
-	private HashMap<Integer,List<News>> liAll;//將每一筆getRSS
+	private HashMap<Integer,List<News>> liAll;//將每一筆getRSS()產生的getData容器，再放入大容器裡
 	
 	//一開始是沒有資料庫的,從這個method才創立起資料庫的
 	private void getDefaultData(){
@@ -156,14 +156,15 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
     
 	//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException	
 	myDB = new DB(this);
-	cursor =myDB.getTruePath();
+	cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
 	
 	//一開始先清空所有的view，避免每次都重覆創建子view
 	up_layout.removeAllViews();
 	down_layout.removeAllViews();
 	
-	button_order=1;
-	
+	button_order=1;/**button_order用來計算使用者總共勾選了幾筆喜好列表
+	/*這個值和Button.setTag()、ListView的nowview、大容器HashMap型態的liAll的key值都是相對應的
+	**/
 	//專門用來放每一筆的name，好讓刪除視窗出現時，能對應到
 	namelist = new HashMap();
 	liAll= new HashMap<Integer,List<News>>();
@@ -181,9 +182,9 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
             LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
             up_layout.addView(button,param);
             button.setOnLongClickListener(this);
-            button.setId(id);
+            button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
             button.setOnClickListener(this);
-            button.setTag(button_order);
+            button.setTag(button_order);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
             
             
             //動態新增ListView
@@ -631,8 +632,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
-		int i=nowview;
-		Object o=liAll.get(i);
+		//將大容器liAll裡的小容器getData裡的Link依照nowview(同button_order)的值取出
 		String temp1 = liAll.get(nowview).get(position).getLink();
 		Intent browserIntent1 = new Intent("android.intent.action.VIEW", Uri.parse(temp1));
 		startActivity(browserIntent1);

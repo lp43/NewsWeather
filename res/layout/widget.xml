@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<RelativeLayout 
+  xmlns:android="http://schemas.android.com/apk/res/android" 
+  android:background="@drawable/fram" 
+  android:orientation="vertical" 
+  android:layout_width="442dip" 
+  android:layout_height="72dip" 
+>
+  <ImageView 
+    android:id="@+id/myImageView1" 
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content" 
+    android:layout_gravity="center"
+    android:layout_marginRight="5dip"
+    android:layout_marginTop="6dip"
+   /> 
+  <TextView 
+    android:id="@+id/widgetContent" 
+    android:layout_width="fill_parent"  
+    android:layout_height="wrap_content" 
+    android:layout_x="10px"
+    android:layout_y="10px"
+    android:layout_marginTop="20dip"
+    android:layout_marginLeft="20dip"
+	android:textSize="24dp"
+    android:textColor="@color/blue"
+    android:text="@string/no_internet"
+  />
+    <TextView 
+    android:id="@+id/widgetSource" 
+    android:layout_width="fill_parent"  
+    android:layout_height="wrap_content" 
+    android:layout_x="10px"
+    android:layout_y="10px"
+    android:layout_marginTop="48dip"
+    android:layout_marginLeft="24dip"
+	android:textSize="12dp"
+    android:textColor="@color/black"
+    android:text="@string/no_internet2"
+  />
+</RelativeLayout>
