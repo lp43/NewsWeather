@@ -10,33 +10,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import android.util.Xml;
 import android.view.LayoutInflater;
@@ -47,17 +33,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 
 public class NewsWeather extends Activity implements OnTouchListener,OnClickListener,OnLongClickListener,OnItemClickListener {
@@ -83,7 +65,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	private HashMap<Integer,List<News>> liAll;//將每一筆getRSS()產生的getData容器，再放入大容器裡
 	
 	//一開始是沒有資料庫的,從這個method才創立起資料庫的
-	private void getDefaultData(){
+	public void getDefaultData(){
 		myDB = new DB(this);
 	      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
 	      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
@@ -236,8 +218,8 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
     
 	
     
-    
-    private void checkEncode(String path){//判斷此xml的格式
+  //判斷此xml的格式
+    private void checkEncode(String path){
     	URL url = null;
     	String encode="";
     	int a,b;
@@ -322,9 +304,6 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 			Log.i("big52utf8()+", "pass");
 	}
 
-	
-    
-    
 
 	@Override//滑動手勢指令換頁
 	public boolean onTouch(View v, MotionEvent event) {
@@ -353,7 +332,9 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 		}		
 		return true;
 	}
-    
+  
+	
+	
 	//使用XML解析器
 	private void getRss(){
 
@@ -396,6 +377,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 		}
 	}
 	
+	
 	//建立Menu清單
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -408,6 +390,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 		return super.onCreateOptionsMenu(menu);
 	}
 
+	
 	//建立Menu清單的觸發事件
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -500,10 +483,8 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 //		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
     		break;
 		}
-		
-    	
-    
 	}
+	
 	
 	//按鈕長按事件
 	@Override
@@ -629,6 +610,7 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 		return false;
 	}
 
+	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {

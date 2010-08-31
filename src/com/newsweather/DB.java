@@ -22,7 +22,7 @@ public class DB extends SQLiteOpenHelper{
 	
 	
 		public DB(Context context){
-		super(context, DATABASE_NAME,null,DATABASE_VERSION);	
+			super(context, DATABASE_NAME,null,DATABASE_VERSION);	
 		}
 	
 
