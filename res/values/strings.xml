@@ -3,6 +3,6 @@
     <string name="app_name">NewsWeather</string>
     <string name="str_dialog_title">請稍待片刻</string>
     <string name="str_dialog_body">資料載入中...</string>
-    <string name="no_internet">無網路連線...</string>
-    <string name="no_internet2">請檢查您的網路連線能力</string>
+    <string name="no_internet">資料載入中...</string>
+    <string name="no_internet2">請稍候</string>
 </resources>

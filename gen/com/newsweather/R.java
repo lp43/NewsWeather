@@ -18,21 +18,23 @@ public final class R {
     public static final class drawable {
         public static final int about=0x7f020000;
         public static final int fram=0x7f020001;
-        public static final int gallery_photo_1=0x7f020002;
-        public static final int gallery_photo_2=0x7f020003;
-        public static final int gallery_photo_3=0x7f020004;
-        public static final int gallery_photo_4=0x7f020005;
-        public static final int icon=0x7f020006;
-        public static final int q01=0x7f020007;
-        public static final int setting=0x7f020008;
-        public static final int warning01=0x7f020009;
+        public static final int fram_press=0x7f020002;
+        public static final int gallery_photo_1=0x7f020003;
+        public static final int gallery_photo_2=0x7f020004;
+        public static final int gallery_photo_3=0x7f020005;
+        public static final int gallery_photo_4=0x7f020006;
+        public static final int icon=0x7f020007;
+        public static final int pic=0x7f020008;
+        public static final int q01=0x7f020009;
+        public static final int setting=0x7f02000a;
+        public static final int warning01=0x7f02000b;
     }
     public static final class id {
         public static final int dialog_rename=0x7f070000;
         public static final int down_layout=0x7f070009;
         public static final int edit_rename=0x7f070003;
         public static final int hsv=0x7f070008;
-        public static final int myImageView1=0x7f07000b;
+        public static final int myImageView1=0x7f07000c;
         public static final int new_channel_name=0x7f070001;
         public static final int new_channel_path=0x7f070002;
         public static final int news_date=0x7f070005;
@@ -40,8 +42,9 @@ public final class R {
         public static final int news_title=0x7f070004;
         public static final int setView=0x7f07000a;
         public static final int up_layout=0x7f070007;
-        public static final int widgetContent=0x7f07000c;
-        public static final int widgetSource=0x7f07000d;
+        public static final int widgetContent=0x7f07000d;
+        public static final int widgetSource=0x7f07000e;
+        public static final int widget_layout=0x7f07000b;
     }
     public static final class layout {
         public static final int alert_dialog_newchannel=0x7f030000;
