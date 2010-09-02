@@ -50,6 +50,7 @@ public class DB extends SQLiteOpenHelper{
 			SQLiteDatabase db = this.getReadableDatabase();
 			Cursor cursor = db.query(DATABASE_TABLE, new String[]{"_id","_name","_path"}, new String("_open=?"), new String[]{"1"}, null, null, null);
 			return cursor;
+			
 		}
 		
 		public void insert(String name,String path,Boolean open){

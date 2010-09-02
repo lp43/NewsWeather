@@ -27,6 +27,7 @@ public class MyHandler extends DefaultHandler {
 	private List<News> li;
 	private News news;
 	int currentcase = 0;
+	final String tag = "tag";
 	
 	//將轉換成List<News>的XML資料回傳
 	public List<News> getParasedData(){
@@ -36,7 +37,7 @@ public class MyHandler extends DefaultHandler {
 	@Override//覆寫characters
 	public void characters(char[] ch, int start, int length)
 			throws SAXException {
-		Log.i("characters", "start");
+//		Log.i(tag,"get_Characters");
 			String bufString = new String(ch,start,length);
 			switch(currentcase){
 			case in_title:
@@ -90,17 +91,18 @@ public class MyHandler extends DefaultHandler {
 	@Override//XML文件開始解析時呼叫此方法
 	public void startDocument() throws SAXException {
 		li = new ArrayList<News>();
-		Log.i("startDocument", "pass");
+		Log.i(tag,"startDocument");
 	}
 	
 	@Override//XML文件結束解析時呼叫此方法
 	public void endDocument() throws SAXException {
+		Log.i(tag, "endDocument");
 	}
 
 	@Override//解析到Element開頭時的method
 	public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException {
-		Log.i("startElement", "start");
+//		Log.i(tag,"startElement");
 		if(localName.equals("channel")){
 			currentcase=0;
 			return;
@@ -147,7 +149,7 @@ public class MyHandler extends DefaultHandler {
 		if(localName.equals("item")){
 				li.add(news);
 		}
-		Log.i("endElement", "pass");
+//		Log.i(tag,"endElement");
 	}
 
 }

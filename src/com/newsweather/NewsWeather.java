@@ -68,11 +68,11 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	public void getDefaultData(){
 		myDB = new DB(this);
 	      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-	      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-	      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
-	      myDB.insert("公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",true);//交通部公路總局UTF8
-	      myDB.insert("蘋果日報", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-	      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+	      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
+	      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
+	      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",true);//交通部公路總局UTF8
+	      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
+	      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
 	      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
 	      myDB.insert("台東大圖書館", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//台東大學圖書館BIG5
 		myDB.close();
@@ -404,7 +404,8 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 				break;
 			case 1:
 				new AlertDialog.Builder(NewsWeather.this)
-				.setMessage("作者：Camangi Corporation")
+				.setMessage("RssReader v1.0024\n作者：Camangi Corporation\n\n版權所有 2010")
+				.setIcon(R.drawable.icon)
 				.setTitle("關於")
 				
 				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
