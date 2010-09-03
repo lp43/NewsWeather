@@ -1,6 +1,9 @@
 package com.newsweather;
 
-public class News {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class News implements Parcelable{
 	private String _title="";
 	private String _link="";
 	private String _desc="";
@@ -58,6 +61,21 @@ public class News {
 	}
 	public void setDate(String _date) {
 		this._date = _date;
+	}
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(_title);
+		dest.writeString(_link);
+		dest.writeString(_desc);
+		dest.writeString(_date);
+		dest.writeString(_guid);
+		dest.writeString(_category);
+		dest.writeString(_comments);
+		dest.writeString(_encoded);
 	}
 	
 	

@@ -19,6 +19,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Environment;
 import android.util.Log;
 import android.util.Xml;
 
@@ -39,6 +40,15 @@ public class BackStage extends SQLiteOpenHelper{
 			int version) {
 		super(context, name, factory, version);
 		// TODO Auto-generated constructor stub
+	}
+	
+	
+	/**
+	 * 這個method用來取得此apk的Data資料夾路徑名稱
+	 * @return 此apk的Data資料夾路徑名稱
+	 */
+	public static String get_DataDir_Path(){
+		return Environment.getDataDirectory().getPath();
 	}
 	
 	//一開始是沒有資料庫的,從這個method才創立起資料庫的

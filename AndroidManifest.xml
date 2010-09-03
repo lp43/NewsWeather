@@ -20,6 +20,7 @@
 		  android:debuggable="true">
 		<intent-filter>
 			<action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+			<action android:name="com.newsweather.NewsWeather.CHANGE_CHANNEL_LIST"/>
 		</intent-filter>
 		<meta-data android:name="android.appwidget.provider"
 			    	android:resource="@xml/widget_template" />
