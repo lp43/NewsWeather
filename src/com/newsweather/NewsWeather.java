@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -95,7 +96,13 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	public static HashMap<Integer,List<News>> liAll;
 	final static String tag ="tag";
 	public static final String CHANGE_CHANNEL_LIST="changeChannelList";
+	/**取出該Apk的套件名稱	 */
 	String packageName;
+	/**NewsWeather專屬的更新記錄*/
+	public static int updateVersion=0;
+	static ActivityManager  activitymanager;
+	/**如果MyWidgetProvider.class確實有被開啟的記錄參數 */
+	static boolean AppWidgetExist;
 	
 	
 	/** 描述 : 一開始是沒有資料庫的,從這個method才創立起資料庫的 */
@@ -177,78 +184,110 @@ public class NewsWeather extends Activity implements OnTouchListener,OnClickList
 	Log.i("onResum", "into");
 	super.onResume();
 	
-
-    up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
-    down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置
-    
-
-	myDB = new DB(this);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException	
-	cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
 	
-	//一開始先清空所有的view，避免每次都重覆創建子view
-	up_layout.removeAllViews();
-	down_layout.removeAllViews();
-	
-	button_order=1;
+	if(NewsWeather.updateVersion<BackStage.updateVersion){
 
-	namelist = new HashMap();
-
-	liAll= new HashMap<Integer,List<News>>();
-	
-		while(cursor.moveToNext()){
-			
-			//將資料庫內的內容取出放到Button上
-			name=cursor.getString(cursor.getColumnIndex("_name"));
-			path=cursor.getString(cursor.getColumnIndex("_path"));
-			id = cursor.getInt(cursor.getColumnIndex("_id"));
-			
-			//動態新增按鈕
-			button = new Button(NewsWeather.this);
-            button.setText(name);
-            LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
-            up_layout.addView(button,param);
-            button.setOnLongClickListener(this);
-            button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
-            button.setOnClickListener(this);
-            button.setTag(button_order);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
-            
-            
-            //動態新增ListView
-            ListView newlv = new ListView(NewsWeather.this);
-            LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(800,440);
-            down_layout.addView(newlv,param2);
-            
-
-	        //開始對每一行的Cursor的網址做解析
-	        checkEncode(path);//檢查這行Cursor的網址編碼
-	        encodeTransfer(path);//對檢查出來的編碼做另存檔
-	        getRss();
-	            
-	        liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
-
-            
-            newlv.setAdapter(new NewsAdapter(NewsWeather.this,getData));
-            newlv.setOnItemClickListener(this);
-            newlv.setId(button_order);
-            
-            //將取出來的name存入容器
-            namelist.put(id,name);
-            
-            button_order++;
-		}
+		    up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
+		    down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置
+		    
 		
-			//最後生產一個新增頻道按鈕
-			button = new Button(NewsWeather.this);
-			button.setText("新增頻道");
-			LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
-			up_layout.addView(button,param);
-			button.setOnClickListener(this);
-			button.setId(9999);
-        
-			//滑動選單的初始設定
-	        slv = (HorizontalScrollView) findViewById(R.id.hsv);
-	        slv.setOnTouchListener(NewsWeather.this);
+			myDB = new DB(this);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException	
+			cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
+			
+			//一開始先清空所有的view，避免每次都重覆創建子view
+			up_layout.removeAllViews();
+			down_layout.removeAllViews();
+			
+			button_order=1;
+		
+			namelist = new HashMap();
+		
+			liAll= new HashMap<Integer,List<News>>();
+			
+				while(cursor.moveToNext()){
+					
+					//將資料庫內的內容取出放到Button上
+					name=cursor.getString(cursor.getColumnIndex("_name"));
+					path=cursor.getString(cursor.getColumnIndex("_path"));
+					id = cursor.getInt(cursor.getColumnIndex("_id"));
+					
+					//動態新增按鈕
+					button = new Button(NewsWeather.this);
+		            button.setText(name);
+		            LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
+		            up_layout.addView(button,param);
+		            button.setOnLongClickListener(this);
+		            button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
+		            button.setOnClickListener(this);
+		            button.setTag(button_order);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
+		            
+		            
+		            //動態新增ListView
+		            ListView newlv = new ListView(NewsWeather.this);
+		            LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(800,440);
+		            down_layout.addView(newlv,param2);
+		            
+		            
+		            
+		            activitymanager=(ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
+					Log.i(tag, "getSystemService finish");
+					List<ActivityManager.RunningTaskInfo> a=activitymanager.getRunningTasks(10);
+					Log.i(tag, "getRunningTasks finish");
+					for(ActivityManager.RunningTaskInfo j:a){
+						Log.i(tag, "intoFor-loop");
+						if(j.baseActivity.getClassName().equals(packageName+".NewsWeather")){
+							AppWidgetExist=true;
+							boolean d=AppWidgetExist;
+							boolean q =d;
+							Log.i(tag, "getClassName finish");
+						}
+					}
+					
+					
+					
+				 if(NewsWeather.updateVersion<BackStage.updateVersion){
+					if(AppWidgetExist){
+						if(MyWidgetProvider.updateVersion==BackStage.updateVersion){
+		            		NewsWeather.liAll=MyWidgetProvider.liAll;
+		            	}else{
+		    		        //開始對每一行的Cursor的網址做解析
+		    		        checkEncode(path);//檢查這行Cursor的網址編碼
+		    		        encodeTransfer(path);//對檢查出來的編碼做另存檔
+		    		        getRss();
+		    		            
+		    		        liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+		    				}    
+						}	
+		            }
+		
+		            newlv.setAdapter(new NewsAdapter(NewsWeather.this,liAll.get(button_order)));
+		            newlv.setOnItemClickListener(this);
+		            newlv.setId(button_order);
+		            
+		            //將取出來的name存入容器
+		            namelist.put(id,name);
+		            
+		            button_order++;
+				}
+					//更新完才將版本號調為最新號
+					NewsWeather.updateVersion=BackStage.updateVersion;
+				
+				
+					//最後生產一個新增頻道按鈕
+					button = new Button(NewsWeather.this);
+					button.setText("新增頻道");
+					LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
+					up_layout.addView(button,param);
+					button.setOnClickListener(this);
+					button.setId(9999);
+		        
+					//滑動選單的初始設定
+			        slv = (HorizontalScrollView) findViewById(R.id.hsv);
+			        slv.setOnTouchListener(NewsWeather.this);
 
+	        
+	        
+		}
 	}
 
 	//ProgressDialog對話框

@@ -61,12 +61,15 @@ public class DB extends SQLiteOpenHelper{
 			cv.put("_path", path);
 			cv.put("_open", open);
 			db.insert(DATABASE_TABLE, null, cv);
+			
+			BackStage.updateVersion++;
 		}
 		
 		public void delete(int id){
 			SQLiteDatabase db = this.getWritableDatabase();
 			db.delete(DATABASE_TABLE, new String("_id=?"), new String[]{Integer.toString(id)});
-			//更多程式碼
+
+			BackStage.updateVersion++;
 		}
 		
 		//勾選CheckedBox更改資料庫_open欄位的true/false
@@ -75,6 +78,8 @@ public class DB extends SQLiteOpenHelper{
 			ContentValues cv = new ContentValues();
 			cv.put("_open", open);
 			db.update(DATABASE_TABLE, cv, "_id=?", new String[]{String.valueOf(id)});
+			
+			BackStage.updateVersion++;
 		}
 		
 		//依照id位置更改資料名稱
@@ -83,6 +88,8 @@ public class DB extends SQLiteOpenHelper{
 			ContentValues cv = new ContentValues();
 			cv.put("_name", name);
 			db.update(DATABASE_TABLE, cv, "_id=?", new String[]{String.valueOf(id)});
+			
+			BackStage.updateVersion++;
 		}
 		
 }

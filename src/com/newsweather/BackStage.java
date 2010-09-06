@@ -35,6 +35,7 @@ public class BackStage extends SQLiteOpenHelper{
 	String Encode;  //判斷xml文件編碼並儲存在Encode
 	private List<News> getData;//容器
 	String bufferb;  //bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間
+	public static int updateVersion=1;
 	
 	public BackStage(Context context, String name, CursorFactory factory,
 			int version) {

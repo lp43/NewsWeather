@@ -72,8 +72,14 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	static BufferedWriter ProgramWithWIFI;
 	/**記錄PackageName*/
 	static String packageName;
-	static ActivityManager  m;
-	static boolean NewsWeatherExist;
+	/**
+	 * 如果主UI有解析過了，這裡就不解析。
+	 * 我用NewsWeather.liAll(1)是否為空判斷，但在這之前必須先用ActivityManager去檢查NewsWeather.class有沒有被開起來
+	 * 否則會丟出NullPointerException
+	 */
+
+	/**MyWidgetProvider專屬的更新記錄*/
+	public static int updateVersion=0;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -135,19 +141,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			Log.i(tag, "Service_OnCreate");
 			packageName=this.getPackageName();
 			Log.i(tag, "packageName: "+packageName);
-			
-		
-			m=(ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
-			Log.i(tag, "getSystemService finish");
-			List<ActivityManager.RunningTaskInfo> a=m.getRunningTasks(10);
-			Log.i(tag, "getRunningTasks finish");
-			for(ActivityManager.RunningTaskInfo j:a){
-				Log.i(tag, "intoFor-loop");
-				if(j.baseActivity.getClassName().equals(packageName+".NewsWeather")){
-					NewsWeatherExist=true;
-					Log.i(tag, "getClassName finish");
-				}
-			}
+
 			
 			//把所有RSS資料都載入進來
 			initialize(this);
@@ -381,30 +375,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 				
 		}
 
-			 Log.i(tag, "myDB insert finish");
-			 Log.i(tag, "NewsWeatherExist: " + String.valueOf(NewsWeatherExist));
-			 if(NewsWeatherExist){//如果Android程序中的NewsWeather有被開啟
-				 if(NewsWeather.liAll.get(1)!=null){//如果NewsWeather.liAll的第1筆也有值,才將liAll實體拷貝到Widget這裡用
-					 Log.i(tag, "CHECK NewsWeather.liAll is null?: "+String.valueOf(NewsWeather.liAll.get(1)==null));
-					 //之所以用get(1)來判斷，是因為如果只用NewsWeather.liAll判斷，易發生誤判有實體卻沒內容
-						 cursor=myDB.getTruePath();
-						 while(cursor.moveToNext()){
-								//將資料庫內的內容取出放到Button上
-								name=cursor.getString(cursor.getColumnIndex("_name"));
-								path=cursor.getString(cursor.getColumnIndex("_path"));
-							
-								button_order++;
-								Log.i(tag, "In_Unull_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
-									            				
-								namelist.put(button_order,name);			            
-							}
-						 	liAll=NewsWeather.liAll;//既然主UI已經更新了liAll，使用者後來才建立Ｗidget，就把它直接拿來用，不重新解析了
-						 	
-						 	Log.i(tag, "COPY_liAll_to_HashMap: "+liAll.get(button_order).get(0).getTitle());
-							myDB.close();
-							cursor.close();
-				 }
-			 }else{	 
+			
 				 Log.i(tag, "into else");
 					 cursor=myDB.getTruePath();
 						while(cursor.moveToNext()){
@@ -421,13 +392,15 @@ public class MyWidgetProvider extends AppWidgetProvider {
 				            getRss();
 				            
 				            liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+				            MyWidgetProvider.updateVersion=BackStage.updateVersion+1;
+				            BackStage.updateVersion=MyWidgetProvider.updateVersion;
 				            namelist.put(button_order,name);
 				            Log.i(tag, "PUT_to_HashMap: "+name);
 				            
 						}
 						myDB.close();
 						cursor.close();
-			 }
+			 
 				
 		}
 	
