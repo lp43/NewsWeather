@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import android.content.Context;
+import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -71,6 +72,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	static BufferedWriter ProgramWithWIFI;
 	/**記錄PackageName*/
 	static String packageName;
+	static ActivityManager  m;
+	static boolean NewsWeatherExist;
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -131,10 +134,24 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		public void onCreate() {
 			Log.i(tag, "Service_OnCreate");
 			packageName=this.getPackageName();
+			Log.i(tag, "packageName: "+packageName);
+			
+		
+			m=(ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
+			Log.i(tag, "getSystemService finish");
+			List<ActivityManager.RunningTaskInfo> a=m.getRunningTasks(10);
+			Log.i(tag, "getRunningTasks finish");
+			for(ActivityManager.RunningTaskInfo j:a){
+				Log.i(tag, "intoFor-loop");
+				if(j.baseActivity.getClassName().equals(packageName+".NewsWeather")){
+					NewsWeatherExist=true;
+					Log.i(tag, "getClassName finish");
+				}
+			}
 			
 			//把所有RSS資料都載入進來
 			initialize(this);
-
+			Log.i(tag, "initialize_finish");
 			super.onCreate();
 		}
 
@@ -345,13 +362,14 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		 */
 		//獲取RSS資料,讓大容器小容器都有資料
 		private static void initialize(Context context){
+			Log.i(tag, "into initialize");
 			File file = new File(Environment.getDataDirectory().getPath()+"/data/"+packageName+"/databases/database.db");
 			DB myDB= new DB(context);
 			namelist = new HashMap<Integer,String>();
 			liAll=new HashMap<Integer,List<News>>();
+			Log.i(tag, "namelist,liAll finish");
 			
-			
-			 if(!file.exists()){//取得預設的新聞資料		        	
+			 if(!file.exists()){//取得預設的新聞資料
 			      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
 			      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
 			      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
@@ -362,46 +380,53 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			      myDB.insert("台東大圖書館", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//台東大學圖書館BIG5
 				
 		}
-			 
-			 Log.i(tag, "CHECK NewsWeather.liAll is null: "+String.valueOf(NewsWeather.liAll==null));
-			 if(NewsWeather.liAll==null){
-			 cursor=myDB.getTruePath();
-				while(cursor.moveToNext()){
-					//將資料庫內的內容取出放到Button上
-					name=cursor.getString(cursor.getColumnIndex("_name"));
-					path=cursor.getString(cursor.getColumnIndex("_path"));
-				
-					button_order++;
-					Log.i(tag, "In_NULL_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
-					
-					//開始對每一行的Cursor的網址做解析
-		            checkEncode(path);//檢查這行Cursor的網址編碼
-		            encodeTransfer(path);//對檢查出來的編碼做另存檔
-		            getRss();
-		            
-		            liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
-		            namelist.put(button_order,name);
-		            Log.i(tag, "PUT_to_HashMap: "+name);
-		            
-				}
-				myDB.close();
-				cursor.close();
-			 }else{
-				 cursor=myDB.getTruePath();
-				 while(cursor.moveToNext()){
-						//將資料庫內的內容取出放到Button上
-						name=cursor.getString(cursor.getColumnIndex("_name"));
-						path=cursor.getString(cursor.getColumnIndex("_path"));
-					
-						button_order++;
-						Log.i(tag, "In_Unull_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
-							            				
-						namelist.put(button_order,name);			            
-					}
-				 	Da//既然主UI已經更新了liAll，使用者後來才建立Ｗidget，就把它直接拿來用，不解析了
-				 	Log.i(tag, "COPY_liAll_to_HashMap: "+liAll.get(button_order).get(0).getTitle());
-					myDB.close();
-					cursor.close();
+
+			 Log.i(tag, "myDB insert finish");
+			 Log.i(tag, "NewsWeatherExist: " + String.valueOf(NewsWeatherExist));
+			 if(NewsWeatherExist){//如果Android程序中的NewsWeather有被開啟
+				 if(NewsWeather.liAll.get(1)!=null){//如果NewsWeather.liAll的第1筆也有值,才將liAll實體拷貝到Widget這裡用
+					 Log.i(tag, "CHECK NewsWeather.liAll is null?: "+String.valueOf(NewsWeather.liAll.get(1)==null));
+					 //之所以用get(1)來判斷，是因為如果只用NewsWeather.liAll判斷，易發生誤判有實體卻沒內容
+						 cursor=myDB.getTruePath();
+						 while(cursor.moveToNext()){
+								//將資料庫內的內容取出放到Button上
+								name=cursor.getString(cursor.getColumnIndex("_name"));
+								path=cursor.getString(cursor.getColumnIndex("_path"));
+							
+								button_order++;
+								Log.i(tag, "In_Unull_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
+									            				
+								namelist.put(button_order,name);			            
+							}
+						 	liAll=NewsWeather.liAll;//既然主UI已經更新了liAll，使用者後來才建立Ｗidget，就把它直接拿來用，不重新解析了
+						 	
+						 	Log.i(tag, "COPY_liAll_to_HashMap: "+liAll.get(button_order).get(0).getTitle());
+							myDB.close();
+							cursor.close();
+				 }
+			 }else{	 
+				 Log.i(tag, "into else");
+					 cursor=myDB.getTruePath();
+						while(cursor.moveToNext()){
+							//將資料庫內的內容取出放到Button上
+							name=cursor.getString(cursor.getColumnIndex("_name"));
+							path=cursor.getString(cursor.getColumnIndex("_path"));
+						
+							button_order++;
+							Log.i(tag, "In_NULL_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
+							
+							//開始對每一行的Cursor的網址做解析
+				            checkEncode(path);//檢查這行Cursor的網址編碼
+				            encodeTransfer(path);//對檢查出來的編碼做另存檔
+				            getRss();
+				            
+				            liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+				            namelist.put(button_order,name);
+				            Log.i(tag, "PUT_to_HashMap: "+name);
+				            
+						}
+						myDB.close();
+						cursor.close();
 			 }
 				
 		}
