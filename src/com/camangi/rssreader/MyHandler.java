@@ -29,10 +29,64 @@ public class MyHandler extends DefaultHandler {
 	int currentcase = 0;
 	final String tag = "tag";
 	
+	
 	//將轉換成List<News>的XML資料回傳
 	public List<News> getParasedData(){
 		return li;
 	}
+	
+	
+	@Override//XML文件開始解析時呼叫此方法
+	public void startDocument() throws SAXException {
+		li = new ArrayList<News>();
+		Log.i(tag,"startDocument");
+	}
+	
+
+	@Override//解析到Element開頭時的method
+	public void startElement(String uri, String localName, String qName,
+			Attributes attributes) throws SAXException {
+//		Log.i(tag,"startElement");
+		if(localName.equals("channel")){
+			currentcase=0;
+			return;
+		}else if(localName.equals("item")){
+			currentcase=in_item;
+			itemswitch=true;
+			news= new News();
+			return;
+		}else if(localName.equals("title")){
+			if(itemswitch)currentcase=in_title;
+			return;
+		}else if(localName.equals("link")){
+			if(itemswitch)currentcase=in_link;
+			return;
+		}else if(localName.equals("description")){
+			if(itemswitch)currentcase=in_desc;
+			return;
+		}else if(localName.equals("pubDate")){
+			if(itemswitch)currentcase=in_date;
+			return;
+		}else if(localName.equals("author")){
+			if(itemswitch)currentcase=in_author;
+			return;
+		}else if(localName.equals("guid")){
+			if(itemswitch)currentcase=in_guid;
+			return;
+		}else if(localName.equals("image")){
+			if(itemswitch)currentcase=in_img;
+			return;
+		}else if(localName.equals("url")){
+			if(itemswitch)currentcase=in_url;
+			return;
+		}else{
+			currentcase =0;
+			return;
+		}
+		
+		
+	}
+	
 	
 	@Override//覆寫characters
 	public void characters(char[] ch, int start, int length)
@@ -87,61 +141,7 @@ public class MyHandler extends DefaultHandler {
 			default:return;
 			}
 	}
-
-	@Override//XML文件開始解析時呼叫此方法
-	public void startDocument() throws SAXException {
-		li = new ArrayList<News>();
-		Log.i(tag,"startDocument");
-	}
 	
-	@Override//XML文件結束解析時呼叫此方法
-	public void endDocument() throws SAXException {
-		Log.i(tag, "endDocument");
-	}
-
-	@Override//解析到Element開頭時的method
-	public void startElement(String uri, String localName, String qName,
-			Attributes attributes) throws SAXException {
-//		Log.i(tag,"startElement");
-		if(localName.equals("channel")){
-			currentcase=0;
-			return;
-		}else if(localName.equals("item")){
-			currentcase=in_item;
-			itemswitch=true;
-			news= new News();
-			return;
-		}else if(localName.equals("title")){
-			if(itemswitch)currentcase=in_title;
-			return;
-		}else if(localName.equals("link")){
-			if(itemswitch)currentcase=in_link;
-			return;
-		}else if(localName.equals("description")){
-			if(itemswitch)currentcase=in_desc;
-			return;
-		}else if(localName.equals("pubDate")){
-			if(itemswitch)currentcase=in_date;
-			return;
-		}else if(localName.equals("author")){
-			if(itemswitch)currentcase=in_author;
-			return;
-		}else if(localName.equals("guid")){
-			if(itemswitch)currentcase=in_guid;
-			return;
-		}else if(localName.equals("image")){
-			if(itemswitch)currentcase=in_img;
-			return;
-		}else if(localName.equals("url")){
-			if(itemswitch)currentcase=in_url;
-			return;
-		}else{
-			currentcase =0;
-			return;
-		}
-		
-		
-	}
 	
 	@Override//結析到Element結尾時用的method
 	public void endElement(String uri, String localName, String qName)
@@ -150,6 +150,12 @@ public class MyHandler extends DefaultHandler {
 				li.add(news);
 		}
 //		Log.i(tag,"endElement");
+	}
+	
+	
+	@Override//XML文件結束解析時呼叫此方法
+	public void endDocument() throws SAXException {
+		Log.i(tag, "endDocument");
 	}
 
 }

@@ -9,10 +9,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import org.xml.sax.SAXException;
 
 import com.camangi.rssreader.MyWidgetProvider.mReceiver;
 
@@ -63,8 +66,8 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 	 *後面的資料放的是News實體。所以可以用News類別的方法將其值取出 
 	 */
 	private ArrayList<News> getData;
-	/**判斷xml文件編碼並儲存在Encode*/
-	String Encode;  
+//	/**判斷xml文件編碼並儲存在Encode*/
+//	String Encode;  
 	/**描述 : bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間*/
 	String bufferb;  
 	/**資料載入中的等待視窗*/
@@ -108,6 +111,7 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 	/**如果MyWidgetProvider.class確實有被開啟的記錄參數 */
 	static boolean AppWidgetExist;
 	
+	String contentBuffer;
 	
 	/** 描述 : 一開始是沒有資料庫的,從這個method才創立起資料庫的 */
 	public void getDefaultData(){
@@ -211,8 +215,8 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 			button_order=1;
 		
 			namelist = new HashMap();
-		
 			liAll= new HashMap<Integer,List<News>>();
+			
 			
 				while(cursor.moveToNext()){
 					
@@ -247,27 +251,27 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 //						Log.i(tag, "intoFor-loop");
 						if(j.baseActivity.getClassName().equals(packageName+".RssReader")){
 							AppWidgetExist=true;
-							boolean d=AppWidgetExist;
 //							Log.i(tag, "getClassName finish");
 						}
 					}
 					
 					
-					
-				 if(RssReader.updateVersion<BackStage.updateVersion){
-					if(AppWidgetExist){//之所以要先判斷AppWidgetExist，是因為若接在BackStage取liAll，
-						//可能會因為並沒有建立AppWidget而造成NullPointerException
-						if(MyWidgetProvider.updateVersion==BackStage.updateVersion){
-		            		RssReader.liAll=MyWidgetProvider.liAll;
-		            	}else{
-		    		        //開始對每一行的Cursor的網址做解析
-		    		        checkEncode(path);//檢查這行Cursor的網址編碼
-		    		        encodeTransfer(path);//對檢查出來的編碼做另存檔
-		    		        getRss();
-		    		            
-		    		        liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
-		    				}    
-						}	
+						 if(RssReader.updateVersion<BackStage.updateVersion){
+							if(AppWidgetExist){//之所以要先判斷AppWidgetExist，是因為若接在BackStage取liAll，
+								//可能會因為並沒有建立AppWidget而造成NullPointerException
+								if(MyWidgetProvider.updateVersion==BackStage.updateVersion){
+				            		RssReader.liAll=MyWidgetProvider.liAll;
+				            	}else{
+				            		
+			    		       
+					    		    try{
+								    	   liAll.put(button_order, BackStage.convert(path));//將轉存的xml檔容器getData再放進大容器liAll
+								    	   
+									} catch (Exception e) {
+										Log.i("Exception+", e.getMessage());    		    		     
+				    				} 
+									  
+							}	
 		            }
 		
 		            newlv.setAdapter(new NewsAdapter(RssReader.this,liAll.get(button_order)));
@@ -279,6 +283,9 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 		            
 		            button_order++;
 				}
+						 Log.i(tag, "-------------<RssReader> to NEXT cursor------------");
+				}
+				
 					//更新完才將版本號調為最新號
 					RssReader.updateVersion=BackStage.updateVersion;
 				
@@ -286,8 +293,8 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 					//最後生產一個新增頻道按鈕
 					button = new Button(RssReader.this);
 					button.setText("新增頻道");
-					LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
-					up_layout.addView(button,param);
+					LinearLayout.LayoutParams param3 =new LinearLayout.LayoutParams(110,65);
+					up_layout.addView(button,param3);
 					button.setOnClickListener(this);
 					button.setId(9999);
 		        
@@ -295,27 +302,23 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 			        slv = (HorizontalScrollView) findViewById(R.id.hsv);
 			        slv.setOnTouchListener(RssReader.this);
 
-			        
-			        if(BackStage.updateVersion>MyWidgetProvider.updateVersion){
-				        //發送廣播來即時更改Widget
-				       Intent intent = new Intent();
-				       intent.putExtra("now channel", name);
-				       
-				       intent.setAction(CHANGE_LIST_IMMEDIATE);
-				       sendBroadcast(intent);
-				       Log.i(tag, "RssReader onResume()=>sendBroadcast");
-			        }
-			        
+			        //寄出廣播讓Service停止
+			        sendBroadToStopService();
+			        Log.i(tag, "=====================================");
+					} 
 			        
 		}
-	}
+	
 
 	@Override
 	protected void onDestroy() {
 
-		super.onPause();
+		super.onDestroy();
 		   unregisterReceiver(Rreceiver);
 		   Log.i(tag, "RssReader onDestroy()=>unregisterReceiver");
+		   MyWidgetProvider.updateVersion=0;
+		   RssReader.updateVersion=0;
+		   RssReader.updateVersion=1;
 	}
 
 
@@ -330,9 +333,23 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
     	 
     }
     
-	
+	/**
+	 * 描述 : 若呼叫此方法，會寄出廣播讓Widget的Service停止
+	 */
+    private void sendBroadToStopService(){
+	    if(BackStage.updateVersion>MyWidgetProvider.updateVersion){
+	        //發送廣播來即時更改Widget
+	       Intent intent = new Intent();
+	       intent.putExtra("now channel", name);
+	       
+	       intent.setAction(CHANGE_LIST_IMMEDIATE);
+	       sendBroadcast(intent);
+	       Log.i(tag, "RssReader.sendBroadToStopService()=>sendBroadcast, now channel is: "+name);
+	    }
+    }
     
-    /**
+  /*  
+    *//**
      * 描述︰檢查新聞來源的原本編碼 <br/>
      * 因XML無法解析BIG5，會出現paraexception(not-well formed(invalid tocken))，
      * 所以只要網址一進來，設定將資料轉存到utf-8的buffxml(列表編號(從1開始)).xml檔裡，
@@ -341,7 +358,7 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
      * @param path 傳進來的Rss來源網址
      * @see encodeTransfer(String path)
      * @see getRss()
-     */
+     *//*
     private void checkEncode(String path){
     	URL url = null;
     	String encode="";
@@ -355,10 +372,14 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 			   BufferedReader br = new BufferedReader(isr);
 			   String buffera = br.readLine();
 			   br.close();
-			   a=buffera.indexOf("\"", 25)+1;
-			   b=buffera.indexOf("\"", a+1);
-			   encode = buffera.substring(a, b);
-			   Log.i(tag, "checkEncode_finish");
+			   
+				   Log.i(tag,path+", buffera.indexOf(<)= "+buffera.indexOf("<"));
+				   a=buffera.indexOf("\"", 25)+1;
+				   b=buffera.indexOf("\"", a+1);
+				   encode = buffera.substring(a, b);
+				   Log.i(tag, "RssReader.checkEncode(): "+path+" -> "+encode);
+				  
+			   
     	 }catch (Exception e) {
 				Log.i("Exception+", e.getMessage());
 				
@@ -385,55 +406,126 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 
 
 
-	/**
+	*//**
      * 描述 : encodeTransfer() 將新聞來源轉檔成UTF-8型態的XML檔 <br/>
      * 因XML無法解析BIG5，會出現paraexception(not-well formed(invalid tocken))
      * 所以只要網址一進來，一定存到utf-8的buffxml(列表編號(從1開始)).xml檔裡
      * @param path 傳進來的Rss來源網址
      * @see checkEncode(String path)
      * @see getRss()
-     */
+     *//*
     private void encodeTransfer(String path) {
     	
-    	  URL url = null;
-    	  String buffera="";
-			   try {
-				   Log.i(tag,"TransferToXML: "+button_order);
-				   url = new URL(path);
-				   InputStream is = url.openConnection().getInputStream();
-				   InputStreamReader isr = new InputStreamReader(is,Encode);
-				   BufferedReader br = new BufferedReader(isr);
-				   FileOutputStream fos = openFileOutput("buffxml"+button_order+".xml", Context.MODE_PRIVATE);
-				   
-				   
-				   do{
-					   buffera = br.readLine();
-					   if(buffera!=null){
-					   bufferb = new String(buffera.getBytes(),"UTF-8");
-					   fos.write(bufferb.getBytes());
-					   fos.write('\r');
-					   }else{/*else這段避免XML原文最下面有一行空白行，卻還要for.write(b.getBytes())給出值的冏境
-					       導致造成NullPointerException*/
-					   bufferb="";
-				   }
-					   
-				   } while(buffera !=null);
-					  
-				   
-				    fos.flush();			    
-				    fos.close();
-				}  catch (UnsupportedEncodingException e) {
-				Log.i("unsupportex", e.getMessage());
-			} catch (FileNotFoundException e) {
-				Log.i("FileNotFoundException", e.getMessage());
-			}   catch (IOException e) {
-				Log.i("IOException+", e.getMessage());
-		} 
-				
-			Log.i(tag,"big5TOutf8_finish");
+    	if(!Encode.equals("UTF-8")){
+
+      	  URL url = null;
+      	  String buffera="";
+  			   try {
+  				   Log.i(tag,"RssReader.encodeTransfer(),button_order "+button_order+": "+path+" COPY TO (String)contentBuffer");
+  				   url = new URL(path);
+  				   InputStream is = url.openConnection().getInputStream();
+  				   InputStreamReader isr = new InputStreamReader(is,Encode);
+  				   BufferedReader br = new BufferedReader(isr);
+//  				   FileOutputStream fos = openFileOutput("buffxml"+button_order+".xml", Context.MODE_PRIVATE);
+  				   
+  				   contentBuffer="";
+  				   do{
+  					   buffera = br.readLine();
+  					   if(buffera!=null){
+  					   bufferb = new String(buffera.getBytes(),"UTF-8");   
+  					   contentBuffer+=bufferb;
+//  					   fos.write(bufferb.getBytes());
+//  					   fos.write('\r');
+  					   }else{else這段避免XML原文最下面有一行空白行，卻還要for.write(b.getBytes())給出值的冏境
+  					       導致造成NullPointerException
+  					   bufferb="";
+  				   }
+  					   
+  				   } while(buffera !=null);
+  					  
+  				   
+//  				    fos.flush();			    
+//  				    fos.close();
+  				}  catch (UnsupportedEncodingException e) {
+  				Log.i("unsupportex", e.getMessage());
+  			} catch (FileNotFoundException e) {
+  				Log.i("FileNotFoundException", e.getMessage());
+  			}   catch (IOException e) {
+  				Log.i("IOException+", e.getMessage());
+  		} 
+  				
+  			Log.i(tag,"encodeTransfer(): run to end");
+    	}
 	}
 
-    
+	
+    *//**
+     * 描述 : 使用解析器將XML轉成List容器 getData<br/>
+     * getRss()這個method最主要將存成xml的檔案再轉成hashMap去存放，
+     * 好讓之後的顯示和連結都能用get(索引)去控制每筆新聞連結
+     * @see checkEncode(String path)
+     * @see encodeTransfer(String path)
+     *//*
+	private void getRss(){
+		
+		//使用android解析器
+		MyHandler myHandler = new MyHandler();
+		
+		if(!Encode.equals("UTF-8")){
+	
+			Log.i(tag, "Because Encode is : "+Encode+", into (String)contentBuffer parse");
+			try{
+					
+				
+				//使用sax解析
+				SAXParserFactory spf = SAXParserFactory.newInstance();
+				SAXParser sp = spf.newSAXParser();
+				XMLReader xr = sp.getXMLReader();
+				MyHandler myHandler = new MyHandler();
+				xr.setContentHandler(myHandler);
+				FileInputStream fis = openFileInput("buffxml.xml");
+				InputSource A =new InputSource(path);
+			
+				String encode =A.getEncoding();//返回n u l l 
+				xr.parse(A);	
+		
+//				FileInputStream fis = openFileInput("buffxml"+button_order+".xml");
+//				android.util.Xml.parse(fis, Xml.Encoding.UTF_8, myHandler);
+				
+				android.util.Xml.parse(contentBuffer, myHandler);
+				//取得RSS標題與內容列表
+				
+			}catch(Exception e){
+				Log.i("tag", "wrong! "+e.getMessage());
+			}
+		}else{
+			Log.i(tag, "Because Encode is: "+Encode+", into path parse directly");
+			    URL url = null;//編碼為UTF-8直接解析的寫法	
+	        try {
+				url = new URL(path);//編碼為UTF-8直接解析的寫法
+				
+				//編碼為UTF-8直接解析的寫法
+				android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SAXException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+		  }
+		}
+		
+		
+		getData = new ArrayList<News>();
+		getData = (ArrayList<News>) myHandler.getParasedData();
+
+		Log.i(tag,"RssReader.getRss() parse To GetData finish");
+	}
+	
+	*/
 	/**描述 : 滑動手勢指令換頁*/
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
@@ -454,56 +546,7 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 		}		
 		return true;
 	}
-  
 	
-	
-    /**
-     * 描述 : 使用解析器將XML轉成List容器 getData<br/>
-     * getRss()這個method最主要將存成xml的檔案再轉成hashMap去存放，
-     * 好讓之後的顯示和連結都能用get(索引)去控制每筆新聞連結
-     * @see checkEncode(String path)
-     * @see encodeTransfer(String path)
-     */
-	private void getRss(){
-
-		
-//		URL url = null;//編碼為UTF-8直接解析的寫法		
-
-		try{
-//            url = new URL(path);//編碼為UTF-8直接解析的寫法				
-			
-			/*//使用sax解析
-			SAXParserFactory spf = SAXParserFactory.newInstance();
-			SAXParser sp = spf.newSAXParser();
-			XMLReader xr = sp.getXMLReader();
-			MyHandler myHandler = new MyHandler();
-			xr.setContentHandler(myHandler);
-			FileInputStream fis = openFileInput("buffxml.xml");
-			InputSource A =new InputSource(path);
-		
-			String encode =A.getEncoding();//返回n u l l 
-			xr.parse(A);*/
-			
-			//使用android解析器
-			MyHandler myHandler = new MyHandler();
-			
-			/*//編碼為UTF-8直接解析的寫法
-//			android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);*/
-			
-			
-	
-			FileInputStream fis = openFileInput("buffxml"+button_order+".xml");
-			android.util.Xml.parse(fis, Xml.Encoding.UTF_8, myHandler);
-			//取得RSS標題與內容列表
-			getData = new ArrayList<News>();
-			getData = (ArrayList<News>) myHandler.getParasedData();
-
-			
-			Log.i(tag,"XMLtoGetData_finish");
-		}catch(Exception e){
-			Log.i("tag", "wrong! "+e.getMessage());
-		}
-	}
 	
 	/**描述 : 建立Menu清單*/
 	@Override
@@ -628,7 +671,9 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 				switch(which){
 				case 0:
 					myDB.channelSwitch(v.getId(), false);
+
 					onResume();
+					
 					break;
 							
 				case 1:		
@@ -661,6 +706,7 @@ public class RssReader extends Activity implements OnTouchListener,OnClickListen
 												
 											}else{
 											myDB.reName(v.getId(), rename);
+										
 											onResume();
 											}
 

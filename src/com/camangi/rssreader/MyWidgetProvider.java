@@ -52,7 +52,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	static String bufferb;
 	/**用來檢查資料庫在不在*/
 	File file;
-	private DB myDB;
 	private static Cursor cursor;
 	/**將資料庫的name,path,int存到hashmap用的變數*/
 	static String name;
@@ -74,13 +73,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	/**記錄PackageName*/
 	static String packageName;
 
-	
-	
-	/**
-	 * 如果主UI有解析過了，這裡就不解析。
-	 * 我用NewsWeather.liAll(1)是否為空判斷，但在這之前必須先用ActivityManager去檢查NewsWeather.class有沒有被開起來
-	 * 否則會丟出NullPointerException
-	 */
 
 	/**MyWidgetProvider專屬的更新記錄*/
 	public static int updateVersion=0;	
@@ -99,7 +91,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	}
 	
 
-	
 	
 	/**
 	 * 描述 : Widget刪除時引用到的函式<br/>
@@ -137,7 +128,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			
 			//把所有RSS資料都載入進來
 			initialize(this);
-			Log.i(tag, "initialize_finish");
+			Log.i(tag, "MyWidgetProvider.UpdateService.initialize() finish");
 			super.onCreate();
 		}
 
@@ -238,131 +229,12 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			
 			//將更新版本改成後臺的最新版
 			MyWidgetProvider.updateVersion=BackStage.updateVersion;
+			Log.i(tag, "=====================================");
 		}
 		
 	}
 	
 	
-    /**
-     * 描述︰檢查新聞來源的原本編碼 <br/>
-     * 因XML無法解析BIG5，會出現paraexception(not-well formed(invalid tocken))，
-     * 所以只要網址一進來，設定將資料轉存到utf-8的buffxml(列表編號(從1開始)).xml檔裡，
-     * 這個method目的為判別資料來源的編碼格式，
-     * 因為JAVA要轉碼，必須先給定初始格式，才可轉檔。
-     * @param path 傳進來的Rss來源網址
-     * @see encodeTransfer(String path)
-     * @see getRss()
-     */
-	 private static void checkEncode(String path){//判斷此xml的格式
-	    	URL url = null;
-	    	String encode="";
-	    	int a,b;
-	    	 try {
-				   url = new URL(path);
-
-				   InputStream is = url.openConnection().getInputStream();
-				   InputStreamReader isr = new InputStreamReader(is);
-				   BufferedReader br = new BufferedReader(isr);
-				   String buffera = br.readLine();
-				   br.close();
-				   a=buffera.indexOf("\"", 25)+1;
-				   b=buffera.indexOf("\"", a+1);
-				   encode = buffera.substring(a, b);
-				   Log.i(tag, "checkEncode_finish");
-	    	 }catch (Exception e) {
-					Log.i("Exception+", e.getMessage());	
-	 		 } 
-	    	 
-		    	   if(encode.equals("big5")|encode.equals("BIG5")){
-		    		 Encode ="BIG5";  
-				   }else if(encode.equals("utf-8")|encode.equals("UTF-8")|encode.equals("Utf-8")){
-					 Encode ="UTF-8";
-				   }	
-		    	   
-	    }
-	    
-	    
-	    
-	    /**
-	     * 描述 : encodeTransfer() 將新聞來源轉檔成UTF-8型態的XML檔 <br/>
-	     * 因XML無法解析BIG5，會出現paraexception(not-well formed(invalid tocken))
-	     * 所以只要網址一進來，一定存到utf-8的buffxml(列表編號(從1開始)).xml檔裡
-	     * @param path 傳進來的Rss來源網址
-	     * @see checkEncode(String path)
-	     * @see getRss()
-	     */
-	    private static void encodeTransfer(String path) {
-	    	
-	    	  URL url = null;
-	    	  String buffera="";
-				   try {
-					   Log.i(tag,"TransferToXML: "+button_order);
-					   url = new URL(path);
-					   InputStream is = url.openConnection().getInputStream();
-					   InputStreamReader isr = new InputStreamReader(is,Encode);
-					   BufferedReader br = new BufferedReader(isr);
-					   FileOutputStream fos = new FileOutputStream(Environment.getDataDirectory().getPath()+"/data/"+packageName+"/files/buffxml"+button_order+".xml");					   
-					   
-					   do{
-						   buffera = br.readLine();
-						   if(buffera!=null){
-						   bufferb = new String(buffera.getBytes(),"UTF-8");
-						   fos.write(bufferb.getBytes());
-						   fos.write('\r');
-						   }else{/*else這段避免XML原文最下面有一行空白行，卻還要for.write(b.getBytes())給出值的冏境
-						       導致造成NullPointerException*/
-						   bufferb="";
-					   }
-						   
-					   } while(buffera !=null);
-						  
-					   
-					    fos.flush();			    
-					    fos.close();
-					}  catch (UnsupportedEncodingException e) {
-					Log.i("unsupportex", e.getMessage());
-				} catch (FileNotFoundException e) {
-					Log.i("FileNotFoundException", e.getMessage());
-				}   catch (IOException e) {
-					Log.i("IOException+", e.getMessage());
-			} 
-					
-				Log.i(tag,"big5TOutf8_finish");
-		}
-	
-
-
-
-
-		
-	    /**
-	     * 描述 : 使用解析器將XML轉成List容器 getData<br/>
-	     * getRss()這個method最主要將存成xml的檔案再轉成hashMap去存放，
-	     * 好讓之後的顯示和連結都能用get(索引)去控制每筆新聞連結
-	     * @see checkEncode(String path)
-	     * @see encodeTransfer(String path)
-	     */
-		private static void getRss(){
-
-			try{
-				
-				//使用android解析器
-				MyHandler myHandler = new MyHandler();
-			
-		
-				FileInputStream fis = new FileInputStream(Environment.getDataDirectory().getPath()+"/data/"+packageName+"/files/buffxml"+button_order+".xml");
-				android.util.Xml.parse(fis, Xml.Encoding.UTF_8, myHandler);
-//				Log.i(tag,"parse_pass");
-				//取得RSS標題與內容列表
-				getData = new ArrayList<News>();
-				getData = (ArrayList<News>) myHandler.getParasedData();
-				Log.i(tag,"XMLtoGetData_finish");
-			}catch(Exception e){
-				Log.i("tag", "wrong! "+e.getMessage());
-			}
-		}
-	
-		
 		
 		/**
 		 * 描述 : 為防初始無資料的基本設定<br/>
@@ -406,18 +278,21 @@ public class MyWidgetProvider extends AppWidgetProvider {
 						
 							button_order++;
 							Log.i(tag, "In_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
-							
-							//開始對每一行的Cursor的網址做解析
-				            checkEncode(path);//檢查這行Cursor的網址編碼
-				            encodeTransfer(path);//對檢查出來的編碼做另存檔
-				            getRss();
+							 
+							 
+							try {
+//								BackStage.convert(path);
+								liAll.put(button_order, BackStage.convert(path));//將轉存的xml檔容器getData再放進大容器liAll
+							} catch (Exception e) {
+								Log.d(tag, e.getMessage());
+							}
 				            
-				            liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+				           
 				            MyWidgetProvider.updateVersion=BackStage.updateVersion+1;
 				            BackStage.updateVersion=MyWidgetProvider.updateVersion;
 				            namelist.put(button_order,name);
-				            Log.i(tag, "PUT_to_HashMap: "+name);
-				            
+//				            Log.i(tag, "PUT to HashMap-> namelist: "+name);
+				            Log.i(tag, "-------------<MyWidgetProvider> to NEXT cursor------------");
 						}
 						myDB.close();
 						cursor.close();
