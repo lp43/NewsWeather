@@ -40,12 +40,15 @@ import android.util.Log;
 import android.util.Xml;
 import android.widget.RemoteViews;
 
+/**
+ *程式的flow是MyWidgetProvider.onUpdate()->UpdateService.onCreate()->UpdateService.onCreate.onStart()
+ *之後就變成MyWidgetProvider.onUpdate()->->UpdateService.onCreate.onStart()
+ */
 public class MyWidgetProvider extends AppWidgetProvider {
 	
 	/**專放News類的容器，幾個channel就有幾個getData，因為這個List是即時存進大容器lliAll，
 	 * 所以資料一旦存進大容器，就會被下一筆channel的資料替掉*/
 	private static ArrayList<News> getData;
-
 	/**判斷xml文件編碼並儲存在Encode*/
 	static String Encode; 
 	/**bufferb用來存放從xml複製下來，每一行從BIG5轉成UTF-8的String空間*/
@@ -69,13 +72,11 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	/**設定logcat的tag標籤名稱*/
 	final static String tag ="tag";
 	Intent intent;
-	static BufferedWriter ProgramWithWIFI;
 	/**記錄PackageName*/
 	static String packageName;
-
-
 	/**MyWidgetProvider專屬的更新記錄*/
 	public static int updateVersion=0;	
+	
 	
 	/**
 	 * 描述 : appWidget.class一啟動時先跑的method<br/>
@@ -248,51 +249,36 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		 */
 		//獲取RSS資料,讓大容器小容器都有資料
 		private static void initialize(Context context){
-			Log.i(tag, "into initialize");
+			Log.i(tag, "into MyWidgetProvider.initialize()");
 			File file = new File(Environment.getDataDirectory().getPath()+"/data/"+packageName+"/databases/database.db");
 			DB myDB= new DB(context);
 			namelist = new HashMap<Integer,String>();
 			liAll=new HashMap<Integer,List<News>>();
-			Log.i(tag, "new namelist(),liAll() finish");
+			Log.i(tag, "MyWidgetProvider.initialize(): new namelist(),liAll()");
 			
-			 if(!file.exists()){//取得預設的新聞資料
-			      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-			      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-			      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
-			      myDB.insert("公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",true);//交通部公路總局UTF8
-			      myDB.insert("蘋果日報", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-				
-		}
-
-			
-				 
-					 cursor=myDB.getTruePath();
-					 Log.i(tag, "cursor=myDB.getTruePath()");
+ 
+					 cursor=myDB.getTruePath();;
 						while(cursor.moveToNext()){
 							//將資料庫內的內容取出放到Button上
 							name=cursor.getString(cursor.getColumnIndex("_name"));
 							path=cursor.getString(cursor.getColumnIndex("_path"));
 						
 							button_order++;
-							Log.i(tag, "In_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
+//							Log.i(tag, "MyWidgetProvider: In_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
+							Log.i(tag, "-------------<MyWidgetProvider> to NEXT cursor: "+button_order+"------------"); 
 							 
-							 
-							try {
-//								BackStage.convert(path);
-								liAll.put(button_order, BackStage.convert(path));//將轉存的xml檔容器getData再放進大容器liAll
-							} catch (Exception e) {
-								Log.d(tag, e.getMessage());
-							}
-				            
+//							try {
+//								liAll.put(button_order, BackStage.convert(path));//將轉存的xml檔容器getData再放進大容器liAll
+//							} catch (Exception e) {
+//								Log.d(tag, e.getMessage());
+//							}
+//				            
 				           
 				            MyWidgetProvider.updateVersion=BackStage.updateVersion+1;
 				            BackStage.updateVersion=MyWidgetProvider.updateVersion;
-				            namelist.put(button_order,name);
+//				            namelist.put(button_order,name);
 //				            Log.i(tag, "PUT to HashMap-> namelist: "+name);
-				            Log.i(tag, "-------------<MyWidgetProvider> to NEXT cursor------------");
+				            
 						}
 						myDB.close();
 						cursor.close();

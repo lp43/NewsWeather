@@ -24,6 +24,8 @@
 
 <service android:name="com.camangi.rssreader.MyWidgetProvider$UpdateService"></service>
 <receiver android:name="MyWidgetProvider$mReceiver"></receiver>
+<service android:name="BackStage"></service>
+<receiver android:name="RssReader$GetBackStageData"></receiver>
 </application>
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.GET_TASKS"/>
