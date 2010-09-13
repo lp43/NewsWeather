@@ -24,7 +24,7 @@ public class MyHandler extends DefaultHandler {
 	final int in_author=11;
 	final int in_img=12;
 	final int in_url=13;
-	private List<News> li;
+	private ArrayList<News> li;
 	private News news;
 	int currentcase = 0;
 	final String tag = "tag";

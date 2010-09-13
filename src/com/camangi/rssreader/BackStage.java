@@ -25,8 +25,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.util.Xml;
 
@@ -55,7 +57,7 @@ public class BackStage extends Service{
 	 * 這個值是排序的，勾選了幾個頻道就有幾筆資料，從1計數。
 	 * 這個值和Button.setTag()、ListView.setTag()、大容器HashMap型態的liAll的key值都是相對應的
 	 */
-	int button_order;
+	public static int button_order;
 	/**讓Button能夠取到名字的暫存容器*/
 	private static HashMap<Integer,String> rssreader_namelist,widget_namelist;
 	/**
@@ -63,6 +65,7 @@ public class BackStage extends Service{
 	 * 將每一筆getRSS()產生的getData容器，再放入大容器裡。因為button_order起始是1，所以資料會從index=1開始存放。
 	 */
 	public static HashMap<Integer,List<News>> liAll;
+	public  ArrayList<News> getData;
 	public static final String GET_NEW_ENTITY="get_new_entity_from_backstage";
 	
 	
@@ -71,6 +74,7 @@ public class BackStage extends Service{
 	
 	@Override
 	public void onCreate() {
+		Log.i(tag, "into BackStage.onCreate()");
 		super.onCreate();
 		initializeData();
 		button_order=0;		
@@ -80,40 +84,49 @@ public class BackStage extends Service{
 	@Override
 	public void onStart(Intent intent, int startId) {
 		super.onStart(intent, startId);
+		 myDB = new DB(this);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException
 		
-		Log.i(tag, "BackStage.onStart()");
-		
-	    
-	    myDB = new DB(this);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException
-		cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
-		rssreader_namelist = new HashMap<Integer, String>();
-		widget_namelist = new HashMap<Integer, String>();
-		liAll= new HashMap<Integer,List<News>>();
-		
-		if(!cursor.isLast()){//怎麼判斷是最後一筆比較好?
-		cursor.moveToPosition(button_order);	
-		
-		Log.i(tag, "-------------<BackStage> to NEXT cursor: "+button_order+"------------");
-		
-		//將資料庫內的內容取出放到Button上
-		name=cursor.getString(cursor.getColumnIndex("_name"));
-		path=cursor.getString(cursor.getColumnIndex("_path"));
-		id = cursor.getInt(cursor.getColumnIndex("_id"));
-		
-		try {
-			liAll.put(button_order, convert(path));//將轉存的xml檔容器getData再放進大容器liAll
-		} catch (Exception e) {
-			Log.i(tag, "convert("+path+")wrong!");
-		}
-		
-		rssreader_namelist.put(id,name);
-		widget_namelist.put(button_order,name);
-		myDB.close();
-		
-		button_order++;
-		sendBroadToRssReader();
-		}
+		new Thread(){
+		  public void run(){
+			Log.i(tag, "into Backstage.onStart()");
+			
+//			Log.i(tag, "BackStage.onStart()");
 
+			cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
+			getData = new ArrayList<News>();
+			rssreader_namelist = new HashMap<Integer, String>();
+			widget_namelist = new HashMap<Integer, String>();
+			liAll= new HashMap<Integer,List<News>>();
+			
+			Log.i(tag, "cursor amount: "+cursor.getCount());
+			Log.i(tag, "now button_order is:"+button_order);
+			if(button_order<cursor.getCount()){
+			cursor.moveToPosition(button_order);	
+			
+			Log.i(tag, "-------------<BackStage> to NEXT cursor: "+button_order+"------------");
+			
+			//將資料庫內的內容取出放到Button上
+			name=cursor.getString(cursor.getColumnIndex("_name"));
+			path=cursor.getString(cursor.getColumnIndex("_path"));
+			id = cursor.getInt(cursor.getColumnIndex("_id"));
+			
+			try {
+				getData = convert(path);
+				liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+			} catch (Exception e) {
+				Log.i(tag, "convert("+path+")wrong!");
+			}
+			
+			rssreader_namelist.put(id,name);
+			widget_namelist.put(button_order,name);
+			myDB.close();
+			sendBroadToRssReader();
+			button_order++;
+		}
+		}
+		}.start();
+		
+		
 	}
 
 
@@ -145,8 +158,12 @@ public class BackStage extends Service{
 
 	        //發送廣播來即時更改Widget
 	       Intent intent = new Intent();
+
+
 	       intent.putExtra("entity_name", name);
-	       
+	       intent.putExtra("button_order", button_order);
+	       intent.putExtra("id", id);
+	       intent.putExtra("getData", getData);
 	       intent.setAction(GET_NEW_ENTITY);
 	       sendBroadcast(intent);
 	       Log.i(tag, "BackStage.sendBroadToRssReader()=>now send entity path is: "+ name);
