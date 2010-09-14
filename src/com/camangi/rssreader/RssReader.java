@@ -102,10 +102,10 @@ public class RssReader extends Activity implements OnTouchListener {
 	 * 描述 :大容器HashMap<Integer,List<News>>，Integer放的是button_order的排序，List<News>放getData<br/>
 	 * 將每一筆getRSS()產生的getData容器，再放入大容器裡。因為button_order起始是1，所以資料會從index=1開始存放。
 	 */
-	public static HashMap<Integer,List<News>> liAll;
+	public HashMap<Integer,List<News>> liAll;
 	final static String tag ="tag";
-	public static final String CHANGE_LIST_IMMEDIATE="changeListimmediate";
-	public static final String GET_NEW_ENTITY="get_new_entity_from_backstage";
+
+
 	/**取出該Apk的套件名稱	 */
 	String packageName;
 	private mReceiver Rreceiver1;
@@ -119,9 +119,20 @@ public class RssReader extends Activity implements OnTouchListener {
 	String contentBuffer;
 	private Intent intent;
 	private static Intent intent2;
+	IntentFilter mFilter1,mFilter2;
 	
+    @Override
+	protected void onStop() {
+		   
+		   unregisterReceiver(Rreceiver2);
+
+		   Log.i(tag, "RssReader.onStop()=>unregisterReceiver");
 	
-    /** Called when the activity is first created. */
+		super.onStop();
+	}
+
+
+	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,15 +143,15 @@ public class RssReader extends Activity implements OnTouchListener {
 
 
         
-        //向系統註冊Receiver，讓MyWidgetProvider.mReceiver產生功能
-        IntentFilter mFilter,mFilter2;
-        /*mFilter=new IntentFilter(CHANGE_LIST_IMMEDIATE);
-        Rreceiver1 = new MyWidgetProvider.mReceiver();
-        registerReceiver(Rreceiver1,mFilter);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
-        Log.i(tag, "registerReceiver1,IntentFilter is: CHANGE_LIST_IMMEDIATE");*/
+        //向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
         
-      //向系統註冊Receiver，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
-        mFilter2=new IntentFilter(GET_NEW_ENTITY);
+        mFilter1=new IntentFilter(BackStage.CHANGE_LIST_IMMEDIATE);
+        Rreceiver1 = new MyWidgetProvider.mReceiver();
+        registerReceiver(Rreceiver1,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
+        Log.i(tag, "registerReceiver1,IntentFilter is: CHANGE_LIST_IMMEDIATE");
+        
+      //向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
+        mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
         Rreceiver2=new RssReader.GetBackStageData();
         registerReceiver(Rreceiver2,mFilter2);
         Log.i(tag, "registerReceiver2,IntentFilter is: GET_NEW_ENTITY");
@@ -162,7 +173,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	protected void onResume() {
 	Log.i("onResum", "into");
 	super.onResume();
-	
+		
 	   up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
 	   down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置		    
 		
@@ -174,30 +185,18 @@ public class RssReader extends Activity implements OnTouchListener {
        slv = (HorizontalScrollView) findViewById(R.id.hsv);
        slv.setOnTouchListener(RssReader.this);
 
-
+       BackStage.button_order=0;
+       
 		//啟動Service以解析資料
 	   intent = new Intent(this, BackStage.class);
        startService(intent);
 	
        
-//       unregisterReceiver(Rreceiver2);
-       //寄出廣播讓Widget的Service停止
-//       sendBroadToStopService();
+
        Log.i(tag, "=====================================");
        
 //	if(RssReader.updateVersion<BackStage.updateVersion){
-     //從Task清單裡去查明有開啟Widget，就將AppWidgetExist設為True，以成為之後複製檔案的判斷條件
-//		            activitymanager=(ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
-////					Log.i(tag, "getSystemService finish");
-//					List<ActivityManager.RunningTaskInfo> a=activitymanager.getRunningTasks(10);
-////					Log.i(tag, "getRunningTasks finish");
-//					for(ActivityManager.RunningTaskInfo j:a){
-////						Log.i(tag, "intoFor-loop");
-//						if(j.baseActivity.getClassName().equals(packageName+".RssReader")){
-//							AppWidgetExist=true;
-////							Log.i(tag, "getClassName finish");
-//						}
-//					}
+
 					
 					
 //						 if(RssReader.updateVersion<BackStage.updateVersion){
@@ -219,6 +218,22 @@ public class RssReader extends Activity implements OnTouchListener {
 		}
     
 	
+	/**
+	 * 描述 : 若呼叫此方法，會寄出廣播讓Widget的Service停止
+	 */
+    private void sendBroadToWidget(){
+//	    if(BackStage.updateVersion>MyWidgetProvider.updateVersion){
+	        //發送廣播來即時更改Widget
+	       Intent intent = new Intent();
+	       intent.putExtra("now channel", BackStage.name);
+	       
+	       intent.setAction(BackStage.CHANGE_LIST_IMMEDIATE);
+	       sendBroadcast(intent);
+	       Log.i(tag, "RssReader.sendBroadToWidget()=>sendBroadcast, now channel is: "+BackStage.name);
+//	    }
+    }
+    
+    
 	private void createNewChannelButton(){
 		//最後生產一個新增頻道按鈕
 		button = new Button(RssReader.this);
@@ -238,35 +253,6 @@ public class RssReader extends Activity implements OnTouchListener {
 	}
 
 
-
-	@Override
-	protected void onDestroy() {
-
-		super.onDestroy();
-		   unregisterReceiver(Rreceiver1);
-		   Log.i(tag, "RssReader onDestroy()=>unregisterReceiver");
-		   MyWidgetProvider.updateVersion=0;
-		   RssReader.updateVersion=0;
-		   RssReader.updateVersion=1;
-	}
-
-    
-	/**
-	 * 描述 : 若呼叫此方法，會寄出廣播讓Widget的Service停止
-	 */
-    private void sendBroadToStopService(){
-	    if(BackStage.updateVersion>MyWidgetProvider.updateVersion){
-	        //發送廣播來即時更改Widget
-	       Intent intent = new Intent();
-	       intent.putExtra("now channel", name);
-	       
-	       intent.setAction(CHANGE_LIST_IMMEDIATE);
-	       sendBroadcast(intent);
-	       Log.i(tag, "RssReader.sendBroadToStopService()=>sendBroadcast, now channel is: "+name);
-	    }
-    }
-    
-  
 	/**描述 : 滑動手勢指令換頁*/
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
@@ -333,16 +319,19 @@ public class RssReader extends Activity implements OnTouchListener {
 
 
 	public class GetBackStageData extends BroadcastReceiver{
+		HashMap<Integer,List<News>> liAll = new HashMap<Integer,List<News>>();
 
 		@Override
 		public void onReceive(final Context context, Intent intent) {
-			Log.i(tag, "RssReader$GetBackStageData.onReceive() get entity name:"+intent.getExtras().getString("entity_name"));
+			Log.i(tag, "RssReader.GetBackStageData.onReceive() get entity name:"+intent.getExtras().getString("entity_name"));
 			   name = intent.getExtras().getString("entity_name");
 			   button_order=intent.getExtras().getInt("button_order");
+			   Log.i(tag, "get button_order: "+button_order);
 			   id = intent.getExtras().getInt("id");
 			   getData=(ArrayList<News>) intent.getSerializableExtra("getData");
-		
-			
+			   
+			   liAll.put(button_order, getData);
+			  
 					
 					
 							//動態新增按鈕
@@ -350,6 +339,7 @@ public class RssReader extends Activity implements OnTouchListener {
 //							Log.i(tag, "new button pass");
 					        button.setText(name);
 //					        Log.i(tag, "setname pass");
+					        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
 					        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
 //					        Log.i(tag, "setlinearlayout pass");
 					        up_layout.addView(button,param);
@@ -357,10 +347,10 @@ public class RssReader extends Activity implements OnTouchListener {
 					        button.setOnLongClickListener(new View.OnLongClickListener() {
 					             public boolean onLongClick(final View v) {
 					         		myDB=new DB(context);
-					        		
+					         		
 					        		new AlertDialog.Builder(context)
 					        		
-					        		.setTitle("對於 "+namelist.get(v.getId())+" 頻道，你想要...？")
+					        		.setTitle("對於 "+BackStage.rssreader_namelist.get(v.getId())+" 頻道，你想要...？")
 					        		.setIcon(R.drawable.q01)
 					        		.setItems(new String[]{"隱藏","重新命名","刪除"}, new DialogInterface.OnClickListener(){
 					        			
@@ -369,16 +359,16 @@ public class RssReader extends Activity implements OnTouchListener {
 					        				switch(which){
 					        				case 0:
 					        					myDB.channelSwitch(v.getId(), false);
-
-					        					onResume();
-					        					
+  
+					        				       
+					        				       onResume();
 					        					break;
 					        							
 					        				case 1:		
 					        					LayoutInflater factory = LayoutInflater.from(context);
 					        			            final View rename_layout = factory.inflate(R.layout.alert_dialog_rename, null);
 					        							new AlertDialog.Builder(context)
-					        							.setTitle("替 "+namelist.get(v.getId())+" 重新命名")
+					        							.setTitle("替 "+BackStage.rssreader_namelist.get(v.getId())+" 重新命名")
 					        							.setView(rename_layout)
 					        							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
 
@@ -403,9 +393,9 @@ public class RssReader extends Activity implements OnTouchListener {
 					        												
 					        												
 					        											}else{
-					        											myDB.reName(v.getId(), rename);
-					        										
-					        											onResume();
+						        											myDB.reName(v.getId(), rename);
+						        											
+						        											onResume();
 					        											}
 
 					        									}
@@ -425,7 +415,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        					try{
 					        							new AlertDialog.Builder(context)
 					        							.setIcon(R.drawable.warning01)
-					        							.setMessage("這樣會刪除頻道 "+namelist.get(v.getId())+"\n確定嗎？")
+					        							.setMessage("這樣會刪除頻道 "+BackStage.rssreader_namelist.get(v.getId())+"\n確定嗎？")
 					        							.setTitle("注意！")
 					        							
 					        							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
@@ -433,6 +423,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        								@Override
 					        								public void onClick(DialogInterface dialog, int which) {
 					        									myDB.delete(v.getId());
+					        									
 					        									onResume();
 					        								}
 					        							})
@@ -480,7 +471,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					             }
 					        });
 					        Log.i(tag, "set buttonOnlongclicklisterner pass");
-					        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
+					        
 					        button.setOnClickListener(new View.OnClickListener() {
 					             public void onClick(View v) {
 					         		switch(v.getId()){
@@ -571,10 +562,8 @@ public class RssReader extends Activity implements OnTouchListener {
 										int position, long id) {
 									//將大容器liAll裡的小容器getData裡的Link依照parent.getTag(),也就是該ListView所設的tag(同button_order)的值取出
 									
-//									Log.i(tag, "you press liAll.get("+parent.getTag().toString()+").get("+position+").getLink();");
-//									String temp1 = liAll.get(Integer.parseInt(parent.getTag().toString())).get(position).getLink();
-									
-									Intent browserIntent1 = new Intent("android.intent.action.VIEW", Uri.parse(getData.get(position).getLink()));
+									Log.i(tag, "parent.getTag(): "+parent.getTag().toString());
+									Intent browserIntent1 = new Intent("android.intent.action.VIEW", Uri.parse(liAll.get(Integer.parseInt(parent.getTag().toString())).get(position).getLink()));
 									context.startActivity(browserIntent1);
 									
 								}
@@ -584,15 +573,12 @@ public class RssReader extends Activity implements OnTouchListener {
 					    	//啟動Service以解析資料
 							   intent2 = new Intent(context, BackStage.class);
 							   context.startService(intent2);
-							   RssReader.liAll=BackStage.liAll;
+							   
+							   if(BackStage.cursor.getCount()==BackStage.liAll.size()){
+								   sendBroadToWidget();
+							   }
 						}
-		
-				   
-					
-			        
-				
 
-	
 		}
 
 

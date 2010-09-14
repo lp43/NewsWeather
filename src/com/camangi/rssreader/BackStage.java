@@ -19,6 +19,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.xml.sax.SAXException;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -46,11 +47,11 @@ public class BackStage extends Service{
 	/**將BIG5的來源資料，用readLine()一行一行讀出來，並存成UTF-8的存放空間變數*/
 	static String contentBuffer;
 	/**將資料庫的name,path,int存到hashmap用的變數*/
-	String name,path;
+	public static String name,path;
 	/**描述 : 這個id是database裡的id,不一定會照順序*/
 	int id;
 	private DB myDB;
-	private Cursor cursor;
+	public static Cursor cursor;
 	/**
 	 * 描述 : 記錄頻道按鈕的排序位置<br/>
 	 * button_order用來計算使用者總共勾選了幾筆喜好列表，
@@ -59,47 +60,54 @@ public class BackStage extends Service{
 	 */
 	public static int button_order;
 	/**讓Button能夠取到名字的暫存容器*/
-	private static HashMap<Integer,String> rssreader_namelist,widget_namelist;
+	public static HashMap<Integer,String> rssreader_namelist,widget_namelist;
 	/**
 	 * 描述 :大容器HashMap<Integer,List<News>>，Integer放的是button_order的排序，List<News>放getData<br/>
 	 * 將每一筆getRSS()產生的getData容器，再放入大容器裡。因為button_order起始是1，所以資料會從index=1開始存放。
 	 */
 	public static HashMap<Integer,List<News>> liAll;
+	private static boolean AppWidgetExist;
+	private static ActivityManager activitymanager;
 	public  ArrayList<News> getData;
 	public static final String GET_NEW_ENTITY="get_new_entity_from_backstage";
-	
+	public static final String CHANGE_LIST_IMMEDIATE="changeListimmediate";
 	
 	//===========================================================================================
 	
 	
 	@Override
 	public void onCreate() {
-		Log.i(tag, "into BackStage.onCreate()");
-		super.onCreate();
-		initializeData();
-		button_order=0;		
+		 Log.i(tag, "into BackStage.onCreate()");
+		 super.onCreate();
+		 initializeData();
+		 button_order=0;	
+		 rssreader_namelist = new HashMap<Integer, String>();
+		 widget_namelist = new HashMap<Integer, String>();
+		 liAll= new HashMap<Integer,List<News>>();
+		 myDB = new DB(this);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException
+		 cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
+		 getData = new ArrayList<News>();
 	}
 	
 	
 	@Override
 	public void onStart(Intent intent, int startId) {
 		super.onStart(intent, startId);
-		 myDB = new DB(this);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException
 		
+	
+			
 		new Thread(){
+			
 		  public void run(){
 			Log.i(tag, "into Backstage.onStart()");
 			
 //			Log.i(tag, "BackStage.onStart()");
 
-			cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
-			getData = new ArrayList<News>();
-			rssreader_namelist = new HashMap<Integer, String>();
-			widget_namelist = new HashMap<Integer, String>();
-			liAll= new HashMap<Integer,List<News>>();
+			
+		
 			
 			Log.i(tag, "cursor amount: "+cursor.getCount());
-			Log.i(tag, "now button_order is:"+button_order);
+			Log.i(tag, "now button_order counter to: "+button_order);
 			if(button_order<cursor.getCount()){
 			cursor.moveToPosition(button_order);	
 			
@@ -119,13 +127,19 @@ public class BackStage extends Service{
 			
 			rssreader_namelist.put(id,name);
 			widget_namelist.put(button_order,name);
-			myDB.close();
+			
 			sendBroadToRssReader();
+			
+			Log.i(tag, "rss_namelist.get(0): "+rssreader_namelist.get(0));
+			Log.i(tag, "rss_namelist.get(1): "+rssreader_namelist.get(1));
+			Log.i(tag, "rss_namelist.get(2): "+rssreader_namelist.get(2));
 			button_order++;
+			
 		}
 		}
 		}.start();
 		
+		myDB.close();
 		
 	}
 
@@ -148,10 +162,7 @@ public class BackStage extends Service{
 		}
 	}
 	
-//	public void truePathToHashMap(){
-//
-//	}
-//	
+
 	
 	
     private void sendBroadToRssReader(){
@@ -169,6 +180,8 @@ public class BackStage extends Service{
 	       Log.i(tag, "BackStage.sendBroadToRssReader()=>now send entity path is: "+ name);
 	   
     }
+    
+
     
 	
 	/**
@@ -322,6 +335,7 @@ public class BackStage extends Service{
 		Log.i(tag,"BackStage.getRss() parse To GetData finish");
 		return (ArrayList<News>) myHandler.getParasedData();
 	}
+
 
 
 	@Override

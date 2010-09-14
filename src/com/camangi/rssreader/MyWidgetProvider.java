@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import android.content.Context;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -55,7 +56,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	static String bufferb;
 	/**用來檢查資料庫在不在*/
 	File file;
-	private static Cursor cursor;
 	/**將資料庫的name,path,int存到hashmap用的變數*/
 	static String name;
 	/**從資料庫查詢回來_open為"true"的網址,每個迴圈存一次，所以會一直被替代掉*/
@@ -72,6 +72,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	/**設定logcat的tag標籤名稱*/
 	final static String tag ="tag";
 	Intent intent;
+	private static ActivityManager activitymanager;
+	private static boolean AppWidgetExist;
 	/**記錄PackageName*/
 	static String packageName;
 	/**MyWidgetProvider專屬的更新記錄*/
@@ -101,15 +103,15 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	 */
 	@Override
 	public void onDisabled(Context context) {
-		super.onDisabled(context);
+		
 		Log.i(tag, "Provider_OnDisabled");
-		namelist.clear();
-		liAll.clear();
-		intent = new Intent(context, UpdateService.class);
+
+		Intent intent = new Intent(context, UpdateService.class);
 		context.stopService(intent);
-		button_order=0;
-		currentnews.news_channel=1;//頻道從1開始放
+
+		currentnews.news_channel=0;//頻道從0開始放
 		currentnews.news_number=0;//新聞內容從0放的
+		super.onDisabled(context);
 	}
 
 
@@ -126,11 +128,37 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		public void onCreate() {
 			Log.i(tag, "Service_OnCreate");
 			packageName=this.getPackageName();
+
+			currentnews.news_channel=0;//頻道從0開始放
+			currentnews.news_number=0;//新聞內容從0放的
+			
+			checkRssReaderExist();
 			
 			//把所有RSS資料都載入進來
 			initialize(this);
+			try {
+				Thread.sleep(8000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			Log.i(tag, "MyWidgetProvider.UpdateService.initialize() finish");
 			super.onCreate();
+		}
+		
+		public void checkRssReaderExist(){
+			//從Task清單裡去查明有開啟Widget，就將AppWidgetExist設為True，以成為之後複製檔案的判斷條件
+		    activitymanager=(ActivityManager) this.getSystemService(Activity.ACTIVITY_SERVICE);
+//			Log.i(tag, "getSystemService finish");
+			List<ActivityManager.RunningTaskInfo> a=activitymanager.getRunningTasks(10);
+//			Log.i(tag, "getRunningTasks finish");
+			for(ActivityManager.RunningTaskInfo j:a){
+//				Log.i(tag, "intoFor-loop");
+				if(j.baseActivity.getClassName().equals(packageName+".RssReader")){
+					AppWidgetExist=true;
+//					Log.i(tag, "getClassName finish");
+				}
+			}	
 		}
 
 		@Override
@@ -148,14 +176,14 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		@Override
 		public void onStart(Intent intent, int startId) {
 			
-			Log.i(tag, "Service_OnStart, "+"NOW_channel_is:"+namelist.get(currentnews.news_channel));
+			Log.i(tag, "Service_OnStart, "+"NOW_channel_is:"+BackStage.widget_namelist.get(currentnews.news_channel));
 			super.onStart(intent, startId);
 			
-			currentnews.content=liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
-			currentnews.source=namelist.get(currentnews.news_channel);
+			currentnews.content=BackStage.liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
+			currentnews.source=BackStage.widget_namelist.get(currentnews.news_channel);
 			
-			int channelTotal=liAll.size();//算出大容器liAll的總頻道數
-			int newsTotal=liAll.get(currentnews.news_channel).size();//算出指定的小容器getData的總新聞數
+			int channelTotal=BackStage.liAll.size();//算出大容器liAll的總頻道數
+			int newsTotal=BackStage.liAll.get(currentnews.news_channel).size();//算出指定的小容器getData的總新聞數
 			
 		
 			//輪播新聞的計算公式
@@ -163,8 +191,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 				currentnews.news_number++;
 			}else{
 				
-				if(currentnews.news_channel>=channelTotal){
-					currentnews.news_channel=1;
+				if(currentnews.news_channel>=channelTotal-1){
+					currentnews.news_channel=0;
 					currentnews.news_number=0;
 				}else{
 					currentnews.news_channel++;
@@ -201,7 +229,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	 * @param source 用來存放該筆資料的新聞來源
 	 */
 	public static class currentnews{	
-		static int news_channel=1;//頻道從1開始放
+		static int news_channel=0;//頻道從1開始放
 		static int news_number=0;//新聞內容從0放的
 		static String content,source;
 	}
@@ -229,7 +257,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			button_order=0;
 			
 			//將更新版本改成後臺的最新版
-			MyWidgetProvider.updateVersion=BackStage.updateVersion;
+//			MyWidgetProvider.updateVersion=BackStage.updateVersion;
 			Log.i(tag, "=====================================");
 		}
 		
@@ -250,39 +278,22 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		//獲取RSS資料,讓大容器小容器都有資料
 		private static void initialize(Context context){
 			Log.i(tag, "into MyWidgetProvider.initialize()");
-			File file = new File(Environment.getDataDirectory().getPath()+"/data/"+packageName+"/databases/database.db");
-			DB myDB= new DB(context);
-			namelist = new HashMap<Integer,String>();
-			liAll=new HashMap<Integer,List<News>>();
-			Log.i(tag, "MyWidgetProvider.initialize(): new namelist(),liAll()");
+			Log.i(tag, "AppWidgetExist is "+String.valueOf(AppWidgetExist));
+			if(!AppWidgetExist){
+//				if(BackStage.liAll.get(0)!=null){
+					Intent intent = new Intent(context, BackStage.class);
+					context.startService(intent);	
+					Log.i(tag, "startService: BackStage");
+//				}
+			}
+				
 			
- 
-					 cursor=myDB.getTruePath();;
-						while(cursor.moveToNext()){
-							//將資料庫內的內容取出放到Button上
-							name=cursor.getString(cursor.getColumnIndex("_name"));
-							path=cursor.getString(cursor.getColumnIndex("_path"));
-						
-							button_order++;
-//							Log.i(tag, "MyWidgetProvider: In_Cursor_loop: now_button_order: "+button_order+", name= "+ name);
-							Log.i(tag, "-------------<MyWidgetProvider> to NEXT cursor: "+button_order+"------------"); 
-							 
-//							try {
-//								liAll.put(button_order, BackStage.convert(path));//將轉存的xml檔容器getData再放進大容器liAll
-//							} catch (Exception e) {
-//								Log.d(tag, e.getMessage());
-//							}
-//				            
 				           
-				            MyWidgetProvider.updateVersion=BackStage.updateVersion+1;
-				            BackStage.updateVersion=MyWidgetProvider.updateVersion;
-//				            namelist.put(button_order,name);
-//				            Log.i(tag, "PUT to HashMap-> namelist: "+name);
-				            
-						}
-						myDB.close();
-						cursor.close();
+//				            MyWidgetProvider.updateVersion=BackStage.updateVersion+1;
+//				            BackStage.updateVersion=MyWidgetProvider.updateVersion;	
 			 	
 		}
 	
+		
+
 }
