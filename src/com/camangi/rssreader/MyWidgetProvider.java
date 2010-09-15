@@ -132,21 +132,20 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			currentnews.news_channel=0;//頻道從0開始放
 			currentnews.news_number=0;//新聞內容從0放的
 			
-			checkRssReaderExist();
-			
-			//把所有RSS資料都載入進來
-			initialize(this);
-			try {
-				Thread.sleep(8000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if(!checkRssReaderExist()){
+				Log.i(tag, "<MyWidgetProvider>Because checkRssReaderExist= "+String.valueOf(checkRssReaderExist())+", into BackStage.immedParseData()");
+				BackStage bs =new BackStage();
+				bs.immedParseData(UpdateService.this);
+			}else{
+				Log.i(tag, "<MyWidgetProvider>Because checkRssReaderExist= "+String.valueOf(checkRssReaderExist())+", load Data directly");	
 			}
-			Log.i(tag, "MyWidgetProvider.UpdateService.initialize() finish");
+
+			
+//			Log.i(tag, "MyWidgetProvider$UpdateService.initialize() finish");
 			super.onCreate();
 		}
 		
-		public void checkRssReaderExist(){
+		public boolean checkRssReaderExist(){
 			//從Task清單裡去查明有開啟Widget，就將AppWidgetExist設為True，以成為之後複製檔案的判斷條件
 		    activitymanager=(ActivityManager) this.getSystemService(Activity.ACTIVITY_SERVICE);
 //			Log.i(tag, "getSystemService finish");
@@ -158,7 +157,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 					AppWidgetExist=true;
 //					Log.i(tag, "getClassName finish");
 				}
-			}	
+			}
+			return AppWidgetExist;	
 		}
 
 		@Override
@@ -262,38 +262,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		}
 		
 	}
-	
-	
-		
-		/**
-		 * 描述 : 為防初始無資料的基本設定<br/>
-		 * 因為存放網址的資料庫是程式啟動後才開啟表格並寫入的，
-		 * 為了怕使用者第1次使用沒有資料庫，必須將資料庫建立
-		 * 若已有資料庫，則不會寫入。
-		 * 另外，在這個method裡執行checkEncode(path),encodeTransfer(path),getRss()三個method，
-		 * 將來源網址轉成名為getData的HashMap實體，
-		 * 好讓之後要取得各筆新聞資料時，能用HashMap.get(index)才輕鬆存取資料。
-		 * @param context 程式主體
-		 */
-		//獲取RSS資料,讓大容器小容器都有資料
-		private static void initialize(Context context){
-			Log.i(tag, "into MyWidgetProvider.initialize()");
-			Log.i(tag, "AppWidgetExist is "+String.valueOf(AppWidgetExist));
-			if(!AppWidgetExist){
-//				if(BackStage.liAll.get(0)!=null){
-					Intent intent = new Intent(context, BackStage.class);
-					context.startService(intent);	
-					Log.i(tag, "startService: BackStage");
-//				}
-			}
-				
-			
-				           
-//				            MyWidgetProvider.updateVersion=BackStage.updateVersion+1;
-//				            BackStage.updateVersion=MyWidgetProvider.updateVersion;	
-			 	
-		}
-	
 		
 
 }

@@ -53,6 +53,7 @@ import android.widget.EditText;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 
 public class RssReader extends Activity implements OnTouchListener {
@@ -121,14 +122,15 @@ public class RssReader extends Activity implements OnTouchListener {
 	private static Intent intent2;
 	IntentFilter mFilter1,mFilter2;
 	
-    @Override
-	protected void onStop() {
-		   
-		   unregisterReceiver(Rreceiver2);
 
-		   Log.i(tag, "RssReader.onStop()=>unregisterReceiver");
-	
-		super.onStop();
+
+	@Override
+	protected void onDestroy() {
+		 unregisterReceiver(Rreceiver2);
+
+		   Log.i(tag, "RssReader.onDestroy()=>unregisterReceiver");
+
+		super.onDestroy();
 	}
 
 
@@ -137,7 +139,7 @@ public class RssReader extends Activity implements OnTouchListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        Log.i("startProgress", "start");
+        Log.i(tag,"into RssReader.onCreate()");
         
         packageName=this.getPackageName();
 
@@ -171,7 +173,7 @@ public class RssReader extends Activity implements OnTouchListener {
      */
     @Override
 	protected void onResume() {
-	Log.i("onResum", "into");
+	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
 		
 	   up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
@@ -324,11 +326,13 @@ public class RssReader extends Activity implements OnTouchListener {
 		@Override
 		public void onReceive(final Context context, Intent intent) {
 			Log.i(tag, "RssReader.GetBackStageData.onReceive() get entity name:"+intent.getExtras().getString("entity_name"));
+			
 			   name = intent.getExtras().getString("entity_name");
 			   button_order=intent.getExtras().getInt("button_order");
 			   Log.i(tag, "get button_order: "+button_order);
 			   id = intent.getExtras().getInt("id");
 			   getData=(ArrayList<News>) intent.getSerializableExtra("getData");
+			   Toast.makeText(RssReader.this, "資料處理中..."+String.valueOf(button_order+1)+"/"+String.valueOf(BackStage.cursor.getCount()), Toast.LENGTH_SHORT).show();
 			   
 			   liAll.put(button_order, getData);
 			  
@@ -470,7 +474,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        		return false;
 					             }
 					        });
-					        Log.i(tag, "set buttonOnlongclicklisterner pass");
+//					        Log.i(tag, "set buttonOnlongclicklisterner pass");
 					        
 					        button.setOnClickListener(new View.OnClickListener() {
 					             public void onClick(View v) {

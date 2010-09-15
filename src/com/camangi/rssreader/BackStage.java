@@ -32,6 +32,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 import android.util.Xml;
+import android.widget.Toast;
 
 /**
  * BackStage這個類別用來記錄新聞更新的最新版本號，還有path傳進來後，變成的ArrayList<NEWS>實體
@@ -71,6 +72,7 @@ public class BackStage extends Service{
 	public  ArrayList<News> getData;
 	public static final String GET_NEW_ENTITY="get_new_entity_from_backstage";
 	public static final String CHANGE_LIST_IMMEDIATE="changeListimmediate";
+
 	
 	//===========================================================================================
 	
@@ -79,39 +81,28 @@ public class BackStage extends Service{
 	public void onCreate() {
 		 Log.i(tag, "into BackStage.onCreate()");
 		 super.onCreate();
-		 initializeData();
-		 button_order=0;	
-		 rssreader_namelist = new HashMap<Integer, String>();
-		 widget_namelist = new HashMap<Integer, String>();
-		 liAll= new HashMap<Integer,List<News>>();
-		 myDB = new DB(this);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException
-		 cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
-		 getData = new ArrayList<News>();
+		
+		 initializeDatabase(this);
+		 initialize(this);
+		 
+		 Log.i(tag, "BackStage.onCreate() finish");
 	}
 	
 	
 	@Override
 	public void onStart(Intent intent, int startId) {
 		super.onStart(intent, startId);
-		
-	
-			
+		Log.i(tag, "into Backstage.onStart()");
+		cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
 		new Thread(){
 			
 		  public void run(){
-			Log.i(tag, "into Backstage.onStart()");
-			
-//			Log.i(tag, "BackStage.onStart()");
-
-			
-		
-			
+			Log.i(tag, "into Backstage.onStart().Thread");
 			Log.i(tag, "cursor amount: "+cursor.getCount());
-			Log.i(tag, "now button_order counter to: "+button_order);
 			if(button_order<cursor.getCount()){
 			cursor.moveToPosition(button_order);	
 			
-			Log.i(tag, "-------------<BackStage> to NEXT cursor: "+button_order+"------------");
+//			Log.i(tag, "-------------<RssReader.BackStage> to NEXT cursor: "+button_order+"------------");
 			
 			//將資料庫內的內容取出放到Button上
 			name=cursor.getString(cursor.getColumnIndex("_name"));
@@ -138,18 +129,51 @@ public class BackStage extends Service{
 		}
 		}
 		}.start();
-		
+		cursor.close();
 		myDB.close();
 		
 	}
 
+	public void immedParseData(Context context){
+		Log.i(tag, "into BackStage.immedParseData()");
+		
+		initializeDatabase(context);
+		initialize(context);
+		 
+		if(cursor.moveToNext()){
+			Log.i(tag, "-------------<MyWidgetProvider.BackStage> to NEXT cursor: "+button_order+"------------");
+			name=cursor.getString(cursor.getColumnIndex("_name"));
+			path=cursor.getString(cursor.getColumnIndex("_path"));
+			try {
+				getData = convert(path);
+				liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+			} catch (Exception e) {
+				Log.i(tag, "convert("+path+")wrong!");
+			}
+			widget_namelist.put(button_order,name);
+			button_order++;
+		}
+		myDB.close();
+	}
 
-	/** 描述 : 一開始是沒有資料庫的,從這個method才創立起資料庫的 */
-	public void initializeData(){
-	  File file = new File(Environment.getDataDirectory().getPath()+"/data/"+this.getPackageName()+"/databases/database.db");
+	
+	/** 
+	 * 描述 : 一開始是沒有資料庫的,從這個method才創立起資料庫的 <br/>
+	 * 因為存放網址的資料庫是程式啟動後才開啟表格並寫入的，
+	 * 為了怕使用者第1次使用沒有資料庫，必須將資料庫建立
+	 * 若已有資料庫，則不會寫入。
+	 * 另外，在這個method裡執行checkEncode(path),encodeTransfer(path),getRss()三個method，
+	 * 將來源網址轉成名為getData的HashMap實體，
+	 * 好讓之後要取得各筆新聞資料時，能用HashMap.get(index)才輕鬆存取資料。
+	 * @param context 程式主體
+	 */
+	public void initializeDatabase(Context context){
+//		Log.i(tag, "into BackStage.initializeData()");
+	  File file = new File(Environment.getDataDirectory().getPath()+"/data/"+context.getPackageName()+"/databases/database.db");
+//	  Log.i(tag, "File pass");
 		if(!file.exists()){
 			Log.i(tag, "Because database is "+String.valueOf(file.exists())+"exist, so insert BackStage.initializeData() to database");
-			myDB = new DB(this);
+			myDB = new DB(context);
 		      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
 		      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
 		      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
@@ -160,16 +184,34 @@ public class BackStage extends Service{
 		      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
 		    myDB.close(); 
 		}
+//		Log.i(tag, "BackStage.initializeDataBase() finish");
 	}
 	
 
+	/**描述 : 初始化參數 */
+	//獲取RSS資料,讓大容器小容器都有資料
+	private void initialize(Context context){
+//		Log.i(tag, "into BackStage.initialize()");
+		button_order=0;
+	
+		 rssreader_namelist = new HashMap<Integer, String>();
+		 widget_namelist = new HashMap<Integer, String>();
+		 liAll= new HashMap<Integer,List<News>>();
+			rssreader_namelist.clear();
+			widget_namelist.clear();
+			liAll.clear();
+		 
+		 myDB = new DB(context);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException
+		 cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
+		 getData = new ArrayList<News>();
+//		 Log.i(tag, "BackStage.initialize() finish");	
+	}
 	
 	
     private void sendBroadToRssReader(){
 
 	        //發送廣播來即時更改Widget
 	       Intent intent = new Intent();
-
 
 	       intent.putExtra("entity_name", name);
 	       intent.putExtra("button_order", button_order);
@@ -270,7 +312,7 @@ public class BackStage extends Service{
 	  					   } 					   
   				   } while(buffera !=null);
 
-  			Log.i(tag,"BackStage.encodeTransfer(): run to end");
+  			Log.i(tag,"BackStage.encodeTransfer() finish");
     	}
 	}
 
