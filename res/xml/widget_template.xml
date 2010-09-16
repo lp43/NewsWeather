@@ -3,6 +3,6 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:minWidth="254dip" 
   android:minHeight="72dip" 
-  android:updatePeriodMillis="5000" 
+  android:updatePeriodMillis="500" 
   android:initialLayout="@layout/widget" 
 />

@@ -142,7 +142,8 @@ public class RssReader extends Activity implements OnTouchListener {
         Log.i(tag,"into RssReader.onCreate()");
         
         packageName=this.getPackageName();
-
+        BackStage bs = new BackStage();
+        bs.initializeDatabase(RssReader.this);
 
         
         //向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
@@ -150,13 +151,13 @@ public class RssReader extends Activity implements OnTouchListener {
         mFilter1=new IntentFilter(BackStage.CHANGE_LIST_IMMEDIATE);
         Rreceiver1 = new MyWidgetProvider.mReceiver();
         registerReceiver(Rreceiver1,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
-        Log.i(tag, "registerReceiver1,IntentFilter is: CHANGE_LIST_IMMEDIATE");
+//        Log.i(tag, "registerReceiver1,IntentFilter is: CHANGE_LIST_IMMEDIATE");
         
       //向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
         mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
         Rreceiver2=new RssReader.GetBackStageData();
         registerReceiver(Rreceiver2,mFilter2);
-        Log.i(tag, "registerReceiver2,IntentFilter is: GET_NEW_ENTITY");
+//        Log.i(tag, "registerReceiver2,IntentFilter is: GET_NEW_ENTITY");
 
     }
     
@@ -173,66 +174,58 @@ public class RssReader extends Activity implements OnTouchListener {
      */
     @Override
 	protected void onResume() {
+    Log.i(tag, "=====================================");
 	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
 		
 	   up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
 	   down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置		    
 		
-       //一開始先清空所有的view，避免每次都重覆創建子view
-	   up_layout.removeAllViews();
-	   down_layout.removeAllViews();
+    
 	   
 		//滑動選單的初始設定
        slv = (HorizontalScrollView) findViewById(R.id.hsv);
        slv.setOnTouchListener(RssReader.this);
 
        BackStage.button_order=0;
+       String buffer="";
+       buffer=BackStage.checkDatabaseNumber(this);
        
-		//啟動Service以解析資料
-	   intent = new Intent(this, BackStage.class);
-       startService(intent);
-	
-       
-
-       Log.i(tag, "=====================================");
-       
-//	if(RssReader.updateVersion<BackStage.updateVersion){
-
-					
-					
-//						 if(RssReader.updateVersion<BackStage.updateVersion){
-//							if(AppWidgetExist){//之所以要先判斷AppWidgetExist，是因為若接在BackStage取liAll，
-								//可能會因為並沒有建立AppWidget而造成NullPointerException
-       
-				/*				if(MyWidgetProvider.updateVersion==BackStage.updateVersion){
-				            		RssReader.liAll=MyWidgetProvider.liAll;
-				            	}else{
-						    		    try{
-									    	   liAll.put(button_order, BackStage.convert(path));//將轉存的xml檔容器getData再放進大容器liAll	 
-										} catch (Exception e) {
-											Log.i("Exception+", e.getMessage());    		    		     
-					    				} 	  
-							    }	*/
-					//更新完才將版本號調為最新號
-//					RssReader.updateVersion=BackStage.updateVersion;
-        
-		}
+       if(/*BackStage.DatabaseNumber.equals("none")||*/!BackStage.DatabaseNumber.equals(String.valueOf(buffer))){
+    	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", StartService..");
+    	   BackStage.DatabaseNumber=buffer;
+    	   
+    	   //一開始先清空所有的view，避免每次都重覆創建子view
+    	   up_layout.removeAllViews();
+    	   down_layout.removeAllViews();
+    	   
+    	 //啟動Service以解析資料
+    	   intent = new Intent(this, BackStage.class);
+           startService(intent); 
+           
+           sendBroadForStopWidget();
+       }else{
+    	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", doing nothing..");
+       }
+      
+	}
     
 	
 	/**
-	 * 描述 : 若呼叫此方法，會寄出廣播讓Widget的Service停止
+	 * 描述 : 若呼叫此方法，會寄出廣播讓Widget的Service停止<br/>
+	 * 但是UpdateService因為是Widget，不會真的完全停止。
+	 * 而是下次執行時，UpdateService又會重onCreate()啟動
 	 */
-    private void sendBroadToWidget(){
-//	    if(BackStage.updateVersion>MyWidgetProvider.updateVersion){
+    private void sendBroadForStopWidget(){
+
 	        //發送廣播來即時更改Widget
 	       Intent intent = new Intent();
-	       intent.putExtra("now channel", BackStage.name);
+//	       intent.putExtra("now channel", BackStage.name);
 	       
 	       intent.setAction(BackStage.CHANGE_LIST_IMMEDIATE);
 	       sendBroadcast(intent);
-	       Log.i(tag, "RssReader.sendBroadToWidget()=>sendBroadcast, now channel is: "+BackStage.name);
-//	    }
+	       Log.i(tag, "==>RssReader.sendBroadForStopWidget()"/*+BackStage.name*/);
+
     }
     
     
@@ -325,15 +318,16 @@ public class RssReader extends Activity implements OnTouchListener {
 
 		@Override
 		public void onReceive(final Context context, Intent intent) {
-			Log.i(tag, "RssReader.GetBackStageData.onReceive() get entity name:"+intent.getExtras().getString("entity_name"));
+			Log.i(tag, ">=RssReader.GetBackStageData.onReceive(), get entity name:"+intent.getExtras().getString("entity_name"));
 			
 			   name = intent.getExtras().getString("entity_name");
 			   button_order=intent.getExtras().getInt("button_order");
-			   Log.i(tag, "get button_order: "+button_order);
+//			   Log.i(tag, "get button_order: "+button_order);
 			   id = intent.getExtras().getInt("id");
 			   getData=(ArrayList<News>) intent.getSerializableExtra("getData");
 			   Toast.makeText(RssReader.this, "資料處理中..."+String.valueOf(button_order+1)+"/"+String.valueOf(BackStage.cursor.getCount()), Toast.LENGTH_SHORT).show();
 			   
+			  
 			   liAll.put(button_order, getData);
 			  
 					
@@ -362,9 +356,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        			public void onClick(DialogInterface dialog, int which) {
 					        				switch(which){
 					        				case 0:
-					        					myDB.channelSwitch(v.getId(), false);
-  
-					        				       
+					        					myDB.channelSwitch(v.getId(), false); 
 					        				       onResume();
 					        					break;
 					        							
@@ -579,7 +571,8 @@ public class RssReader extends Activity implements OnTouchListener {
 							   context.startService(intent2);
 							   
 							   if(BackStage.cursor.getCount()==BackStage.liAll.size()){
-								   sendBroadToWidget();
+							   context.stopService(intent2);
+							   Log.i(tag, "Data load finish, stop (Service)BackStage");
 							   }
 						}
 

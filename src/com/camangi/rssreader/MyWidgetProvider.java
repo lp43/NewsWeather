@@ -126,7 +126,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		 */
 		@Override
 		public void onCreate() {
-			Log.i(tag, "Service_OnCreate");
+			Log.i(tag, "into UpdateService.OnCreate()");
 			packageName=this.getPackageName();
 
 			currentnews.news_channel=0;//頻道從0開始放
@@ -144,6 +144,78 @@ public class MyWidgetProvider extends AppWidgetProvider {
 //			Log.i(tag, "MyWidgetProvider$UpdateService.initialize() finish");
 			super.onCreate();
 		}
+		
+		
+		/**
+		 * 描述 : Service服務第1次運行跑的第2個函式，但也是第2次跑的第1個函式<br/>
+		 * Service會先跑onCreate()再跑onStart()。
+		 * 當程式已經是第2次更新，就不會跑onCreate()而直接跑onStart()
+		 */
+		@Override
+		public void onStart(Intent intent, int startId) {
+			
+			
+			
+			super.onStart(intent, startId);
+		
+			
+			RemoteViews updateViews = new RemoteViews(packageName,
+			          R.layout.widget);
+			
+			if(BackStage.liAll.get(0)!=null/*BackStage.liAll存在*/){
+				Log.i(tag, "Service_OnStart, "+"NOW_channel_is:"+BackStage.widget_namelist.get(currentnews.news_channel));
+				currentnews.content=BackStage.liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
+				currentnews.source=BackStage.widget_namelist.get(currentnews.news_channel);	
+				
+			int channelTotal=BackStage.liAll.size();//算出大容器liAll的總頻道數
+			int newsTotal=BackStage.liAll.get(currentnews.news_channel).size();//算出指定的小容器getData的總新聞數
+			
+		
+					//輪播新聞的計算公式
+						if(newsTotal>currentnews.news_number){
+							currentnews.news_number++;
+							if(currentnews.news_number==newsTotal){
+								currentnews.news_number=0;
+								currentnews.news_channel++;
+								if(currentnews.news_channel==channelTotal){
+									currentnews.news_number=0;
+									currentnews.news_channel=0;
+								}
+							}
+						}
+				
+					updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
+					updateViews.setTextViewText(R.id.widgetSource, currentnews.source+"..."+String.valueOf(currentnews.news_number)+"/"+String.valueOf(newsTotal));
+					
+			}else{
+				Log.i(tag, "Service_OnStart, Because Data Loading...Please wait.");
+				currentnews.content="資料重載中...";
+			    currentnews.source="請稍候";
+			    
+			    
+				updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
+				updateViews.setTextViewText(R.id.widgetSource, currentnews.source);
+				
+			}
+		
+	
+			
+				
+			
+				
+			
+			
+			//點下Widget可以進入APK
+			intent = new Intent(this, RssReader.class);  
+			PendingIntent pendingIntent = PendingIntent.getActivity(this,0 /* no requestCode */, intent, 0 /* no flags */);  
+			updateViews.setOnClickPendingIntent(R.id.widget_layout, pendingIntent);
+			
+			//讓Widget能更新的基本程式
+			ComponentName thisWidget = new ComponentName(this, MyWidgetProvider.class);
+			AppWidgetManager manager = AppWidgetManager.getInstance(this);
+		    manager.updateAppWidget(thisWidget, updateViews);		
+		}
+		
 		
 		public boolean checkRssReaderExist(){
 			//從Task清單裡去查明有開啟Widget，就將AppWidgetExist設為True，以成為之後複製檔案的判斷條件
@@ -168,55 +240,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		}
 		
 		
-		/**
-		 * 描述 : Service服務第1次運行跑的第2個函式，但也是第2次跑的第1個函式<br/>
-		 * Service會先跑onCreate()再跑onStart()。
-		 * 當程式已經是第2次更新，就不會跑onCreate()而直接跑onStart()
-		 */
-		@Override
-		public void onStart(Intent intent, int startId) {
-			
-			Log.i(tag, "Service_OnStart, "+"NOW_channel_is:"+BackStage.widget_namelist.get(currentnews.news_channel));
-			super.onStart(intent, startId);
-			
-			currentnews.content=BackStage.liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
-			currentnews.source=BackStage.widget_namelist.get(currentnews.news_channel);
-			
-			int channelTotal=BackStage.liAll.size();//算出大容器liAll的總頻道數
-			int newsTotal=BackStage.liAll.get(currentnews.news_channel).size();//算出指定的小容器getData的總新聞數
-			
-		
-			//輪播新聞的計算公式
-			if(currentnews.news_number<newsTotal-1/*小容器從0開始放,若共有3筆,最後一筆索引值會是2*/){
-				currentnews.news_number++;
-			}else{
-				
-				if(currentnews.news_channel>=channelTotal-1){
-					currentnews.news_channel=0;
-					currentnews.news_number=0;
-				}else{
-					currentnews.news_channel++;
-					currentnews.news_number=0;	
-				}
-				
-			}		
-
 	
-			RemoteViews updateViews = new RemoteViews(packageName,
-			          R.layout.widget);
-			updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
-			updateViews.setTextViewText(R.id.widgetSource, currentnews.source);
-			
-			//點下Widget可以進入APK
-			intent = new Intent(this, RssReader.class);  
-			PendingIntent pendingIntent = PendingIntent.getActivity(this,0 /* no requestCode */, intent, 0 /* no flags */);  
-			updateViews.setOnClickPendingIntent(R.id.widget_layout, pendingIntent);
-			
-			//讓Widget能更新的基本程式
-			ComponentName thisWidget = new ComponentName(this, MyWidgetProvider.class);
-			AppWidgetManager manager = AppWidgetManager.getInstance(this);
-		    manager.updateAppWidget(thisWidget, updateViews);		
-		}
 	  }
 	
 	/**
@@ -245,19 +269,18 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 		
-			Log.i(tag, "MyWidgetProvider.mReceiver=> message onReceive():get channel:  "+intent.getExtras().getString("now channel"));
+			Log.i(tag, ">==MyWidgetProvider.mReceiver.onReceive()"/*+intent.getExtras().getString("now channel")*/);
 			
 			//當收到廣播時，將Service停止
 			Intent intent2=new Intent(context,MyWidgetProvider.UpdateService.class);		
 			context.stopService(intent2);
 			
 			//將值恢復預設
-			currentnews.news_channel=1;
+			currentnews.news_channel=0;
 			currentnews.news_number=0;
 			button_order=0;
+
 			
-			//將更新版本改成後臺的最新版
-//			MyWidgetProvider.updateVersion=BackStage.updateVersion;
 			Log.i(tag, "=====================================");
 		}
 		

@@ -72,8 +72,8 @@ public class BackStage extends Service{
 	public  ArrayList<News> getData;
 	public static final String GET_NEW_ENTITY="get_new_entity_from_backstage";
 	public static final String CHANGE_LIST_IMMEDIATE="changeListimmediate";
-
-	
+	public static String DatabaseNumber="none";
+	static String BufferDatabaseNumber="";
 	//===========================================================================================
 	
 	
@@ -82,10 +82,10 @@ public class BackStage extends Service{
 		 Log.i(tag, "into BackStage.onCreate()");
 		 super.onCreate();
 		
-		 initializeDatabase(this);
+		 
 		 initialize(this);
 		 
-		 Log.i(tag, "BackStage.onCreate() finish");
+//		 Log.i(tag, "BackStage.onCreate() finish");
 	}
 	
 	
@@ -94,15 +94,16 @@ public class BackStage extends Service{
 		super.onStart(intent, startId);
 		Log.i(tag, "into Backstage.onStart()");
 		cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
+		
 		new Thread(){
 			
 		  public void run(){
 			Log.i(tag, "into Backstage.onStart().Thread");
-			Log.i(tag, "cursor amount: "+cursor.getCount());
+//			Log.i(tag, "cursor amount: "+cursor.getCount());
 			if(button_order<cursor.getCount()){
 			cursor.moveToPosition(button_order);	
 			
-//			Log.i(tag, "-------------<RssReader.BackStage> to NEXT cursor: "+button_order+"------------");
+			Log.i(tag, "-------------<RssReader.BackStage> to NEXT cursor: "+button_order+"------------");
 			
 			//將資料庫內的內容取出放到Button上
 			name=cursor.getString(cursor.getColumnIndex("_name"));
@@ -120,10 +121,6 @@ public class BackStage extends Service{
 			widget_namelist.put(button_order,name);
 			
 			sendBroadToRssReader();
-			
-			Log.i(tag, "rss_namelist.get(0): "+rssreader_namelist.get(0));
-			Log.i(tag, "rss_namelist.get(1): "+rssreader_namelist.get(1));
-			Log.i(tag, "rss_namelist.get(2): "+rssreader_namelist.get(2));
 			button_order++;
 			
 		}
@@ -134,13 +131,28 @@ public class BackStage extends Service{
 		
 	}
 
+	
+	public static String checkDatabaseNumber(Context context){
+		DB myDB=new DB(context);
+		Cursor cursor=myDB.getTruePath();
+		BufferDatabaseNumber="";
+		
+		while(cursor.moveToNext()){			
+			BufferDatabaseNumber += String.valueOf(cursor.getInt(cursor.getColumnIndex("_id")));
+		}
+			myDB.close();
+			return BufferDatabaseNumber;
+	}
+	
 	public void immedParseData(Context context){
 		Log.i(tag, "into BackStage.immedParseData()");
 		
 		initializeDatabase(context);
 		initialize(context);
-		 
-		if(cursor.moveToNext()){
+		
+		DatabaseNumber=checkDatabaseNumber(context);
+		Log.i(tag, "BackStage.DatabaseNumber is: "+DatabaseNumber);
+		while(cursor.moveToNext()){
 			Log.i(tag, "-------------<MyWidgetProvider.BackStage> to NEXT cursor: "+button_order+"------------");
 			name=cursor.getString(cursor.getColumnIndex("_name"));
 			path=cursor.getString(cursor.getColumnIndex("_path"));
@@ -168,7 +180,7 @@ public class BackStage extends Service{
 	 * @param context 程式主體
 	 */
 	public void initializeDatabase(Context context){
-//		Log.i(tag, "into BackStage.initializeData()");
+		Log.i(tag, "into BackStage.initializeData()");
 	  File file = new File(Environment.getDataDirectory().getPath()+"/data/"+context.getPackageName()+"/databases/database.db");
 //	  Log.i(tag, "File pass");
 		if(!file.exists()){
@@ -191,7 +203,7 @@ public class BackStage extends Service{
 	/**描述 : 初始化參數 */
 	//獲取RSS資料,讓大容器小容器都有資料
 	private void initialize(Context context){
-//		Log.i(tag, "into BackStage.initialize()");
+		Log.i(tag, "into BackStage.initialize()");
 		button_order=0;
 	
 		 rssreader_namelist = new HashMap<Integer, String>();
@@ -219,7 +231,7 @@ public class BackStage extends Service{
 	       intent.putExtra("getData", getData);
 	       intent.setAction(GET_NEW_ENTITY);
 	       sendBroadcast(intent);
-	       Log.i(tag, "BackStage.sendBroadToRssReader()=>now send entity path is: "+ name);
+	       Log.i(tag, "=>BackStage.sendBroadToRssReader(), now send entity path is: "+ name);
 	   
     }
     
