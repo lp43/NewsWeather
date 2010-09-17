@@ -32,6 +32,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 import android.util.Xml;
+import android.view.Display;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 /**
@@ -99,7 +101,7 @@ public class BackStage extends Service{
 			
 		  public void run(){
 			Log.i(tag, "into Backstage.onStart().Thread");
-//			Log.i(tag, "cursor amount: "+cursor.getCount());
+			Log.i(tag, "cursor amount: "+cursor.getCount());
 			if(button_order<cursor.getCount()){
 			cursor.moveToPosition(button_order);	
 			
@@ -122,15 +124,34 @@ public class BackStage extends Service{
 			
 			sendBroadToRssReader();
 			button_order++;
+			if(button_order==cursor.getCount()-1){
+				cursor.close();
+				myDB.close();
+			}
 			
 		}
+			
 		}
 		}.start();
-		cursor.close();
-		myDB.close();
 		
 	}
 
+	public static class  ScreenSize{
+		
+		public static int getScreenWidth(Context context){
+			WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+			Display display = manager.getDefaultDisplay();
+			return display.getWidth();
+		}
+		
+		public static int getScreenHeight(Context context){
+			WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+			Display display = manager.getDefaultDisplay();
+			return display.getHeight();
+		}
+	}
+
+	
 	
 	public static String checkDatabaseNumber(Context context){
 		DB myDB=new DB(context);
@@ -152,6 +173,7 @@ public class BackStage extends Service{
 		
 		DatabaseNumber=checkDatabaseNumber(context);
 		Log.i(tag, "BackStage.DatabaseNumber is: "+DatabaseNumber);
+		
 		while(cursor.moveToNext()){
 			Log.i(tag, "-------------<MyWidgetProvider.BackStage> to NEXT cursor: "+button_order+"------------");
 			name=cursor.getString(cursor.getColumnIndex("_name"));
@@ -165,6 +187,7 @@ public class BackStage extends Service{
 			widget_namelist.put(button_order,name);
 			button_order++;
 		}
+		cursor.close();
 		myDB.close();
 	}
 
@@ -204,7 +227,7 @@ public class BackStage extends Service{
 	//獲取RSS資料,讓大容器小容器都有資料
 	private void initialize(Context context){
 		Log.i(tag, "into BackStage.initialize()");
-		button_order=0;
+		this.button_order=0;
 	
 		 rssreader_namelist = new HashMap<Integer, String>();
 		 widget_namelist = new HashMap<Integer, String>();

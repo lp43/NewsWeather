@@ -36,8 +36,10 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Xml;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -121,7 +123,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	private Intent intent;
 	private static Intent intent2;
 	IntentFilter mFilter1,mFilter2;
-	
+	int screen_width;
 
 
 	@Override
@@ -144,7 +146,7 @@ public class RssReader extends Activity implements OnTouchListener {
         packageName=this.getPackageName();
         BackStage bs = new BackStage();
         bs.initializeDatabase(RssReader.this);
-
+        bs.DatabaseNumber="none";
         
         //向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
         
@@ -158,7 +160,8 @@ public class RssReader extends Activity implements OnTouchListener {
         Rreceiver2=new RssReader.GetBackStageData();
         registerReceiver(Rreceiver2,mFilter2);
 //        Log.i(tag, "registerReceiver2,IntentFilter is: GET_NEW_ENTITY");
-
+        screen_width=BackStage.ScreenSize.getScreenWidth(this);
+        Log.i(tag, "Screen Size is: "+String.valueOf(screen_width)+"*"+String.valueOf(BackStage.ScreenSize.getScreenHeight(this)));
     }
     
     
@@ -191,7 +194,7 @@ public class RssReader extends Activity implements OnTouchListener {
        String buffer="";
        buffer=BackStage.checkDatabaseNumber(this);
        
-       if(/*BackStage.DatabaseNumber.equals("none")||*/!BackStage.DatabaseNumber.equals(String.valueOf(buffer))){
+       if(!BackStage.DatabaseNumber.equals(String.valueOf(buffer))){
     	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", StartService..");
     	   BackStage.DatabaseNumber=buffer;
     	   
@@ -233,7 +236,7 @@ public class RssReader extends Activity implements OnTouchListener {
 		//最後生產一個新增頻道按鈕
 		button = new Button(RssReader.this);
 		button.setText("新增頻道");
-		LinearLayout.LayoutParams param3 =new LinearLayout.LayoutParams(110,65);
+		LinearLayout.LayoutParams param3 =new LinearLayout.LayoutParams(120,65);
 		up_layout.addView(button,param3);
 		button.setOnClickListener(new OnClickListener(){
 
@@ -259,9 +262,9 @@ public class RssReader extends Activity implements OnTouchListener {
 			getend =event.getX();
 			
 			if (getstart-getend >0){
-				slv.smoothScrollBy(800, 0);				
+				slv.smoothScrollBy(screen_width, 0);				
 			}else{
-				slv.smoothScrollBy(-800, 0);
+				slv.smoothScrollBy(-screen_width, 0);
 			}
 			
 			getstart=0;
@@ -336,9 +339,10 @@ public class RssReader extends Activity implements OnTouchListener {
 							button = new Button(context);
 //							Log.i(tag, "new button pass");
 					        button.setText(name);
+					        button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
 //					        Log.i(tag, "setname pass");
 					        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
-					        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(110,65);
+					        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
 //					        Log.i(tag, "setlinearlayout pass");
 					        up_layout.addView(button,param);
 //					        Log.i(tag, "set up_layout pass");
@@ -535,7 +539,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        		default:
 					        			Log.i(tag, "you press button: default");
 					        		int a=Integer.parseInt(v.getTag().toString());
-					            	slv.smoothScrollTo((a*800),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
+					            	slv.smoothScrollTo((a*screen_width),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
 //					        		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
 					            		break;
 					        		}
@@ -546,7 +550,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        
 					        //動態新增ListView
 						    ListView newlv = new ListView(context);
-						    LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(800,LinearLayout.LayoutParams.FILL_PARENT);
+						    LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(screen_width,LinearLayout.LayoutParams.FILL_PARENT);
 						    down_layout.addView(newlv,param2);
 						    newlv.setTag(button_order);
 					        newlv.setAdapter(new NewsAdapter(context,getData));
@@ -565,15 +569,15 @@ public class RssReader extends Activity implements OnTouchListener {
 								}
 					        	
 					        });
-					        
-					    	//啟動Service以解析資料
+							//啟動Service以解析資料
 							   intent2 = new Intent(context, BackStage.class);
-							   context.startService(intent2);
+							   context.startService(intent2); 
 							   
 							   if(BackStage.cursor.getCount()==BackStage.liAll.size()){
 							   context.stopService(intent2);
 							   Log.i(tag, "Data load finish, stop (Service)BackStage");
 							   }
+							   
 						}
 
 		}

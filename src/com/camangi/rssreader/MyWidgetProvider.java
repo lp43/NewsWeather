@@ -73,7 +73,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	final static String tag ="tag";
 	Intent intent;
 	private static ActivityManager activitymanager;
-	private static boolean AppWidgetExist;
+	private static boolean RssliAllExist;
 	/**記錄PackageName*/
 	static String packageName;
 	/**MyWidgetProvider專屬的更新記錄*/
@@ -87,10 +87,12 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
 			int[] appWidgetIds) {
-		Log.i(tag, "Provider_OnUpdate");	
+		
+		Log.i(tag, "Provider_OnUpdate");
+		super.onUpdate(context, appWidgetManager, appWidgetIds);
 		intent = new Intent(context, UpdateService.class);
 	    context.startService(intent);
-		super.onUpdate(context, appWidgetManager, appWidgetIds);
+		
 	}
 	
 
@@ -132,12 +134,12 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			currentnews.news_channel=0;//頻道從0開始放
 			currentnews.news_number=0;//新聞內容從0放的
 			
-			if(!checkRssReaderExist()){
-				Log.i(tag, "<MyWidgetProvider>Because checkRssReaderExist= "+String.valueOf(checkRssReaderExist())+", into BackStage.immedParseData()");
+			if(!checkRssliAllExist()){
+				Log.i(tag, "<MyWidgetProvider>Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", into BackStage.immedParseData()");
 				BackStage bs =new BackStage();
 				bs.immedParseData(UpdateService.this);
 			}else{
-				Log.i(tag, "<MyWidgetProvider>Because checkRssReaderExist= "+String.valueOf(checkRssReaderExist())+", load Data directly");	
+				Log.i(tag, "<MyWidgetProvider>Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", load Data directly");	
 			}
 
 			
@@ -155,14 +157,12 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		public void onStart(Intent intent, int startId) {
 			
 			
-			
 			super.onStart(intent, startId);
 		
 			
-			RemoteViews updateViews = new RemoteViews(packageName,
-			          R.layout.widget);
 			
-			if(BackStage.liAll.get(0)!=null/*BackStage.liAll存在*/){
+			
+//			if(BackStage.liAll.get(0)!=null/*BackStage.liAll存在*/){
 				Log.i(tag, "Service_OnStart, "+"NOW_channel_is:"+BackStage.widget_namelist.get(currentnews.news_channel));
 				currentnews.content=BackStage.liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
 				currentnews.source=BackStage.widget_namelist.get(currentnews.news_channel);	
@@ -183,27 +183,22 @@ public class MyWidgetProvider extends AppWidgetProvider {
 								}
 							}
 						}
-				
+						
+						RemoteViews updateViews = new RemoteViews(packageName,
+						          R.layout.widget);
 					updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
-					updateViews.setTextViewText(R.id.widgetSource, currentnews.source+"..."+String.valueOf(currentnews.news_number)+"/"+String.valueOf(newsTotal));
+					updateViews.setTextViewText(R.id.widgetSource, currentnews.source+"..."+String.valueOf(currentnews.news_number)+"/"+String.valueOf(newsTotal-1));
 					
-			}else{
-				Log.i(tag, "Service_OnStart, Because Data Loading...Please wait.");
-				currentnews.content="資料重載中...";
-			    currentnews.source="請稍候";
-			    
-			    
-				updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
-				updateViews.setTextViewText(R.id.widgetSource, currentnews.source);
-				
-			}
-		
-	
-			
-				
-			
-				
-			
+//			}else{
+//				Log.i(tag, "Service_OnStart, Because Data Loading...Please wait.");
+//				currentnews.content="資料重載中...";
+//			    currentnews.source="請稍候";
+//			    
+//			    
+//				updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
+//				updateViews.setTextViewText(R.id.widgetSource, currentnews.source);
+//				
+//			}
 			
 			//點下Widget可以進入APK
 			intent = new Intent(this, RssReader.class);  
@@ -213,11 +208,14 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			//讓Widget能更新的基本程式
 			ComponentName thisWidget = new ComponentName(this, MyWidgetProvider.class);
 			AppWidgetManager manager = AppWidgetManager.getInstance(this);
-		    manager.updateAppWidget(thisWidget, updateViews);		
+		    manager.updateAppWidget(thisWidget, updateViews);
+
+		    Log.i(tag,"MyWidgetProvider.UpdateService.onStart() finish");
 		}
 		
 		
-		public boolean checkRssReaderExist(){
+		public boolean checkRssliAllExist(){
+			RssliAllExist=false;
 			//從Task清單裡去查明有開啟Widget，就將AppWidgetExist設為True，以成為之後複製檔案的判斷條件
 		    activitymanager=(ActivityManager) this.getSystemService(Activity.ACTIVITY_SERVICE);
 //			Log.i(tag, "getSystemService finish");
@@ -226,11 +224,13 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			for(ActivityManager.RunningTaskInfo j:a){
 //				Log.i(tag, "intoFor-loop");
 				if(j.baseActivity.getClassName().equals(packageName+".RssReader")){
-					AppWidgetExist=true;
+					if(BackStage.liAll!=null){
+						RssliAllExist=true;
+					}
 //					Log.i(tag, "getClassName finish");
 				}
 			}
-			return AppWidgetExist;	
+			return RssliAllExist;	
 		}
 
 		@Override
@@ -253,7 +253,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	 * @param source 用來存放該筆資料的新聞來源
 	 */
 	public static class currentnews{	
-		static int news_channel=0;//頻道從1開始放
+		static int news_channel=0;//頻道從0開始放
 		static int news_number=0;//新聞內容從0放的
 		static String content,source;
 	}
