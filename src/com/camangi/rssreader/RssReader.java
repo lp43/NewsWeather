@@ -202,11 +202,13 @@ public class RssReader extends Activity implements OnTouchListener {
     	   up_layout.removeAllViews();
     	   down_layout.removeAllViews();
     	   
+    	   sendBroadForStopWidget();
+    	   
     	 //啟動Service以解析資料
     	   intent = new Intent(this, BackStage.class);
            startService(intent); 
            
-           sendBroadForStopWidget();
+          
        }else{
     	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", doing nothing..");
        }

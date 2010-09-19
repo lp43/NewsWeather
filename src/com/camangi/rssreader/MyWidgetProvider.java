@@ -26,6 +26,7 @@ import java.util.List;
 import android.content.Context;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -71,14 +72,15 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	public static HashMap<Integer,List<News>> liAll;
 	/**設定logcat的tag標籤名稱*/
 	final static String tag ="tag";
-	Intent intent;
+//	Intent intent;
 	private static ActivityManager activitymanager;
 	private static boolean RssliAllExist;
 	/**記錄PackageName*/
 	static String packageName;
 	/**MyWidgetProvider專屬的更新記錄*/
 	public static int updateVersion=0;	
-	
+	AlarmManager alarm;
+	PendingIntent pintent;
 	
 	/**
 	 * 描述 : appWidget.class一啟動時先跑的method<br/>
@@ -90,8 +92,16 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		
 		Log.i(tag, "Provider_OnUpdate");
 		super.onUpdate(context, appWidgetManager, appWidgetIds);
-		intent = new Intent(context, UpdateService.class);
-	    context.startService(intent);
+		
+		//使用AlarmManager的方式來控制更新時間
+		AlarmManager alarm=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+		Intent intent = new Intent(context, UpdateService.class);
+		 PendingIntent pintent=PendingIntent.getService(context, 0, intent, 0);
+		 alarm.setRepeating(AlarmManager.RTC_WAKEUP, 0, 2000, pintent);
+		
+		
+//	    context.startService(intent);
+	
 		
 	}
 	
@@ -108,9 +118,14 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		
 		Log.i(tag, "Provider_OnDisabled");
 
+		
 		Intent intent = new Intent(context, UpdateService.class);
-		context.stopService(intent);
-
+		AlarmManager alarm=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+		
+		 PendingIntent pintent=PendingIntent.getService(context, 0, intent, 0);
+		 alarm.cancel(pintent);
+//		 context.stopService(intent);
+		 
 		currentnews.news_channel=0;//頻道從0開始放
 		currentnews.news_number=0;//新聞內容從0放的
 		super.onDisabled(context);
@@ -135,11 +150,11 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			currentnews.news_number=0;//新聞內容從0放的
 			
 			if(!checkRssliAllExist()){
-				Log.i(tag, "<MyWidgetProvider>Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", into BackStage.immedParseData()");
+				Log.i(tag, "<MyWidgetProvider$UpdateService>.onCreate(): Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", into BackStage.immedParseData()");
 				BackStage bs =new BackStage();
 				bs.immedParseData(UpdateService.this);
 			}else{
-				Log.i(tag, "<MyWidgetProvider>Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", load Data directly");	
+				Log.i(tag, "<MyWidgetProvider$UpdateService>.onCreate(): Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", load Data directly");	
 			}
 
 			
@@ -163,7 +178,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			
 			
 //			if(BackStage.liAll.get(0)!=null/*BackStage.liAll存在*/){
-				Log.i(tag, "Service_OnStart, "+"NOW_channel_is:"+BackStage.widget_namelist.get(currentnews.news_channel));
+				Log.i(tag, "UpdateService.OnStart(), "+"NOW_channel_is:"+BackStage.widget_namelist.get(currentnews.news_channel));
 				currentnews.content=BackStage.liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
 				currentnews.source=BackStage.widget_namelist.get(currentnews.news_channel);	
 				
@@ -209,6 +224,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			ComponentName thisWidget = new ComponentName(this, MyWidgetProvider.class);
 			AppWidgetManager manager = AppWidgetManager.getInstance(this);
 		    manager.updateAppWidget(thisWidget, updateViews);
+		    
+		   
 
 		    Log.i(tag,"MyWidgetProvider.UpdateService.onStart() finish");
 		}
@@ -272,9 +289,14 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			Log.i(tag, ">==MyWidgetProvider.mReceiver.onReceive()"/*+intent.getExtras().getString("now channel")*/);
 			
 			//當收到廣播時，將Service停止
-			Intent intent2=new Intent(context,MyWidgetProvider.UpdateService.class);		
-			context.stopService(intent2);
-			
+//			Intent intent2=new Intent(context,MyWidgetProvider.UpdateService.class);		
+//			context.stopService(intent2);
+
+			AlarmManager alarm=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+			Intent intent2 = new Intent(context, UpdateService.class);
+			 PendingIntent pintent=PendingIntent.getService(context, 0, intent2, 0);
+			 alarm.cancel(pintent);
+			 
 			//將值恢復預設
 			currentnews.news_channel=0;
 			currentnews.news_number=0;
