@@ -76,6 +76,9 @@ public class BackStage extends Service{
 	public static final String CHANGE_LIST_IMMEDIATE="changeListimmediate";
 	public static String DatabaseNumber="none";
 	static String BufferDatabaseNumber="";
+
+
+	public static boolean widgetExist=false;
 	//===========================================================================================
 	
 	
@@ -85,7 +88,7 @@ public class BackStage extends Service{
 		 super.onCreate();
 		
 		 
-		 initialize(this);
+		 initialize(this);//初始化
 		 
 //		 Log.i(tag, "BackStage.onCreate() finish");
 	}
@@ -93,54 +96,69 @@ public class BackStage extends Service{
 	
 	@Override
 	public void onStart(Intent intent, int startId) {
+		
 		Log.i(tag, "================================");
 		super.onStart(intent, startId);
-		myDB = new DB(this);//DB得重載，否則換了頻道排序會用舊資料庫，無法即時讀取新的資料庫
-		Log.i(tag, "into Backstage.onStart()");
-		cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
 		
-		
-		new Thread(){
+		if(intent.getExtras().getString("callfrom").equals(String.valueOf("RssReader"))){
+			myDB = new DB(this);//DB得重載，否則換了頻道排序會用舊資料庫，無法即時讀取新的資料庫
+			Log.i(tag, "into Backstage.onStart()");
+			cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
 			
-		  public void run(){
-			Log.i(tag, "into Backstage.onStart() start THREAD for parse path");
-			
-			if(button_order<cursor.getCount()){
-			cursor.moveToPosition(button_order);	
-			
-			Log.i(tag, "-------------<RssReader.BackStage> to NEXT cursor: "+button_order+"------------");
-			
-			//將資料庫內的內容取出放到Button上
-			name=cursor.getString(cursor.getColumnIndex("_name"));
-			path=cursor.getString(cursor.getColumnIndex("_path"));
-			id = cursor.getInt(cursor.getColumnIndex("_id"));
-			
-			try {
-				getData = convert(path);
-				liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
-			} catch (Exception e) {
-				Log.i(tag, "convert("+path+")wrong!");
+			if(button_order==0){
+				liAll.clear();
 			}
 			
-			rssreader_namelist.put(id,name);
-			widget_namelist.put(button_order,name);
 			
-			if(button_order==cursor.getCount()-1){
-				cursor.close();
+			new Thread(){
+				
+			  public void run(){
+				Log.i(tag, "into Backstage.onStart() start THREAD for parse path");
+				
+				if(button_order<cursor.getCount()){
+				cursor.moveToPosition(button_order);	
+				
+				Log.i(tag, "-------------<RssReader.BackStage> to NEXT cursor: "+button_order+"------------");
+				
+				//將資料庫內的內容取出放到Button上
+				name=cursor.getString(cursor.getColumnIndex("_name"));
+				path=cursor.getString(cursor.getColumnIndex("_path"));
+				id = cursor.getInt(cursor.getColumnIndex("_id"));
+				
+				try {
+					getData = convert(path);
+					liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+				} catch (Exception e) {
+					Log.i(tag, "convert("+path+")wrong!");
+				}
+				
+				rssreader_namelist.put(id,name);
+				widget_namelist.put(button_order,name);
+				
 				myDB.close();
+				
+				Log.i(tag, "Backstage.onStart().Thread.sendBroadToRssReader()");
+				sendBroadToRssReader();
+				
+				if(button_order==cursor.getCount()-1){
+					cursor.close();
+					
+					Log.i(tag, "cursor path parse finish");
+				}
+		
+				button_order++;
+		
+				
 			}
-			
-			Log.i(tag, "Backstage.onStart().Thread.sendBroadToRssReader()");
-			sendBroadToRssReader();
-			
-			button_order++;
+				
+				
+			}
+			}.start();	
+		}else{
+			immedParseData(this);
+		}
 	
-			
-		}
-			Log.i(tag, "cursor path parse finish");
-			
-		}
-		}.start();
+		
 		
 	}
 
@@ -176,6 +194,7 @@ public class BackStage extends Service{
 	public void immedParseData(Context context){
 		Log.i(tag, "into BackStage.immedParseData()");
 		
+
 		initializeDatabase(context);
 		initialize(context);
 		
@@ -242,7 +261,7 @@ public class BackStage extends Service{
 		 liAll= new HashMap<Integer,List<News>>();
 			rssreader_namelist.clear();
 			widget_namelist.clear();
-			liAll.clear();
+			
 		 
 		 myDB = new DB(context);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException
 		 cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
@@ -425,10 +444,22 @@ public class BackStage extends Service{
 
 
 
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
 	}
+
+
+	public static void startServiceBackStage(Context context,String classname) {
+		 Intent intent2 = new Intent(context, BackStage.class);
+		   intent2.putExtra("callfrom", classname);
+		   context.startService(intent2); 
+		
+	}
+
+
+
 	
 	
 }

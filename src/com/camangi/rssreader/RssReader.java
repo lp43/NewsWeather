@@ -126,15 +126,6 @@ public class RssReader extends Activity implements OnTouchListener {
 	int screen_width;
 
 
-	@Override
-	protected void onDestroy() {
-		 unregisterReceiver(Rreceiver2);
-
-		   Log.i(tag, "RssReader.onDestroy()=>unregisterReceiver");
-
-		super.onDestroy();
-	}
-
 
 	/** Called when the activity is first created. */
     @Override
@@ -143,24 +134,15 @@ public class RssReader extends Activity implements OnTouchListener {
         setContentView(R.layout.main);
         Log.i(tag,"into RssReader.onCreate()");
         
+        
         packageName=this.getPackageName();
         BackStage bs = new BackStage();
         bs.initializeDatabase(RssReader.this);
         bs.DatabaseNumber="none";
         
-        //向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
-        
-        mFilter1=new IntentFilter(BackStage.CHANGE_LIST_IMMEDIATE);
-        Rreceiver1 = new MyWidgetProvider.mReceiver();
-        registerReceiver(Rreceiver1,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
-//        Log.i(tag, "registerReceiver1,IntentFilter is: CHANGE_LIST_IMMEDIATE");
-        
-      //向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
-        mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
-        Rreceiver2=new RssReader.GetBackStageData();
-        registerReceiver(Rreceiver2,mFilter2);
-//        Log.i(tag, "registerReceiver2,IntentFilter is: GET_NEW_ENTITY");
+
         screen_width=BackStage.ScreenSize.getScreenWidth(this);
+     
         Log.i(tag, "Screen Size is: "+String.valueOf(screen_width)+"*"+String.valueOf(BackStage.ScreenSize.getScreenHeight(this)));
     }
     
@@ -180,6 +162,21 @@ public class RssReader extends Activity implements OnTouchListener {
     Log.i(tag, "=====================================");
 	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
+	
+	
+	//每onResume啟動時馬上註冊廣播，不能寫在onCreate()，因為每個函式間都有各自的生命週期
+	   //向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
+    mFilter1=new IntentFilter(BackStage.CHANGE_LIST_IMMEDIATE);
+    Rreceiver1 = new MyWidgetProvider.mReceiver();
+    registerReceiver(Rreceiver1,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
+    Log.i(tag, "registerReceiverIntentFilter 1 is: CHANGE_LIST_IMMEDIATE");
+    
+  //向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
+    mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
+    Rreceiver2=new RssReader.GetBackStageData();
+    registerReceiver(Rreceiver2,mFilter2);
+    Log.i(tag, "registerReceiver IntentFilter 2 is: GET_NEW_ENTITY");
+    
 		
 	   up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
 	   down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置		    
@@ -202,37 +199,65 @@ public class RssReader extends Activity implements OnTouchListener {
     	   up_layout.removeAllViews();
     	   down_layout.removeAllViews();
     	   
-    	   sendBroadForStopWidget();
+    	   sendBroadForSwitchWidget(0);//0代表關閉Service
+    	   
+
     	   
     	 //啟動Service以解析資料
-    	   intent = new Intent(this, BackStage.class);
-           startService(intent); 
-           
+//    	   intent = new Intent(this, BackStage.class);
+//    	   intent.putExtra("callfrom", "RssReader");
+//           startService(intent); 
+    	   BackStage.startServiceBackStage(this,"RssReader");
+    	   
           
        }else{
     	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", doing nothing..");
        }
       
 	}
+   
     
+	@Override
+	protected void onPause() {
+		unregisterReceiver(Rreceiver1);
+		unregisterReceiver(Rreceiver2);//離開畫面仍更新的問題沒有處理掉
+		super.onPause();
+		 Log.i(tag, "RssReader.onPause()=>unregisterReceiver: RssReader.GetBackStageData & WidgetReceiver");
+	}
 	
+	
+	@Override
+	protected void onDestroy() {
+		Log.i(tag, "into RssReader.onDestroy()");
+		super.onDestroy();
+	}
+
+
 	/**
 	 * 描述 : 若呼叫此方法，會寄出廣播讓Widget的Service停止<br/>
 	 * 但是UpdateService因為是Widget，不會真的完全停止。
 	 * 而是下次執行時，UpdateService又會重onCreate()啟動
 	 */
-    private void sendBroadForStopWidget(){
+    private void sendBroadForSwitchWidget(int status){
 
 	        //發送廣播來即時更改Widget
 	       Intent intent = new Intent();
 //	       intent.putExtra("now channel", BackStage.name);
-	       
+	       intent.putExtra("status", status);
 	       intent.setAction(BackStage.CHANGE_LIST_IMMEDIATE);
 	       sendBroadcast(intent);
-	       Log.i(tag, "==>RssReader.sendBroadForStopWidget()"/*+BackStage.name*/);
+	       
+	       if(status==0){
+	    	   Log.i(tag, "==>RssReader.sendBroadForStopWidget(), status is: "+status);
+	       }else{
+	    	   Log.i(tag, "==>RssReader.sendBroadForStartWidget(), status is: "+status);
+	       }
+	       
 
     }
     
+    
+
     
 	private void createNewChannelButton(){
 		//最後生產一個新增頻道按鈕
@@ -325,9 +350,11 @@ public class RssReader extends Activity implements OnTouchListener {
 		public void onReceive(final Context context, Intent intent) {
 			Log.i(tag, ">=RssReader.GetBackStageData.onReceive(), get entity name:"+intent.getExtras().getString("entity_name"));
 			
+
+		    
 			   name = intent.getExtras().getString("entity_name");
 			   button_order=intent.getExtras().getInt("button_order");
-//			   Log.i(tag, "get button_order: "+button_order);
+			   Log.i(tag, "get button_order: "+button_order);
 			   id = intent.getExtras().getInt("id");
 			   getData=(ArrayList<News>) intent.getSerializableExtra("getData");
 			   Toast.makeText(RssReader.this, "資料處理中..."+String.valueOf(button_order+1)+"/"+String.valueOf(BackStage.cursor.getCount()), Toast.LENGTH_SHORT).show();
@@ -363,6 +390,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        				switch(which){
 					        				case 0:
 					        					myDB.channelSwitch(v.getId(), false); 
+					        					myDB.close();
 					        				       onResume();
 					        					break;
 					        							
@@ -396,7 +424,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        												
 					        											}else{
 						        											myDB.reName(v.getId(), rename);
-						        											
+						        											myDB.close();
 						        											onResume();
 					        											}
 
@@ -425,7 +453,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        								@Override
 					        								public void onClick(DialogInterface dialog, int which) {
 					        									myDB.delete(v.getId());
-					        									
+					        									myDB.close();
 					        									onResume();
 					        								}
 					        							})
@@ -513,6 +541,7 @@ public class RssReader extends Activity implements OnTouchListener {
 					        								}else{
 					        									myDB=new DB(context);
 					        									myDB.insert(newchannelname, newchannelpath, true);
+					        									myDB.close();
 					        									onResume();
 					        	
 					        								}
@@ -571,13 +600,20 @@ public class RssReader extends Activity implements OnTouchListener {
 								}
 					        	
 					        });
-							//啟動Service以解析資料
-							   intent2 = new Intent(context, BackStage.class);
-							   context.startService(intent2); 
-							   
-							   if(BackStage.cursor.getCount()==BackStage.liAll.size()){
-							   context.stopService(intent2);
-							   Log.i(tag, "Data load finish, stop (Service)BackStage");
+					        
+					      //啟動Service以解析資料
+//							   intent2 = new Intent(context, BackStage.class);
+//							   intent2.putExtra("callfrom", "RssReader");
+//							   context.startService(intent2); 
+					        BackStage.startServiceBackStage(context,"RssReader");
+					        
+							   Log.i(tag, "BackStage.cursor count= "+BackStage.cursor.getCount()+", BackStage.liAll.size()= "+BackStage.liAll.size());
+					        if(BackStage.cursor.isLast()){
+					        	intent2 = new Intent(context, BackStage.class);
+								   context.stopService(intent2);
+								   Log.i(tag, "Data load finish, stop (Service)BackStage");
+								   
+								   sendBroadForSwitchWidget(1);					  
 							   }
 							   
 						}

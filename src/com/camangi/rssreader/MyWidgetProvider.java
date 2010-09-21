@@ -34,6 +34,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
@@ -81,7 +82,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 	public static int updateVersion=0;	
 	AlarmManager alarm;
 	PendingIntent pintent;
-	
+	public static String WidgetDatabaseNum="none";
 	/**
 	 * 描述 : appWidget.class一啟動時先跑的method<br/>
 	 * 目的是呼叫出Service
@@ -94,19 +95,18 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		super.onUpdate(context, appWidgetManager, appWidgetIds);
 		
 		//使用AlarmManager的方式來控制更新時間
-		AlarmManager alarm=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-		Intent intent = new Intent(context, UpdateService.class);
+		 AlarmManager alarm=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+		 Intent intent = new Intent(context, UpdateService.class);
 		 PendingIntent pintent=PendingIntent.getService(context, 0, intent, 0);
-		 alarm.setRepeating(AlarmManager.RTC_WAKEUP, 0, 2000, pintent);
-		
-		
-//	    context.startService(intent);
-	
+		 alarm.setRepeating(AlarmManager.RTC, 0, 1000, pintent);//設定每2秒更新一次Widget
 		
 	}
 	
 
 	
+
+
+
 	/**
 	 * 描述 : Widget刪除時引用到的函式<br/>
 	 * 當Home Screen的Widget刪掉後，會跑這個appWidget的這個method。
@@ -124,8 +124,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		
 		 PendingIntent pintent=PendingIntent.getService(context, 0, intent, 0);
 		 alarm.cancel(pintent);
-//		 context.stopService(intent);
 		 
+		BackStage.widgetExist=false; 
 		currentnews.news_channel=0;//頻道從0開始放
 		currentnews.news_number=0;//新聞內容從0放的
 		super.onDisabled(context);
@@ -135,6 +135,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 
 
 	public static class UpdateService extends Service {
+		MyWidgetProvider.mReceiver Rreceiver1;
+
 
 		/**
 		 * 描述 : Service服務第1次運行跑的第1個函式<br/>
@@ -145,24 +147,43 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		public void onCreate() {
 			Log.i(tag, "into UpdateService.OnCreate()");
 			packageName=this.getPackageName();
+			
 
 			currentnews.news_channel=0;//頻道從0開始放
 			currentnews.news_number=0;//新聞內容從0放的
 			
 			if(!checkRssliAllExist()){
+				BackStage.startServiceBackStage(this, "UpdateService");
+				
 				Log.i(tag, "<MyWidgetProvider$UpdateService>.onCreate(): Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", into BackStage.immedParseData()");
-				BackStage bs =new BackStage();
-				bs.immedParseData(UpdateService.this);
+//				BackStage bs =new BackStage();
+//				bs.immedParseData(UpdateService.this);
+
+				
 			}else{
 				Log.i(tag, "<MyWidgetProvider$UpdateService>.onCreate(): Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", load Data directly");	
 			}
 
-			
 //			Log.i(tag, "MyWidgetProvider$UpdateService.initialize() finish");
 			super.onCreate();
 		}
 		
 		
+		@Override
+		public void onDestroy() {
+			Log.i(tag, "UpdateService.onDestroy()");
+			super.onDestroy();
+		}
+
+
+		@Override
+		protected void finalize() throws Throwable {
+			Log.i(tag, "UpdateService.finalize()");
+	
+			super.finalize();
+		}
+
+
 		/**
 		 * 描述 : Service服務第1次運行跑的第2個函式，但也是第2次跑的第1個函式<br/>
 		 * Service會先跑onCreate()再跑onStart()。
@@ -173,12 +194,19 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			
 			
 			super.onStart(intent, startId);
+			Log.i(tag, "into MyWidgetProvider$UpdateService.onStart()");
+			
+			
+			BackStage.widgetExist=true;
+			Log.i(tag, "BackStage.widgetExist= "+String.valueOf(BackStage.widgetExist));
+			
+			if(BackStage.liAll==null){
+				Log.i(tag, "into BackStage.liAll=null");
+				BackStage.startServiceBackStage(this, "UpdateService");
+			}
+			
 		
-			
-			
-			
-//			if(BackStage.liAll.get(0)!=null/*BackStage.liAll存在*/){
-				Log.i(tag, "UpdateService.OnStart(), "+"NOW_channel_is:"+BackStage.widget_namelist.get(currentnews.news_channel));
+				Log.i(tag, "UpdateService.OnStart(), "+"NOW_channel_is:"+BackStage.widget_namelist.get(currentnews.news_channel)+"..."+(currentnews.news_number+1)+"/"+((BackStage.liAll.get(currentnews.news_channel).size())-1));
 				currentnews.content=BackStage.liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
 				currentnews.source=BackStage.widget_namelist.get(currentnews.news_channel);	
 				
@@ -204,16 +232,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 					updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
 					updateViews.setTextViewText(R.id.widgetSource, currentnews.source+"..."+String.valueOf(currentnews.news_number)+"/"+String.valueOf(newsTotal-1));
 					
-//			}else{
-//				Log.i(tag, "Service_OnStart, Because Data Loading...Please wait.");
-//				currentnews.content="資料重載中...";
-//			    currentnews.source="請稍候";
-//			    
-//			    
-//				updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
-//				updateViews.setTextViewText(R.id.widgetSource, currentnews.source);
-//				
-//			}
 			
 			//點下Widget可以進入APK
 			intent = new Intent(this, RssReader.class);  
@@ -227,7 +245,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		    
 		   
 
-		    Log.i(tag,"MyWidgetProvider.UpdateService.onStart() finish");
+//		    Log.i(tag,"MyWidgetProvider.UpdateService.onStart() finish");
 		}
 		
 		
@@ -243,6 +261,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 				if(j.baseActivity.getClassName().equals(packageName+".RssReader")){
 					if(BackStage.liAll!=null){
 						RssliAllExist=true;
+						MyWidgetProvider.WidgetDatabaseNum=BackStage.checkDatabaseNumber(this);
 					}
 //					Log.i(tag, "getClassName finish");
 				}
@@ -286,16 +305,34 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 		
-			Log.i(tag, ">==MyWidgetProvider.mReceiver.onReceive()"/*+intent.getExtras().getString("now channel")*/);
 			
-			//當收到廣播時，將Service停止
-//			Intent intent2=new Intent(context,MyWidgetProvider.UpdateService.class);		
-//			context.stopService(intent2);
-
-			AlarmManager alarm=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-			Intent intent2 = new Intent(context, UpdateService.class);
-			 PendingIntent pintent=PendingIntent.getService(context, 0, intent2, 0);
-			 alarm.cancel(pintent);
+			
+			//當收到廣播時，將Service停止;
+			int status =intent.getExtras().getInt("status");
+			
+			Log.i(tag, ">==MyWidgetProvider.mReceiver.onReceive(), status is: "+status);
+			
+			 AlarmManager alarm=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+			 Intent intent1 = new Intent(context, UpdateService.class);
+			 PendingIntent pintent=PendingIntent.getService(context, 0, intent1, 0);
+			
+			switch(status){
+				case 0:	 //status=0時，停止update widget
+					Log.i(tag, "stop AppWidgetProvier$UpdateService");
+					 alarm.cancel(pintent);
+					break;
+					
+				case 1:  //status=1時，恢復update widget
+					
+					if(BackStage.widgetExist){
+						Log.i(tag, "BackStage.widgetExist= "+BackStage.widgetExist+", start AppWidgetProvier$UpdateService");
+						alarm.setRepeating(AlarmManager.RTC_WAKEUP, 0, 2000, pintent);//設定每2秒更新一次Widget	
+					}else{
+						Log.i(tag, "BackStage.widgetExist= "+BackStage.widgetExist+", ignore BroadCastReceiver");
+					}
+					break;
+			}
+			
 			 
 			//將值恢復預設
 			currentnews.news_channel=0;
