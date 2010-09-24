@@ -19,13 +19,18 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.xml.sax.SAXException;
 
+import com.camangi.rssreader.MyWidgetProvider.UpdateService;
+
 import android.app.ActivityManager;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -63,7 +68,7 @@ public class BackStage extends Service{
 	 */
 	public static int button_order;
 	/**讓Button能夠取到名字的暫存容器*/
-	public static HashMap<Integer,String> rssreader_namelist,widget_namelist;
+	public static HashMap<Integer,String> rssreader_namelist;
 	/**
 	 * 描述 :大容器HashMap<Integer,List<News>>，Integer放的是button_order的排序，List<News>放getData<br/>
 	 * 將每一筆getRSS()產生的getData容器，再放入大容器裡。因為button_order起始是1，所以資料會從index=1開始存放。
@@ -76,7 +81,7 @@ public class BackStage extends Service{
 	public static final String CHANGE_LIST_IMMEDIATE="changeListimmediate";
 	public static String DatabaseNumber="none";
 	static String BufferDatabaseNumber="";
-
+	public static HashMap<Integer,String> backstage_widget_namelist;
 
 	public static boolean widgetExist=false;
 	//===========================================================================================
@@ -133,7 +138,7 @@ public class BackStage extends Service{
 				}
 				
 				rssreader_namelist.put(id,name);
-				widget_namelist.put(button_order,name);
+				backstage_widget_namelist.put(button_order,name);
 				
 				myDB.close();
 				
@@ -191,6 +196,7 @@ public class BackStage extends Service{
 			return BufferDatabaseNumber;
 	}
 	
+	
 	public void immedParseData(Context context){
 		Log.i(tag, "into BackStage.immedParseData()");
 		
@@ -207,11 +213,11 @@ public class BackStage extends Service{
 			path=cursor.getString(cursor.getColumnIndex("_path"));
 			try {
 				getData = convert(path);
-				liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
+				MyWidgetProvider.liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
 			} catch (Exception e) {
 				Log.i(tag, "convert("+path+")wrong!");
 			}
-			widget_namelist.put(button_order,name);
+			MyWidgetProvider.widget_namelist.put(button_order,name);
 			button_order++;
 		}
 		cursor.close();
@@ -255,13 +261,12 @@ public class BackStage extends Service{
 	private void initialize(Context context){
 		Log.i(tag, "into BackStage.initialize()");
 		this.button_order=0;
-	
 		 rssreader_namelist = new HashMap<Integer, String>();
-		 widget_namelist = new HashMap<Integer, String>();
+		 backstage_widget_namelist = new HashMap<Integer, String>();
 		 liAll= new HashMap<Integer,List<News>>();
-			rssreader_namelist.clear();
-			widget_namelist.clear();
-			
+		 rssreader_namelist.clear();
+		 backstage_widget_namelist.clear();
+	
 		 
 		 myDB = new DB(context);//先建立資料庫，若沒建立直接使用myDB.getTruePath()會出現NullPointerException
 		 cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
@@ -442,7 +447,30 @@ public class BackStage extends Service{
 		return (ArrayList<News>) myHandler.getParasedData();
 	}
 
-
+	/**
+	 * 描述 : 啟動AlarmManager<br/>
+	 * 由於SDK1.6以上不能再用Widget template裡updatepreoidmillis指令控制更新時間，
+	 * 所以改用AlarmManager來更新
+	 * @param context 傳進來的程式主體
+	 * @param open 0:close AlarmManager / 1:start AlarmManager
+	 */
+	public static void startAlarmManager(Context context,int open){
+		//使用AlarmManager的方式來控制更新時間
+		 AlarmManager alarm=(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+		 Intent intent = new Intent(context, UpdateService.class);
+		 PendingIntent pintent=PendingIntent.getService(context, 0, intent, 0);
+		 
+		 switch( open){
+		 case 0:
+			 alarm.cancel(pintent);
+			 pintent.cancel();
+			 break;
+		 case 1:
+			 alarm.setRepeating(AlarmManager.RTC, 0, 1000, pintent);//設定每2秒更新一次Widget
+			 break;
+		 }
+		 
+	}
 
 
 	@Override
@@ -451,15 +479,8 @@ public class BackStage extends Service{
 	}
 
 
-	public static void startServiceBackStage(Context context,String classname) {
-		 Intent intent2 = new Intent(context, BackStage.class);
-		   intent2.putExtra("callfrom", classname);
-		   context.startService(intent2); 
-		
-	}
 
 
 
-	
 	
 }

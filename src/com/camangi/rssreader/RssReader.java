@@ -59,7 +59,10 @@ import android.widget.Toast;
 
 
 public class RssReader extends Activity implements OnTouchListener {
-	
+	/**
+	 * 顯示在"關於"Menu的版本編號
+	 */
+	private String softVersion="v1.0033";
 	/**
 	 * 因為Button已經是動態產生，所以只要宣告一個變數，
 	 * 之後各個按鈕的控制都靠Button.getId()去的值去決定
@@ -127,6 +130,7 @@ public class RssReader extends Activity implements OnTouchListener {
 
 
 
+
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -141,9 +145,12 @@ public class RssReader extends Activity implements OnTouchListener {
         bs.DatabaseNumber="none";
         
 
-        screen_width=BackStage.ScreenSize.getScreenWidth(this);
-     
+        screen_width=BackStage.ScreenSize.getScreenWidth(this);  
         Log.i(tag, "Screen Size is: "+String.valueOf(screen_width)+"*"+String.valueOf(BackStage.ScreenSize.getScreenHeight(this)));
+        
+        
+        	
+       
     }
     
     
@@ -163,6 +170,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
 	
+//	Net.autoWifi(this);
 	
 	//每onResume啟動時馬上註冊廣播，不能寫在onCreate()，因為每個函式間都有各自的生命週期
 	   //向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
@@ -204,10 +212,10 @@ public class RssReader extends Activity implements OnTouchListener {
 
     	   
     	 //啟動Service以解析資料
-//    	   intent = new Intent(this, BackStage.class);
-//    	   intent.putExtra("callfrom", "RssReader");
-//           startService(intent); 
-    	   BackStage.startServiceBackStage(this,"RssReader");
+    	   intent = new Intent(this, BackStage.class);
+    	   intent.putExtra("callfrom", "RssReader");
+           startService(intent); 
+
     	   
           
        }else{
@@ -240,6 +248,16 @@ public class RssReader extends Activity implements OnTouchListener {
 	 */
     private void sendBroadForSwitchWidget(int status){
 
+    	
+    	
+    	  if(status==0){
+	    	   Log.i(tag, "==>RssReader.sendBroadForStopWidget(), status is: "+status);
+	       }else{
+	    	   Log.i(tag, "==>RssReader.sendBroadForStartWidget(), status is: "+status);
+	    	   MyWidgetProvider.liAll=BackStage.liAll;
+	    	   MyWidgetProvider.widget_namelist=BackStage.backstage_widget_namelist;
+	       }
+    	  
 	        //發送廣播來即時更改Widget
 	       Intent intent = new Intent();
 //	       intent.putExtra("now channel", BackStage.name);
@@ -247,11 +265,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	       intent.setAction(BackStage.CHANGE_LIST_IMMEDIATE);
 	       sendBroadcast(intent);
 	       
-	       if(status==0){
-	    	   Log.i(tag, "==>RssReader.sendBroadForStopWidget(), status is: "+status);
-	       }else{
-	    	   Log.i(tag, "==>RssReader.sendBroadForStartWidget(), status is: "+status);
-	       }
+	     
 	       
 
     }
@@ -323,7 +337,7 @@ public class RssReader extends Activity implements OnTouchListener {
 				break;
 			case 1:
 				new AlertDialog.Builder(RssReader.this)
-				.setMessage("RssReader v1.0024\n作者：Camangi Corporation\n\n版權所有 2010")
+				.setMessage("RssReader"+ softVersion +"\n作者：Camangi Corporation\n\n版權所有 2010")
 				.setIcon(R.drawable.icon)
 				.setTitle("關於")
 				
@@ -602,10 +616,10 @@ public class RssReader extends Activity implements OnTouchListener {
 					        });
 					        
 					      //啟動Service以解析資料
-//							   intent2 = new Intent(context, BackStage.class);
-//							   intent2.putExtra("callfrom", "RssReader");
-//							   context.startService(intent2); 
-					        BackStage.startServiceBackStage(context,"RssReader");
+							   intent2 = new Intent(context, BackStage.class);
+							   intent2.putExtra("callfrom", "RssReader");
+							   context.startService(intent2); 
+
 					        
 							   Log.i(tag, "BackStage.cursor count= "+BackStage.cursor.getCount()+", BackStage.liAll.size()= "+BackStage.liAll.size());
 					        if(BackStage.cursor.isLast()){
