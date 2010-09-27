@@ -25,6 +25,7 @@ import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -84,6 +85,18 @@ public class BackStage extends Service{
 	public static HashMap<Integer,String> backstage_widget_namelist;
 
 	public static boolean widgetExist=false;
+	/**
+	 * Widget的更新速度
+	 */
+	public static int updatespeed=5000;
+	/**
+	 * ProgressDialog的暫存變數
+	 */
+	static ProgressDialog pd;
+	private static ArrayList<News> bufferlist,wronglist;
+	
+	
+	
 	//===========================================================================================
 	
 	
@@ -95,7 +108,7 @@ public class BackStage extends Service{
 		 
 		 initialize(this);//初始化
 		 
-//		 Log.i(tag, "BackStage.onCreate() finish");
+		 Log.i(tag, "BackStage.onCreate() finish");
 	}
 	
 	
@@ -105,7 +118,6 @@ public class BackStage extends Service{
 		Log.i(tag, "================================");
 		super.onStart(intent, startId);
 		
-		if(intent.getExtras().getString("callfrom").equals(String.valueOf("RssReader"))){
 			myDB = new DB(this);//DB得重載，否則換了頻道排序會用舊資料庫，無法即時讀取新的資料庫
 			Log.i(tag, "into Backstage.onStart()");
 			cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
@@ -130,12 +142,10 @@ public class BackStage extends Service{
 				path=cursor.getString(cursor.getColumnIndex("_path"));
 				id = cursor.getInt(cursor.getColumnIndex("_id"));
 				
-				try {
+
 					getData = convert(path);
 					liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
-				} catch (Exception e) {
-					Log.i(tag, "convert("+path+")wrong!");
-				}
+				
 				
 				rssreader_namelist.put(id,name);
 				backstage_widget_namelist.put(button_order,name);
@@ -159,30 +169,9 @@ public class BackStage extends Service{
 				
 			}
 			}.start();	
-		}else{
-			immedParseData(this);
-		}
-	
-		
+			
 		
 	}
-
-	public static class  ScreenSize{
-		
-		public static int getScreenWidth(Context context){
-			WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-			Display display = manager.getDefaultDisplay();
-			return display.getWidth();
-		}
-		
-		public static int getScreenHeight(Context context){
-			WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-			Display display = manager.getDefaultDisplay();
-			return display.getHeight();
-		}
-	}
-
-	
 	
 	public static String checkDatabaseNumber(Context context){
 		DB myDB=new DB(context);
@@ -301,9 +290,28 @@ public class BackStage extends Service{
 	 * @return ArrayList<News>，此為liAll的Value值型態
 	 * @throws Exception 在用Url連結和解析的過程中，會產生些許的Exception.
 	 */
-	public static ArrayList<News> convert(String path) throws Exception{
-		checkEncode(path);
-		encodeTransfer(path);
+	public static ArrayList<News> convert(String path){
+		
+		try{
+			checkEncode(path);
+			encodeTransfer(path);
+			
+		} catch (MalformedURLException e) {
+			Log.i(tag, "MalformedURLException: "+e.getMessage());
+			News news = new News();
+			news.setDate("錯誤原因︰ "+e.getMessage());
+			news.setTitle("解析錯誤！");
+			news.setLink("http://");
+			wronglist=new ArrayList<News>();
+			wronglist.add(news);
+			Encode="UTF-8";
+			Log.i(path, "create wronglist finish");
+		}catch (IOException e) {
+			Log.i(tag, "IOException: "+e.getMessage());
+		}catch(Exception e){
+			Log.i("tag", "Exception: "+e.getMessage());
+		}
+		
 		return getRss(path);
 	}
 	
@@ -318,28 +326,24 @@ public class BackStage extends Service{
      * @see encodeTransfer(String path)
      * @see getRss()
      */
-    public static void checkEncode(String path) throws Exception{
+    public static void checkEncode(String path) throws MalformedURLException,IOException{
     	URL url = null;
     	String encode="";
     	int a,b;
-    	
-
-			   url = new URL(path);
-
-			   InputStream is = url.openConnection().getInputStream();
-			   InputStreamReader isr = new InputStreamReader(is);
-			   BufferedReader br = new BufferedReader(isr);
-			   String buffera = br.readLine();
-			   br.close();
-			   
+	
+				url = new URL(path);
+				InputStream is;
+				is = url.openConnection().getInputStream();
+				InputStreamReader isr = new InputStreamReader(is);
+				 BufferedReader br = new BufferedReader(isr);
+				   String buffera = br.readLine();
+				   br.close();
 				   Log.i(tag,path+", buffera.indexOf(<)= "+buffera.indexOf("<"));
 				   a=buffera.indexOf("\"", 25)+1;
 				   b=buffera.indexOf("\"", a+1);
 				   encode = buffera.substring(a, b);
 				   Log.i(tag, "BackStage.checkEncode(): "+path+" -> "+encode);
-			
- 		 
-    	 
+   	 
 	    	   if(encode.equals("big5")|encode.equals("BIG5")){
 	    		 Encode ="BIG5";  
 			   }else if(encode.equals("utf-8")|encode.equals("UTF-8")|encode.equals("Utf-8")){
@@ -390,6 +394,8 @@ public class BackStage extends Service{
      * 描述 : 使用解析器將XML轉成List容器 getData<br/>
      * getRss()這個method最主要將存成xml的檔案再轉成hashMap去存放，
      * 好讓之後的顯示和連結都能用get(索引)去控制每筆新聞連結
+     * @throws SAXException 
+     * @throws IOException 
      * @see checkEncode(String path)
      * @see encodeTransfer(String path)
      */
@@ -401,7 +407,7 @@ public class BackStage extends Service{
 		if(!Encode.equals("UTF-8")){
 	
 			Log.i(tag, "Because Encode is : "+Encode+", into (String)contentBuffer parse");
-			try{
+			
 					
 				
 				/*//使用sax解析
@@ -419,32 +425,36 @@ public class BackStage extends Service{
 //				FileInputStream fis = openFileInput("buffxml"+button_order+".xml");
 //				android.util.Xml.parse(fis, Xml.Encoding.UTF_8, myHandler);
 				
-				android.util.Xml.parse(contentBuffer, myHandler);
+				try {
+					android.util.Xml.parse(contentBuffer, myHandler);
+				} catch (SAXException e) {
+					Log.i(tag, e.getMessage());
+				}
 				//取得RSS標題與內容列表
 				
-			}catch(Exception e){
-				Log.i("tag", "wrong! "+e.getMessage());
-			}
 		}else{
 			Log.i(tag, "Because Encode is: "+Encode+", into path parse directly");
-			    URL url = null;//編碼為UTF-8直接解析的寫法	
-	        try {
-				url = new URL(path);//編碼為UTF-8直接解析的寫法
-				
-				//編碼為UTF-8直接解析的寫法
-				android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}catch (IOException e) {
-				e.printStackTrace();
-			} catch (SAXException e) {
-				e.printStackTrace();
-		  }
-		}
-		
-		
+			   
+				try {
+					URL url = null;//編碼為UTF-8直接解析的寫法	
+					url = new URL(path);
+					android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);
+				} catch (MalformedURLException e) {
+					Log.i(tag, e.getMessage());
+				} catch (IOException e) {
+					Log.i(tag, e.getMessage());
+				} catch (SAXException e) {
+					Log.i(tag, e.getMessage());
+				}
+			}
+		bufferlist = new ArrayList<News>();
 		Log.i(tag,"BackStage.getRss() parse To GetData finish");
-		return (ArrayList<News>) myHandler.getParasedData();
+		bufferlist=(ArrayList<News>) myHandler.getParasedData();
+		if(myHandler.getParasedData()==null){//如果沒有資料，代表解析錯誤，傳回解析錯誤
+			bufferlist=wronglist;
+			
+		}
+		return bufferlist;
 	}
 
 	/**
@@ -466,10 +476,39 @@ public class BackStage extends Service{
 			 pintent.cancel();
 			 break;
 		 case 1:
-			 alarm.setRepeating(AlarmManager.RTC, 0, 1000, pintent);//設定每2秒更新一次Widget
+			 alarm.setRepeating(AlarmManager.RTC, 0, updatespeed, pintent);//設定每2秒更新一次Widget
 			 break;
 		 }
 		 
+	}
+	
+/**
+ * 	描述 : 顯示ProgressDialog視窗<BR/>
+ * @param context 要顯示ProgressDialog的主體
+ * @param open 傳進來的參數，0代表關，1代表開
+ */
+	public static void ProgressDialog(Context context){
+		
+			CharSequence dialogTitle = context.getString(R.string.please_wait);
+			CharSequence dialogBody = context.getString(R.string.wifi_connecting);
+			pd = ProgressDialog.show(context, dialogTitle, dialogBody,true);
+			
+			new Thread(){
+				public void run(){
+					try {
+					while(!Net.checkEnableingWifiStatus()){
+						Log.i(tag, "because wifi connecting,let prgressDialog appear 1000s");
+							sleep(1000);	
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}finally{
+						pd.dismiss();
+						RssReader.handler1.sendEmptyMessage(1);
+						Log.i(tag, "close progressDialog");
+					}
+				}
+			}.start();
 	}
 
 
@@ -478,7 +517,20 @@ public class BackStage extends Service{
 		return null;
 	}
 
-
+	public static class  ScreenSize{
+		
+		public static int getScreenWidth(Context context){
+			WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+			Display display = manager.getDefaultDisplay();
+			return display.getWidth();
+		}
+		
+		public static int getScreenHeight(Context context){
+			WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+			Display display = manager.getDefaultDisplay();
+			return display.getHeight();
+		}
+	}
 
 
 

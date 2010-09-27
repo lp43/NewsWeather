@@ -57,10 +57,9 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f060000;
-        public static final int no_internet=0x7f060003;
-        public static final int no_internet2=0x7f060004;
-        public static final int str_dialog_body=0x7f060002;
-        public static final int str_dialog_title=0x7f060001;
+        public static final int data_loading=0x7f060002;
+        public static final int please_wait=0x7f060001;
+        public static final int wifi_connecting=0x7f060003;
     }
     public static final class xml {
         public static final int widget_template=0x7f040000;

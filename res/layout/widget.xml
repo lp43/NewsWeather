@@ -26,7 +26,7 @@
     android:layout_marginLeft="20dip"
 	android:textSize="20dp"
     android:textColor="@color/blue"
-    android:text="@string/no_internet"
+    android:text="@string/please_wait"
   />
     <TextView 
     android:id="@+id/widgetSource" 
@@ -36,6 +36,6 @@
     android:layout_marginLeft="14dip"
 	android:textSize="12dp"
     android:textColor="@color/black"
-    android:text="@string/no_internet2"
+    android:text="@string/wifi_connecting"
   />
 </RelativeLayout>

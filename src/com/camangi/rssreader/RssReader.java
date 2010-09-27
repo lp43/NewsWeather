@@ -1,25 +1,11 @@
 package com.camangi.rssreader;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import org.xml.sax.SAXException;
-
-import com.camangi.rssreader.MyWidgetProvider.UpdateService;
 import com.camangi.rssreader.MyWidgetProvider.mReceiver;
-
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -32,14 +18,11 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.os.Looper;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.Xml;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -127,7 +110,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	private static Intent intent2;
 	IntentFilter mFilter1,mFilter2;
 	int screen_width;
-
+	public static Handler handler1;
 
 
 
@@ -148,9 +131,64 @@ public class RssReader extends Activity implements OnTouchListener {
         screen_width=BackStage.ScreenSize.getScreenWidth(this);  
         Log.i(tag, "Screen Size is: "+String.valueOf(screen_width)+"*"+String.valueOf(BackStage.ScreenSize.getScreenHeight(this)));
         
+    	//每onResume啟動時馬上註冊廣播，不能寫在onCreate()，因為每個函式間都有各自的生命週期
+    	//向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
+        mFilter1=new IntentFilter(BackStage.CHANGE_LIST_IMMEDIATE);
+        Rreceiver1 = new MyWidgetProvider.mReceiver();
+        registerReceiver(Rreceiver1,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
+        Log.i(tag, "registerReceiverIntentFilter 1 is: CHANGE_LIST_IMMEDIATE");
         
+        //向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
+        mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
+        Rreceiver2=new RssReader.GetBackStageData();
+        registerReceiver(Rreceiver2,mFilter2);
+        Log.i(tag, "registerReceiver IntentFilter 2 is: GET_NEW_ENTITY");  
         	
-       
+        handler1=new Handler(){
+
+			@Override
+			public void handleMessage(Message msg) {
+				switch(msg.what){
+				case 1:
+					
+					   up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
+					   down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置		    
+							   
+						//滑動選單的初始設定
+				       slv = (HorizontalScrollView) findViewById(R.id.hsv);
+				       slv.setOnTouchListener(RssReader.this);
+
+//				       BackStage.button_order=0;
+				       String buffer="";
+				       buffer=BackStage.checkDatabaseNumber(RssReader.this);
+				       
+				       if(!BackStage.DatabaseNumber.equals(String.valueOf(buffer))){
+				    	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", StartService..");
+				    	   BackStage.DatabaseNumber=buffer;
+				    	   
+				    	   //一開始先清空所有的view，避免每次都重覆創建子view
+				    	   up_layout.removeAllViews();
+				    	   down_layout.removeAllViews();
+				    	   
+				    	   sendBroadForSwitchWidget(0);//0代表關閉Service
+				    	   
+
+				    	   
+				    	 //啟動Service以解析資料
+				    	   intent = new Intent(RssReader.this, BackStage.class);
+				           startService(intent); 
+
+				    	   
+				          
+				       }else{
+				    	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", doing nothing..");
+				       }
+					break;
+				}
+				super.handleMessage(msg);
+			}
+    		
+    	};
     }
     
     
@@ -169,66 +207,36 @@ public class RssReader extends Activity implements OnTouchListener {
     Log.i(tag, "=====================================");
 	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
+
 	
-//	Net.autoWifi(this);
+		Log.i(tag, "start ProgressDialog");
+		
+		
+		Thread t =new Thread(){
+			
+			public void run(){
+				Looper.prepare();
+				
+				Log.i(tag, "WifiStatus: "+Net.checkInitWifiStatus(RssReader.this));
+				
+				if(!Net.checkInitWifiStatus(RssReader.this)){	
 	
-	//每onResume啟動時馬上註冊廣播，不能寫在onCreate()，因為每個函式間都有各自的生命週期
-	   //向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
-    mFilter1=new IntentFilter(BackStage.CHANGE_LIST_IMMEDIATE);
-    Rreceiver1 = new MyWidgetProvider.mReceiver();
-    registerReceiver(Rreceiver1,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
-    Log.i(tag, "registerReceiverIntentFilter 1 is: CHANGE_LIST_IMMEDIATE");
-    
-  //向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
-    mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
-    Rreceiver2=new RssReader.GetBackStageData();
-    registerReceiver(Rreceiver2,mFilter2);
-    Log.i(tag, "registerReceiver IntentFilter 2 is: GET_NEW_ENTITY");
-    
+				Net.autoWifi(RssReader.this);	
+				
+				}
+			}
+		};
+		t.start();
 		
-	   up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
-	   down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置		    
-		
-    
-	   
-		//滑動選單的初始設定
-       slv = (HorizontalScrollView) findViewById(R.id.hsv);
-       slv.setOnTouchListener(RssReader.this);
-
-       BackStage.button_order=0;
-       String buffer="";
-       buffer=BackStage.checkDatabaseNumber(this);
-       
-       if(!BackStage.DatabaseNumber.equals(String.valueOf(buffer))){
-    	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", StartService..");
-    	   BackStage.DatabaseNumber=buffer;
-    	   
-    	   //一開始先清空所有的view，避免每次都重覆創建子view
-    	   up_layout.removeAllViews();
-    	   down_layout.removeAllViews();
-    	   
-    	   sendBroadForSwitchWidget(0);//0代表關閉Service
-    	   
-
-    	   
-    	 //啟動Service以解析資料
-    	   intent = new Intent(this, BackStage.class);
-    	   intent.putExtra("callfrom", "RssReader");
-           startService(intent); 
-
-    	   
-          
-       }else{
-    	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", doing nothing..");
-       }
+		BackStage.ProgressDialog(this);//開啟ProgressDialog視窗
       
 	}
    
     
 	@Override
 	protected void onPause() {
-		unregisterReceiver(Rreceiver1);
-		unregisterReceiver(Rreceiver2);//離開畫面仍更新的問題沒有處理掉
+	
+	
 		super.onPause();
 		 Log.i(tag, "RssReader.onPause()=>unregisterReceiver: RssReader.GetBackStageData & WidgetReceiver");
 	}
@@ -237,6 +245,9 @@ public class RssReader extends Activity implements OnTouchListener {
 	@Override
 	protected void onDestroy() {
 		Log.i(tag, "into RssReader.onDestroy()");
+		
+		unregisterReceiver(Rreceiver1);
+		unregisterReceiver(Rreceiver2);//離開畫面仍更新的問題沒有處理掉
 		super.onDestroy();
 	}
 
@@ -283,14 +294,58 @@ public class RssReader extends Activity implements OnTouchListener {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-		});
-		button.setId(9999);
-	}
 
+				 LayoutInflater factory = LayoutInflater.from(RssReader.this);
+		            final View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
+						new AlertDialog.Builder(RssReader.this)
+						.setTitle("新增頻道")
+						.setView(addchannel_layout)
+						.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+				
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+				
+				
+						EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
+						String newchannelname=new_channel_name.getText().toString();
+						EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
+						String newchannelpath=new_channel_path.getText().toString();
+				
+						if(newchannelname.equals("") ||newchannelpath.equals("")){
+						new AlertDialog.Builder(RssReader.this)
+						.setTitle("錯誤！")
+						.setMessage("請輸入完整方可新增...")
+						.setIcon(R.drawable.warning01)
+						.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+				
+						@Override
+						public void onClick(DialogInterface dialog, int which) {}
+						})
+				
+						.show();
+				
+				
+						}else{
+						myDB=new DB(RssReader.this);
+						myDB.insert(newchannelname, newchannelpath, true);
+						onResume();
+				
+						}
+				
+						}
+						})
+				
+						.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+				
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+						}
+						})
+						.show(); 		
+
+			}
+		});
+	}
 
 	/**描述 : 滑動手勢指令換頁*/
 	@Override
@@ -371,7 +426,10 @@ public class RssReader extends Activity implements OnTouchListener {
 			   Log.i(tag, "get button_order: "+button_order);
 			   id = intent.getExtras().getInt("id");
 			   getData=(ArrayList<News>) intent.getSerializableExtra("getData");
-			   Toast.makeText(RssReader.this, "資料處理中..."+String.valueOf(button_order+1)+"/"+String.valueOf(BackStage.cursor.getCount()), Toast.LENGTH_SHORT).show();
+			   if(button_order==1){
+				   Toast.makeText(RssReader.this, "請稍等，共計"+String.valueOf(BackStage.cursor.getCount())+"筆資料需要下載...", Toast.LENGTH_SHORT).show();
+			   }
+			   
 			   
 			  
 			   liAll.put(button_order, getData);
@@ -617,7 +675,6 @@ public class RssReader extends Activity implements OnTouchListener {
 					        
 					      //啟動Service以解析資料
 							   intent2 = new Intent(context, BackStage.class);
-							   intent2.putExtra("callfrom", "RssReader");
 							   context.startService(intent2); 
 
 					        
@@ -627,8 +684,11 @@ public class RssReader extends Activity implements OnTouchListener {
 								   context.stopService(intent2);
 								   Log.i(tag, "Data load finish, stop (Service)BackStage");
 								   
+								   Toast.makeText(context, "資料下載完成...", Toast.LENGTH_SHORT).show();
+								   createNewChannelButton();
 								   sendBroadForSwitchWidget(1);					  
 							   }
+					        
 							   
 						}
 

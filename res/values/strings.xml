@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">RssReader</string>
-    <string name="str_dialog_title">請稍待片刻</string>
-    <string name="str_dialog_body">資料載入中...</string>
-    <string name="no_internet">資料載入中...</string>
-    <string name="no_internet2">請稍候</string>
+    <string name="please_wait">請稍待片刻</string>
+    <string name="data_loading">資料載入中...</string>
+	<string name="wifi_connecting">網路連線中</string>
 </resources>

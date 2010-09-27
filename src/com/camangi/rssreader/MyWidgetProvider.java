@@ -99,57 +99,12 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		Log.i(tag, "Provider_OnUpdate");
 		super.onUpdate(context, appWidgetManager, appWidgetIds);
 		
-//		Net.autoWifi(context);
-		
-
+		Net.autoWifi(context);
 	
 		//使用AlarmManager的方式來控制更新時間
 		BackStage.startAlarmManager(context, 1);
-/*		
-		for(int i=0; i<100;i++){
-			
-			try {
-				Thread.currentThread().sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			currentnews.content="Content"+String.valueOf(i);
-			currentnews.source="Source "+String.valueOf(i);
-			RemoteViews updateViews = new RemoteViews(packageName,
-			          R.layout.widget);
-		updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
-		updateViews.setTextViewText(R.id.widgetSource, currentnews.source);
-		
-			//讓Widget能更新的基本程式
-			ComponentName thisWidget = new ComponentName(context, MyWidgetProvider.class);
-			AppWidgetManager manager = AppWidgetManager.getInstance(context);
-		    manager.updateAppWidget(thisWidget, updateViews);
-			
-		}*/
-		
-		
-//		final int N = appWidgetIds.length;
 
-        // Perform this loop procedure for each App Widget that belongs to this provider
-//        for (int i=0; i<10000; i++) {
-//            int appWidgetId = appWidgetIds[i];
-
-            // Create an Intent to launch ExampleActivity
-            Intent intent = new Intent(context, RssReader.class);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-
-            // Get the layout for the App Widget and attach an on-click listener to the button
-            final RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-            views.setOnClickPendingIntent(R.id.widget_layout, pendingIntent);
-
-		
 	}
-	
-
-	
-
 
 
 	/**
@@ -199,6 +154,15 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		 */
 		@Override
 		public void onCreate() {
+			
+			while(!Net.checkEnableingWifiStatus()){
+				try {
+					Thread.currentThread().sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			
 			Log.i(tag, "into UpdateService.OnCreate()");
 			packageName=this.getPackageName();
 			liAll = new HashMap<Integer,List<News>>();
@@ -215,7 +179,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 				Log.i(tag, "<MyWidgetProvider$UpdateService>.onCreate(): Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", into BackStage.immedParseData()");
 				BackStage bs =new BackStage();
 				bs.immedParseData(UpdateService.this);
-
 				
 			}else{
 				Log.i(tag, "<MyWidgetProvider$UpdateService>.onCreate(): Because checkRssReaderExist= "+String.valueOf(checkRssliAllExist())+", load Data directly");
@@ -226,23 +189,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 //			Log.i(tag, "MyWidgetProvider$UpdateService.initialize() finish");
 			super.onCreate();
 		}
-		
-		
-		@Override
-		public void onDestroy() {
-			Log.i(tag, "UpdateService.onDestroy()");
-			Toast.makeText(this, "test", Toast.LENGTH_SHORT).show();
-			super.onDestroy();
-		}
-
-
-		@Override
-		protected void finalize() throws Throwable {
-			Log.i(tag, "UpdateService.finalize()");
-	
-			super.finalize();
-		}
-
 
 		/**
 		 * 描述 : Service服務第1次運行跑的第2個函式，但也是第2次跑的第1個函式<br/>
