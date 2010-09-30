@@ -99,14 +99,19 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		Log.i(tag, "Provider_OnUpdate");
 		super.onUpdate(context, appWidgetManager, appWidgetIds);
 		
-		Net.autoWifi(context);
-	
-		//使用AlarmManager的方式來控制更新時間
-		BackStage.startAlarmManager(context, 1);
+		if(!(Net.check3GConnectStatus(context)|Net.checkInitWifiStatus(context))){
+			BackStage.startAlarmManager(context, 3);
+			Log.i(tag, "BackStage.startAlarmManager(context, 3);");
+		}else{
+			//使用AlarmManager的方式來控制更新時間
+			BackStage.startAlarmManager(context, 1);
+			Log.i(tag, "BackStage.startAlarmManager(context, 1);");
+		}
+
+		
+
 
 	}
-
-
 	/**
 	 * 描述 : Widget刪除時引用到的函式<br/>
 	 * 當Home Screen的Widget刪掉後，會跑這個appWidget的這個method。
@@ -131,17 +136,43 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		super.onDisabled(context);
 	}
 
+	public static class WaitConnect extends Service{
 
+		
+		@Override
+		public void onStart(Intent intent, int startId) {
+			packageName=this.getPackageName();
+			if(!(Net.check3GConnectStatus(this)|Net.checkInitWifiStatus(this))){
+				Log.i(tag, "Test.service if");
+				RemoteViews updateViews = new RemoteViews(packageName,R.layout.widget);
+				updateViews.setTextViewText(R.id.widgetContent, "點我連至預設WIFI");
+				updateViews.setTextViewText(R.id.widgetSource, "沒有針測到網路...");
 
+				Log.i(tag, "updateViews.set finish");
+				//按Widget後會發生的事
+				intent = new Intent(this, Net.class);  
+				PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent, 0);  
+				updateViews.setOnClickPendingIntent(R.id.widget_layout, pendingIntent);
+				
+				Log.i(tag, "setOnClick finish");
+				//讓Widget能更新的基本程式
+				ComponentName thisWidget = new ComponentName(this, MyWidgetProvider.class);
+				AppWidgetManager manager = AppWidgetManager.getInstance(this);
+			    manager.updateAppWidget(thisWidget, updateViews);
+				Log.i(tag, "manager finish");
+			}else{
+				BackStage.startAlarmManager(this, 2);
+				BackStage.startAlarmManager(this, 1);
+			}
+			super.onStart(intent, startId);
+		}
 
-	@Override
-	public void onDeleted(Context context, int[] appWidgetIds) {
-	Log.i(tag, "into MyWidgetProvider.onDelete()");
-		super.onDeleted(context, appWidgetIds);
+		@Override
+		public IBinder onBind(Intent intent) {
+			return null;
+		}
+		
 	}
-
-
-
 
 	public static class UpdateService extends Service {
 		MyWidgetProvider.mReceiver Rreceiver1;
@@ -154,14 +185,14 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		 */
 		@Override
 		public void onCreate() {
-			
-			while(!Net.checkEnableingWifiStatus()){
-				try {
-					Thread.currentThread().sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+
+			while(!Net.checkEnableingWifiStatus(this)){
+				while(!(Net.check3GConnectStatus(this)|Net.checkInitWifiStatus(this))){
+					BackStage.letThreadSleep();
 				}
+				BackStage.letThreadSleep();
 			}
+			
 			
 			Log.i(tag, "into UpdateService.OnCreate()");
 			packageName=this.getPackageName();
@@ -186,7 +217,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 				MyWidgetProvider.widget_namelist=BackStage.backstage_widget_namelist;
 			}
 
-//			Log.i(tag, "MyWidgetProvider$UpdateService.initialize() finish");
+			Log.i(tag, "MyWidgetProvider$UpdateService.initialize() finish");
 			super.onCreate();
 		}
 
@@ -203,7 +234,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			Log.i(tag, "into MyWidgetProvider$UpdateService.onStart()");		
 		
 			BackStage.widgetExist=true;
-		
+
 				Log.i(tag, "UpdateService.OnStart(), "+"NOW_channel_is:"+widget_namelist.get(currentnews.news_channel)+"..."+(currentnews.news_number+1)+"/"+((liAll.get(currentnews.news_channel).size())-1));
 				currentnews.content=MyWidgetProvider.liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
 				currentnews.source=widget_namelist.get(currentnews.news_channel);	
@@ -225,8 +256,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 							}
 						}
 						
-						RemoteViews updateViews = new RemoteViews(packageName,
-						          R.layout.widget);
+					RemoteViews updateViews = new RemoteViews(packageName,R.layout.widget);
 					updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
 					updateViews.setTextViewText(R.id.widgetSource, currentnews.source+"..."+String.valueOf(currentnews.news_number)+"/"+String.valueOf(newsTotal-1));
 					
@@ -236,6 +266,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			PendingIntent pendingIntent = PendingIntent.getActivity(this,0 /* no requestCode */, intent, 0 /* no flags */);  
 			updateViews.setOnClickPendingIntent(R.id.widget_layout, pendingIntent);
 			
+
 			//讓Widget能更新的基本程式
 			ComponentName thisWidget = new ComponentName(this, MyWidgetProvider.class);
 			AppWidgetManager manager = AppWidgetManager.getInstance(this);

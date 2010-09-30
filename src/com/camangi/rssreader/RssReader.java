@@ -45,7 +45,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0033";
+	private String softVersion="v1.0035";
 	/**
 	 * 因為Button已經是動態產生，所以只要宣告一個變數，
 	 * 之後各個按鈕的控制都靠Button.getId()去的值去決定
@@ -104,7 +104,6 @@ public class RssReader extends Activity implements OnTouchListener {
 	static ActivityManager  activitymanager;
 	/**如果MyWidgetProvider.class確實有被開啟的記錄參數 */
 	static boolean AppWidgetExist;
-	
 	String contentBuffer;
 	private Intent intent;
 	private static Intent intent2;
@@ -208,28 +207,49 @@ public class RssReader extends Activity implements OnTouchListener {
 	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
 
-	
-		Log.i(tag, "start ProgressDialog");
-		
-		
-		Thread t =new Thread(){
+		final Thread t =new Thread(){
 			
 			public void run(){
 				Looper.prepare();
 				
+				Net.autoWifi(RssReader.this);
 				Log.i(tag, "WifiStatus: "+Net.checkInitWifiStatus(RssReader.this));
-				
-				if(!Net.checkInitWifiStatus(RssReader.this)){	
-	
-				Net.autoWifi(RssReader.this);	
-				
-				}
+
 			}
 		};
-		t.start();
-		
-		BackStage.ProgressDialog(this);//開啟ProgressDialog視窗
-      
+
+		if(!(Net.check3GConnectStatus(RssReader.this)|Net.checkInitWifiStatus(RssReader.this))){
+			Log.i(tag, "into if");
+			new AlertDialog.Builder(RssReader.this)
+    		
+    		.setTitle("現在沒有連上網路，你想要...？")
+    		.setIcon(R.drawable.q01)
+    		.setItems(new String[]{"連到預設WIFI","返回並自行設定"}, new DialogInterface.OnClickListener(){
+    			
+    			@Override
+    			public void onClick(DialogInterface dialog, int which) {
+    				switch(which){
+    				case 0:
+    					t.start();
+    					
+    					Log.i(tag, "start ProgressDialog");
+    					BackStage.WifiWaitDialog(RssReader.this);//開啟ProgressDialog視窗
+    					
+    					break;
+    							
+    				case 1:		
+    					finish();
+    					break;
+    					
+    				
+    				}
+    				
+    			}
+    			
+    		})
+    		.show();
+         }
+		BackStage.startWork(this);
 	}
    
     
@@ -257,9 +277,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	 * 但是UpdateService因為是Widget，不會真的完全停止。
 	 * 而是下次執行時，UpdateService又會重onCreate()啟動
 	 */
-    private void sendBroadForSwitchWidget(int status){
-
-    	
+    private void sendBroadForSwitchWidget(int status){	
     	
     	  if(status==0){
 	    	   Log.i(tag, "==>RssReader.sendBroadForStopWidget(), status is: "+status);
@@ -271,17 +289,14 @@ public class RssReader extends Activity implements OnTouchListener {
     	  
 	        //發送廣播來即時更改Widget
 	       Intent intent = new Intent();
-//	       intent.putExtra("now channel", BackStage.name);
 	       intent.putExtra("status", status);
 	       intent.setAction(BackStage.CHANGE_LIST_IMMEDIATE);
-	       sendBroadcast(intent);
-	       
-	     
-	       
+	       sendBroadcast(intent);	       
 
     }
     
     
+
 
     
 	private void createNewChannelButton(){
@@ -418,7 +433,6 @@ public class RssReader extends Activity implements OnTouchListener {
 		@Override
 		public void onReceive(final Context context, Intent intent) {
 			Log.i(tag, ">=RssReader.GetBackStageData.onReceive(), get entity name:"+intent.getExtras().getString("entity_name"));
-			
 
 		    
 			   name = intent.getExtras().getString("entity_name");

@@ -25,6 +25,8 @@
 <service android:name="MyWidgetProvider$UpdateService"></service>
 
 <service android:name="BackStage"></service>
+<service android:name="MyWidgetProvider$WaitConnect"></service>
+<service android:name="Net"></service>
 </application>
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.GET_TASKS"/>
@@ -34,4 +36,5 @@
 <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
 <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"></uses-permission>
 <uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
 </manifest> 

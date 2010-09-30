@@ -14,13 +14,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.xml.sax.SAXException;
-
 import com.camangi.rssreader.MyWidgetProvider.UpdateService;
-
+import com.camangi.rssreader.MyWidgetProvider.WaitConnect;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -470,24 +468,36 @@ public class BackStage extends Service{
 		 Intent intent = new Intent(context, UpdateService.class);
 		 PendingIntent pintent=PendingIntent.getService(context, 0, intent, 0);
 		 
-		 switch( open){
+		 Intent intent2 = new Intent(context, WaitConnect.class);
+		 PendingIntent pintent2=PendingIntent.getService(context, 0, intent2, 0);
+		 
+		 
+		 switch(open){
 		 case 0:
 			 alarm.cancel(pintent);
 			 pintent.cancel();
 			 break;
 		 case 1:
-			 alarm.setRepeating(AlarmManager.RTC, 0, updatespeed, pintent);//設定每2秒更新一次Widget
+			 alarm.setRepeating(AlarmManager.RTC, 0, updatespeed, pintent);//設定每updatespeed秒更新一次Widget
+			 break;
+		 case 2:
+			 alarm.cancel(pintent);
+			 pintent2.cancel();
+			 break;
+		 case 3:
+			 alarm.setRepeating(AlarmManager.RTC, 0, updatespeed, pintent2);
 			 break;
 		 }
 		 
 	}
+	
 	
 /**
  * 	描述 : 顯示ProgressDialog視窗<BR/>
  * @param context 要顯示ProgressDialog的主體
  * @param open 傳進來的參數，0代表關，1代表開
  */
-	public static void ProgressDialog(Context context){
+	public static void WifiWaitDialog(final Context context){
 		
 			CharSequence dialogTitle = context.getString(R.string.please_wait);
 			CharSequence dialogBody = context.getString(R.string.wifi_connecting);
@@ -496,7 +506,7 @@ public class BackStage extends Service{
 			new Thread(){
 				public void run(){
 					try {
-					while(!Net.checkEnableingWifiStatus()){
+					while(!Net.checkEnableingWifiStatus(context)){
 						Log.i(tag, "because wifi connecting,let prgressDialog appear 1000s");
 							sleep(1000);	
 						}
@@ -504,19 +514,37 @@ public class BackStage extends Service{
 						e.printStackTrace();
 					}finally{
 						pd.dismiss();
-						RssReader.handler1.sendEmptyMessage(1);
+						startWork(context);
 						Log.i(tag, "close progressDialog");
 					}
 				}
 			}.start();
 	}
 
+    /**
+     * 描述 : 如果有連線了，才開始取得和解析資料<br/>
+     */
+    public static void startWork(Context context){
+    	if(Net.check3GConnectStatus(context)|Net.checkInitWifiStatus(context)){
+			RssReader.handler1.sendEmptyMessage(1);	
+		}
+    }
 
-	@Override
-	public IBinder onBind(Intent intent) {
-		return null;
-	}
+    /**
+     * 讓執行緒休眠1秒
+     */
+	public static void letThreadSleep(){
+		try {
+			Thread.currentThread().sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}	
 
+    /**
+     * 這個類別用來記錄螢幕的相關資訊
+     * @author simon
+     */
 	public static class  ScreenSize{
 		
 		public static int getScreenWidth(Context context){
@@ -533,6 +561,11 @@ public class BackStage extends Service{
 	}
 
 
+	
+	@Override
+	public IBinder onBind(Intent intent) {
+		return null;
+	}
 
 	
 }
