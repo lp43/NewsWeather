@@ -15,6 +15,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,6 +24,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -110,7 +113,6 @@ public class RssReader extends Activity implements OnTouchListener {
 	IntentFilter mFilter1,mFilter2;
 	int screen_width;
 	public static Handler handler1;
-
 
 
 	/** Called when the activity is first created. */
@@ -218,7 +220,7 @@ public class RssReader extends Activity implements OnTouchListener {
 			}
 		};
 
-		if(!(Net.check3GConnectStatus(RssReader.this)|Net.checkInitWifiStatus(RssReader.this))){
+		if(!(Net.check3GConnectStatus(RssReader.this)|Net.checkEnableingWifiStatus(RssReader.this))){
 			Log.i(tag, "into if");
 			new AlertDialog.Builder(RssReader.this)
     		
@@ -300,15 +302,17 @@ public class RssReader extends Activity implements OnTouchListener {
 
     
 	private void createNewChannelButton(){
+;
+		
 		//最後生產一個新增頻道按鈕
-		button = new Button(RssReader.this);
-		button.setText("新增頻道");
-		LinearLayout.LayoutParams param3 =new LinearLayout.LayoutParams(120,65);
-		up_layout.addView(button,param3);
-		button.setOnClickListener(new OnClickListener(){
+//		button = new Button(RssReader.this);
+//		button.setText("新增頻道");
+//		LinearLayout.LayoutParams param3 =new LinearLayout.LayoutParams(120,65);
+//		up_layout.addView(button,param3);
+//		button.setOnClickListener(new OnClickListener(){
 
-			@Override
-			public void onClick(View v) {
+//			@Override
+//			public void onClick(View v) {
 
 				 LayoutInflater factory = LayoutInflater.from(RssReader.this);
 		            final View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
@@ -321,29 +325,57 @@ public class RssReader extends Activity implements OnTouchListener {
 						public void onClick(DialogInterface dialog, int which) {
 				
 				
-						EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
-						String newchannelname=new_channel_name.getText().toString();
-						EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
-						String newchannelpath=new_channel_path.getText().toString();
-				
-						if(newchannelname.equals("") ||newchannelpath.equals("")){
-						new AlertDialog.Builder(RssReader.this)
-						.setTitle("錯誤！")
-						.setMessage("請輸入完整方可新增...")
-						.setIcon(R.drawable.warning01)
-						.setPositiveButton("返回", new DialogInterface.OnClickListener() {
-				
-						@Override
-						public void onClick(DialogInterface dialog, int which) {}
-						})
-				
-						.show();
+							EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
+							String newchannelname=new_channel_name.getText().toString();
+							EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
+							String newchannelpath=new_channel_path.getText().toString();
+					
+							if(newchannelname.equals("") ||newchannelpath.equals("")){
+								new AlertDialog.Builder(RssReader.this)
+								.setTitle("錯誤！")
+								.setMessage("請輸入完整方可新增...")
+								.setIcon(R.drawable.warning01)
+								.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+						
+								@Override
+								public void onClick(DialogInterface dialog, int which) {}
+								})
+					
+								.show();
 				
 				
 						}else{
-						myDB=new DB(RssReader.this);
-						myDB.insert(newchannelname, newchannelpath, true);
-						onResume();
+							myDB=new DB(RssReader.this);
+							myDB.insert(newchannelname, newchannelpath, true);
+//							onResume();
+							
+							cursor=myDB.getTruePath();
+							cursor.moveToLast();
+							name=cursor.getString(cursor.getColumnIndex("_name"));
+							path=cursor.getString(cursor.getColumnIndex("_path"));
+							button = new Button(RssReader.this);
+							
+					        button.setText(name);
+					        button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
+					     
+					        id = cursor.getInt(cursor.getColumnIndex("_id"));
+					        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
+					        Log.i(tag, "move to last id: "+id);
+					        
+
+					        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
+//					        Log.i(tag, "setlinearlayout pass");
+					        up_layout.addView(button,param);
+					        
+					        button.setTag(BackStage.button_order+1);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
+					        
+					        
+					        //動態新增ListView
+						    ListView newlv = new ListView(RssReader.this);
+						    LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(screen_width,LinearLayout.LayoutParams.FILL_PARENT);
+						    down_layout.addView(newlv,param2);
+						    newlv.setTag(button_order+1);
+					        newlv.setAdapter(new NewsAdapter(RssReader.this,BackStage.convert(path)));
 				
 						}
 				
@@ -358,8 +390,8 @@ public class RssReader extends Activity implements OnTouchListener {
 						})
 						.show(); 		
 
-			}
-		});
+//			}
+//		});
 	}
 
 	/**描述 : 滑動手勢指令換頁*/
@@ -382,35 +414,83 @@ public class RssReader extends Activity implements OnTouchListener {
 		}		
 		return true;
 	}
+
 	
+
+
+	/**
+	 * 描述 : 如果資料還沒有載入完就讓會影響到資料庫的指令變成失效
+	 */
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if(BackStage.button_order<BackStage.cursor.getCount()-1){
+			menu.getItem(0).setEnabled(false);
+			menu.getItem(1).setEnabled(false);
+			menu.getItem(2).setEnabled(false);
+		}else{
+			menu.getItem(0).setEnabled(true);
+			menu.getItem(1).setEnabled(true);
+			menu.getItem(2).setEnabled(true);
+		}
 	
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+
 	/**描述 : 建立Menu清單*/
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		
-		menu.add(0, 0, 0, "頻道清單");
-		menu.add(0, 1, 1, "關於");
-		menu.getItem(0).setIcon(R.drawable.setting);
-		menu.getItem(1).setIcon(R.drawable.about);
+		menu.add(0, 0, 0, "新增頻道");
+		menu.add(0, 1, 1, "頻道清單");
+		menu.add(0, 2, 2, "重新載入");
+		menu.add(0, 3, 3, "關於");
+		menu.getItem(1).setIcon(R.drawable.setting);
+		menu.getItem(3).setIcon(R.drawable.about);
+		
 		return super.onCreateOptionsMenu(menu);
 	}
+	
+/*	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if(keyCode == KeyEvent.KEYCODE_MENU){
+			Log.i(tag, "press_keyMenu");
+
+		}
+		return super.onKeyDown(keyCode, event);
+	}*/
 
 	/**描述 : 建立Menu清單的觸發事件*/
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
 			case 0:
+//				Log.i(tag, "now button order is: "+BackStage.button_order);
+
+					createNewChannelButton();	
+
+				break;
+			
+			case 1:
+
 				Intent intent = new Intent();
 				intent.setClass(RssReader.this, Setting.class);
 				startActivity(intent);
-				BackStage.button_order=0;
+
 				break;
-			case 1:
+				
+			case 2:
+
+				BackStage.DatabaseNumber="none";
+				onResume();
+
+				break;
+				
+			case 3:
 				new AlertDialog.Builder(RssReader.this)
 				.setMessage("RssReader"+ softVersion +"\n作者：Camangi Corporation\n\n版權所有 2010")
 				.setIcon(R.drawable.icon)
-				.setTitle("關於")
-				
+				.setTitle("關於")	
 				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
 					
 					@Override
@@ -419,6 +499,8 @@ public class RssReader extends Activity implements OnTouchListener {
 					}
 				})
 				.show();
+				break;
+		
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -440,7 +522,7 @@ public class RssReader extends Activity implements OnTouchListener {
 			   Log.i(tag, "get button_order: "+button_order);
 			   id = intent.getExtras().getInt("id");
 			   getData=(ArrayList<News>) intent.getSerializableExtra("getData");
-			   if(button_order==1){
+			   if(button_order==0){
 				   Toast.makeText(RssReader.this, "請稍等，共計"+String.valueOf(BackStage.cursor.getCount())+"筆資料需要下載...", Toast.LENGTH_SHORT).show();
 			   }
 			   
@@ -448,244 +530,259 @@ public class RssReader extends Activity implements OnTouchListener {
 			  
 			   liAll.put(button_order, getData);
 			  
-					
-					
-							//動態新增按鈕
-							button = new Button(context);
-//							Log.i(tag, "new button pass");
-					        button.setText(name);
-					        button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
-//					        Log.i(tag, "setname pass");
-					        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
-					        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
-//					        Log.i(tag, "setlinearlayout pass");
-					        up_layout.addView(button,param);
-//					        Log.i(tag, "set up_layout pass");
-					        button.setOnLongClickListener(new View.OnLongClickListener() {
-					             public boolean onLongClick(final View v) {
-					         		myDB=new DB(context);
-					         		
-					        		new AlertDialog.Builder(context)
-					        		
-					        		.setTitle("對於 "+BackStage.rssreader_namelist.get(v.getId())+" 頻道，你想要...？")
-					        		.setIcon(R.drawable.q01)
-					        		.setItems(new String[]{"隱藏","重新命名","刪除"}, new DialogInterface.OnClickListener(){
-					        			
-					        			@Override
-					        			public void onClick(DialogInterface dialog, int which) {
-					        				switch(which){
-					        				case 0:
-					        					myDB.channelSwitch(v.getId(), false); 
-					        					myDB.close();
-					        				       onResume();
-					        					break;
-					        							
-					        				case 1:		
-					        					LayoutInflater factory = LayoutInflater.from(context);
-					        			            final View rename_layout = factory.inflate(R.layout.alert_dialog_rename, null);
-					        							new AlertDialog.Builder(context)
-					        							.setTitle("替 "+BackStage.rssreader_namelist.get(v.getId())+" 重新命名")
-					        							.setView(rename_layout)
-					        							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+				//動態新增按鈕
+				button = new Button(context);
+//				Log.i(tag, "new button pass");
+		        button.setText(name);
+		        button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
+//		        Log.i(tag, "setname pass");
+		        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
 
-					        									@Override
-					        									public void onClick(DialogInterface dialog, int which) {	
-					        											
-					        											EditText edit_rename = (EditText) rename_layout.findViewById(R.id.edit_rename);
-					        											String rename=edit_rename.getText().toString();
-					        											
-					        											if(rename.equals("")){
-					        												new AlertDialog.Builder(context)
-					        												.setTitle("錯誤！")
-					        												.setMessage("請輸入完整才能更名...")
-					        												.setIcon(R.drawable.warning01)
-					        												.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+		        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
+//		        Log.i(tag, "setlinearlayout pass");
+		        up_layout.addView(button,param);
+//		        Log.i(tag, "set up_layout pass");
+		        button.setOnLongClickListener(new View.OnLongClickListener() {
+		             public boolean onLongClick(final View v) {
+		            	 
+		         		myDB=new DB(context);
+		         		
+		        		new AlertDialog.Builder(context)
+		        		
+		        		.setTitle("對於 "+BackStage.rssreader_namelist.get(v.getId())+" 頻道，你想要...？")
+		        		.setIcon(R.drawable.q01)
+		        		.setItems(new String[]{"隱藏","重新命名","刪除"}, new DialogInterface.OnClickListener(){
+		        			
+		        			@Override
+		        			public void onClick(DialogInterface dialog, int which) {
+		        				switch(which){
+		        				case 0:
+		        					if(BackStage.button_order<BackStage.cursor.getCount()-1){
+					 					
+					 					BackStage.loadingCantUseDataDialog(RssReader.this);
+					 				}else{
+		        					myDB.channelSwitch(v.getId(), false); 
+		        					myDB.close();
+		        				       onResume();
+					 				}
+		        					break;
+		        							
+		        				case 1:		
+		        					if(BackStage.button_order<BackStage.cursor.getCount()-1){
+					 					
+					 					BackStage.loadingCantUseDataDialog(RssReader.this);
+					 				}else{
+		        					LayoutInflater factory = LayoutInflater.from(context);
+		        			            final View rename_layout = factory.inflate(R.layout.alert_dialog_rename, null);
+		        							new AlertDialog.Builder(context)
+		        							.setTitle("替 "+BackStage.rssreader_namelist.get(v.getId())+" 重新命名")
+		        							.setView(rename_layout)
+		        							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
 
-					        													@Override
-					        													public void onClick(DialogInterface dialog, int which) {}
-					        													})
-					        												
-					        												.show();
-					        												
-					        												
-					        											}else{
-						        											myDB.reName(v.getId(), rename);
-						        											myDB.close();
-						        											onResume();
-					        											}
+		        									@Override
+		        									public void onClick(DialogInterface dialog, int which) {	
+		        											
+		        											EditText edit_rename = (EditText) rename_layout.findViewById(R.id.edit_rename);
+		        											String rename=edit_rename.getText().toString();
+		        											
+		        											if(rename.equals("")){
+		        												new AlertDialog.Builder(context)
+		        												.setTitle("錯誤！")
+		        												.setMessage("請輸入完整才能更名...")
+		        												.setIcon(R.drawable.warning01)
+		        												.setPositiveButton("返回", new DialogInterface.OnClickListener() {
 
-					        									}
-					        									})
-					        							
-					        							.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-					        								
-					        									@Override
-					        									public void onClick(DialogInterface dialog, int which) {
-					        									}
-					        							})
-					        							.show(); 
-					        							
-					        					break;
-					        					
-					        				case 2:
-					        					try{
-					        							new AlertDialog.Builder(context)
-					        							.setIcon(R.drawable.warning01)
-					        							.setMessage("這樣會刪除頻道 "+BackStage.rssreader_namelist.get(v.getId())+"\n確定嗎？")
-					        							.setTitle("注意！")
-					        							
-					        							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
-					        								
-					        								@Override
-					        								public void onClick(DialogInterface dialog, int which) {
-					        									myDB.delete(v.getId());
-					        									myDB.close();
-					        									onResume();
-					        								}
-					        							})
-					        							
-					        							.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-					        								
-					        								@Override
-					        								public void onClick(DialogInterface dialog, int which) {
-					        								}
-					        							})
-					        							
-					        							.show(); 
-					        					
-					        					}catch(Exception e){
-					        							new AlertDialog.Builder(context)
-					        						
-					        						
-					        								.setMessage("程式出錯了，將返回！")
-					        								.setTitle("注意！")
-					        								
-					        								.setPositiveButton("確認", new DialogInterface.OnClickListener() {
-					        							
-					        							@Override
-					        							public void onClick(DialogInterface dialog, int which) {
-					        								onResume();
-					        							}
-					        							})
-					        							.show();
-					        					}
-					        					break;
-					        				}
-					        				
-					        			}
-					        			
-					        		})
-					        		.setPositiveButton("返回", new DialogInterface.OnClickListener() {
-					        					
-					        					@Override
-					        					public void onClick(DialogInterface dialog, int which) {
-					        					}})
-					        		.show();
-					        		
+		        													@Override
+		        													public void onClick(DialogInterface dialog, int which) {}
+		        													})
+		        												
+		        												.show();
+		        												
+		        												
+		        											}else{
+			        											myDB.reName(v.getId(), rename);
+			        											myDB.close();
+			        											onResume();
+		        											}
 
-					        		return false;
-					             }
-					        });
-//					        Log.i(tag, "set buttonOnlongclicklisterner pass");
-					        
-					        button.setOnClickListener(new View.OnClickListener() {
-					             public void onClick(View v) {
-					         		switch(v.getId()){
-					        		
-					        		case 9999:
-					        			Log.i(tag,  "you press button: 9999");
-					        			LayoutInflater factory = LayoutInflater.from(context);
-					                    final View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
-					        				new AlertDialog.Builder(context)
-					        				.setTitle("新增頻道")
-					        				.setView(addchannel_layout)
-					        				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+		        									}
+		        									})
+		        							
+		        							.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+		        								
+		        									@Override
+		        									public void onClick(DialogInterface dialog, int which) {
+		        									}
+		        							})
+		        							.show(); 
+					 				}
+		        					break;
+		        					
+		        				case 2:
+		        					if(BackStage.button_order<BackStage.cursor.getCount()-1){
+					 					
+					 					BackStage.loadingCantUseDataDialog(RssReader.this);
+					 				}else{
+		        					try{
+		        							new AlertDialog.Builder(context)
+		        							.setIcon(R.drawable.warning01)
+		        							.setMessage("這樣會刪除頻道 "+BackStage.rssreader_namelist.get(v.getId())+"\n確定嗎？")
+		        							.setTitle("注意！")
+		        							
+		        							.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+		        								
+		        								@Override
+		        								public void onClick(DialogInterface dialog, int which) {
+		        									myDB.delete(v.getId());
+		        									myDB.close();
+		        									onResume();
+		        								}
+		        							})
+		        							
+		        							.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+		        								
+		        								@Override
+		        								public void onClick(DialogInterface dialog, int which) {
+		        								}
+		        							})
+		        							
+		        							.show(); 
+		        					
+		        					}catch(Exception e){
+		        							new AlertDialog.Builder(context)
+		        						
+		        						
+		        								.setMessage("程式出錯了，將返回！")
+		        								.setTitle("注意！")
+		        								
+		        								.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+		        							
+		        							@Override
+		        							public void onClick(DialogInterface dialog, int which) {
+		        								onResume();
+		        							}
+		        							})
+		        							.show();
+		        					}
+					 				}
+		        					break;
+		        				}
+		        				
+		        			}
+		        			
+		        		})
+		        		.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+		        					
+		        					@Override
+		        					public void onClick(DialogInterface dialog, int which) {
+		        					}})
+		        		.show();
+		        		
 
-					        						@Override
-					        						public void onClick(DialogInterface dialog, int which) {	
-					        							
-					        								
-					        								EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
-					        								String newchannelname=new_channel_name.getText().toString();
-					        								EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
-					        								String newchannelpath=new_channel_path.getText().toString();
-					        								
-					        								if(newchannelname.equals("") ||newchannelpath.equals("")){
-					        									new AlertDialog.Builder(context)
-					        									.setTitle("錯誤！")
-					        									.setMessage("請輸入完整方可新增...")
-					        									.setIcon(R.drawable.warning01)
-					        									.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+		        		return false;
+		             }					        
+		        });
+//		        Log.i(tag, "set buttonOnlongclicklisterner pass");
+		        
+		        button.setOnClickListener(new View.OnClickListener() {
+		             public void onClick(View v) {
+		         		switch(v.getId()){
+		        		
+		        	/*	case 9999:
+		        			Log.i(tag,  "you press button: 9999");
+		        			LayoutInflater factory = LayoutInflater.from(context);
+		                    final View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
+		        				new AlertDialog.Builder(context)
+		        				.setTitle("新增頻道")
+		        				.setView(addchannel_layout)
+		        				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
 
-					        										@Override
-					        										public void onClick(DialogInterface dialog, int which) {}
-					        										})
-					        									
-					        									.show();
-					        									
-					        									
-					        								}else{
-					        									myDB=new DB(context);
-					        									myDB.insert(newchannelname, newchannelpath, true);
-					        									myDB.close();
-					        									onResume();
-					        	
-					        								}
-					        								
-					        						}
-					        						})
-					        				
-					        				.setNeutralButton("找網址", new DialogInterface.OnClickListener() {
-					        					
-					        						@Override
-					        						public void onClick(DialogInterface dialog, int which) {
-					        							Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.google.com"));
-					        							context.startActivity(i);
-					        						}
-					        				})		
-					        										
-					        				.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-					        					
-					        						@Override
-					        						public void onClick(DialogInterface dialog, int which) {
-					        						}
-					        				})
-					        				.show(); 
-					        			break;
-					        			
-					        		default:
-					        			Log.i(tag, "you press button: default");
-					        		int a=Integer.parseInt(v.getTag().toString());
-					            	slv.smoothScrollTo((a*screen_width),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
-//					        		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
-					            		break;
-					        		}
-					             }
-					         });
-					        button.setTag(button_order);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
-					        
-					        
-					        //動態新增ListView
-						    ListView newlv = new ListView(context);
-						    LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(screen_width,LinearLayout.LayoutParams.FILL_PARENT);
-						    down_layout.addView(newlv,param2);
-						    newlv.setTag(button_order);
-					        newlv.setAdapter(new NewsAdapter(context,getData));
-					        newlv.setOnItemClickListener(new OnItemClickListener(){
-					        	
-					        	/**描述 : ListView的觸發事件*/
-								@Override
-								public void onItemClick(AdapterView<?> parent, View view,
-										int position, long id) {
-									//將大容器liAll裡的小容器getData裡的Link依照parent.getTag(),也就是該ListView所設的tag(同button_order)的值取出
-									
-									Log.i(tag, "parent.getTag(): "+parent.getTag().toString());
-									Intent browserIntent1 = new Intent("android.intent.action.VIEW", Uri.parse(liAll.get(Integer.parseInt(parent.getTag().toString())).get(position).getLink()));
-									context.startActivity(browserIntent1);
-									
-								}
-					        	
-					        });
+		        						@Override
+		        						public void onClick(DialogInterface dialog, int which) {	
+		        							
+		        								
+		        								EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
+		        								String newchannelname=new_channel_name.getText().toString();
+		        								EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
+		        								String newchannelpath=new_channel_path.getText().toString();
+		        								
+		        								if(newchannelname.equals("") ||newchannelpath.equals("")){
+		        									new AlertDialog.Builder(context)
+		        									.setTitle("錯誤！")
+		        									.setMessage("請輸入完整方可新增...")
+		        									.setIcon(R.drawable.warning01)
+		        									.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+
+		        										@Override
+		        										public void onClick(DialogInterface dialog, int which) {}
+		        										})
+		        									
+		        									.show();
+		        									
+		        									
+		        								}else{
+		        									myDB=new DB(context);
+		        									myDB.insert(newchannelname, newchannelpath, true);
+		        									myDB.close();
+		        									onResume();
+		        	
+		        								}
+		        								
+		        						}
+		        						})
+		        				
+		        				.setNeutralButton("找網址", new DialogInterface.OnClickListener() {
+		        					
+		        						@Override
+		        						public void onClick(DialogInterface dialog, int which) {
+		        							Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.google.com"));
+		        							context.startActivity(i);
+		        						}
+		        				})		
+		        										
+		        				.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+		        					
+		        						@Override
+		        						public void onClick(DialogInterface dialog, int which) {
+		        						}
+		        				})
+		        				.show(); 
+		        			break;
+		        			*/
+		        		default:
+		        			Log.i(tag, "you press button: default");
+		        		int a=Integer.parseInt(v.getTag().toString());
+		            	slv.smoothScrollTo((a*screen_width),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
+//		        		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
+		            		break;
+		        		}
+		             }
+		         });
+		        button.setTag(button_order);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
+		        
+		        
+		        //動態新增ListView
+			    ListView newlv = new ListView(context);
+			    LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(screen_width,LinearLayout.LayoutParams.FILL_PARENT);
+			    down_layout.addView(newlv,param2);
+			    newlv.setTag(button_order);
+		        newlv.setAdapter(new NewsAdapter(context,getData));
+		        newlv.setOnItemClickListener(new OnItemClickListener(){
+		        	
+		        	/**描述 : ListView的觸發事件*/
+					@Override
+					public void onItemClick(AdapterView<?> parent, View view,
+							int position, long id) {
+						//將大容器liAll裡的小容器getData裡的Link依照parent.getTag(),也就是該ListView所設的tag(同button_order)的值取出
+						
+						Log.i(tag, "parent.getTag(): "+parent.getTag().toString());
+						Intent browserIntent1 = new Intent("android.intent.action.VIEW", Uri.parse(liAll.get(Integer.parseInt(parent.getTag().toString())).get(position).getLink()));
+						context.startActivity(browserIntent1);
+						
+					}
+		        	
+		        });
+								
 					        
 					      //啟動Service以解析資料
 							   intent2 = new Intent(context, BackStage.class);
@@ -699,7 +796,7 @@ public class RssReader extends Activity implements OnTouchListener {
 								   Log.i(tag, "Data load finish, stop (Service)BackStage");
 								   
 								   Toast.makeText(context, "資料下載完成...", Toast.LENGTH_SHORT).show();
-								   createNewChannelButton();
+//								   createNewChannelButton();
 								   sendBroadForSwitchWidget(1);					  
 							   }
 					        
@@ -709,6 +806,7 @@ public class RssReader extends Activity implements OnTouchListener {
 		}
 
 
-
+//	private void createnewbuttonview(final Context context,String name,int button_order, int id){
+//	
 	
 }

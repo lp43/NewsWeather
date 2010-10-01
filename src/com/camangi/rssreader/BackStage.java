@@ -237,6 +237,11 @@ public class BackStage extends Service{
 		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
 		      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
 		      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
+		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",true);//Yahoo!奇摩股市
+		      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",true);//wretch;IO錯誤
+		      myDB.insert("Bloger", " http://lp43.blogspot.com/feeds/posts/default",true);//Bloger;不是通用解析格式
+		      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+		      
 		    myDB.close(); 
 		}
 //		Log.i(tag, "BackStage.initializeDataBase() finish");
@@ -296,18 +301,16 @@ public class BackStage extends Service{
 			
 		} catch (MalformedURLException e) {
 			Log.i(tag, "MalformedURLException: "+e.getMessage());
-			News news = new News();
-			news.setDate("錯誤原因︰ "+e.getMessage());
-			news.setTitle("解析錯誤！");
-			news.setLink("http://");
-			wronglist=new ArrayList<News>();
-			wronglist.add(news);
-			Encode="UTF-8";
+			appearExceptionMessage("MalformedURLException",e);
 			Log.i(path, "create wronglist finish");
 		}catch (IOException e) {
 			Log.i(tag, "IOException: "+e.getMessage());
+			appearExceptionMessage("IOException",e);
+			Log.i(path, "create wronglist finish");
 		}catch(Exception e){
 			Log.i("tag", "Exception: "+e.getMessage());
+			appearExceptionMessage("Exception",e);
+			Log.i(path, "create wronglist finish");
 		}
 		
 		return getRss(path);
@@ -540,7 +543,39 @@ public class BackStage extends Service{
 			e.printStackTrace();
 		}
 	}	
+	
+	/**
+	 * 描述 : 當使用者在還沒載入完資料前做動作，會影響到資料的載入(可能變成多筆資料重覆)<br/>
+	 * 因此會先判斷若cursor還沒到最後一筆，不行Setting channel之類所有會更改到資料庫的動作
+	 * @param context 顯示錯誤訊息視窗的主體
+	 */
+	public static void loadingCantUseDataDialog(Context context){
+		
+			new AlertDialog.Builder(context)
+			.setTitle("錯誤！")
+			.setMessage("資料載入完畢尚可執行動作...")
+			.setIcon(R.drawable.warning01)
+			.setPositiveButton("返回", new DialogInterface.OnClickListener() {
 
+				@Override
+				public void onClick(DialogInterface dialog, int which) {}
+				})
+			
+			.show();
+		
+	}
+
+	private static void appearExceptionMessage(String ExceptionName,Exception e){
+		Log.i("tag", "Exception: "+e.getMessage());
+		News news = new News();
+		news.setDate("錯誤原因︰ "+ ExceptionName +", 訊息: "+e.getMessage());
+		news.setTitle("解析錯誤！");
+		news.setLink("http://");
+		wronglist=new ArrayList<News>();
+		wronglist.add(news);
+		Encode="UTF-8";
+		Log.i(path, "create wronglist finish");
+	}
     /**
      * 這個類別用來記錄螢幕的相關資訊
      * @author simon
