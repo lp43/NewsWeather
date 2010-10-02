@@ -1,5 +1,7 @@
-10/2
+﻿10/2
 1.將3G和WIFI的判斷模式(RssReader和widget)更改,
 因模擬器無法模擬wifi,故需要在實機再測一次是否可行
 2.將NET.checkInitWifiStatus()反註解掉,並將程式多行用到此method的語法改成checkEnableingWifiStatus()
 需檢驗是否可行
+
+10/3
