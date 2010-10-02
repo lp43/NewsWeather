@@ -24,7 +24,9 @@
         android:autoText="false"
         android:capitalize="none"
         android:gravity="fill_horizontal"
-        android:textAppearance="?android:attr/textAppearanceMedium"/>
+        android:text="channel"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:focusable="false"/>
         
       <TextView 
         android:layout_height="wrap_content"
@@ -46,7 +48,8 @@
         android:capitalize="none"
         android:gravity="fill_horizontal"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:hint="將找到的Rss網址貼在這"/>
+        android:hint="將找到的Rss網址貼在這"
+        android:focusable="true"/>
 
         
 </LinearLayout>

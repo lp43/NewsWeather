@@ -34,6 +34,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.util.Xml;
 import android.view.Display;
@@ -94,7 +95,6 @@ public class BackStage extends Service{
 	private static ArrayList<News> bufferlist,wronglist;
 	
 	
-	
 	//===========================================================================================
 	
 	
@@ -140,10 +140,15 @@ public class BackStage extends Service{
 				path=cursor.getString(cursor.getColumnIndex("_path"));
 				id = cursor.getInt(cursor.getColumnIndex("_id"));
 				
-
+				RssReader.handler1.sendEmptyMessage(2);//通知主UI要更新title的更新狀態了
+				
 					getData = convert(path);
 					liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
-				
+
+					
+
+					
+					
 				
 				rssreader_namelist.put(id,name);
 				backstage_widget_namelist.put(button_order,name);
@@ -166,8 +171,8 @@ public class BackStage extends Service{
 				
 				
 			}
-			}.start();	
-			
+			}.start();
+
 		
 	}
 	
@@ -477,14 +482,15 @@ public class BackStage extends Service{
 		 
 		 switch(open){
 		 case 0:
+			 //關閉讓Widget不斷更新的widget Service
 			 alarm.cancel(pintent);
 			 pintent.cancel();
 			 break;
-		 case 1:
+		 case 1:	 
 			 alarm.setRepeating(AlarmManager.RTC, 0, updatespeed, pintent);//設定每updatespeed秒更新一次Widget
 			 break;
 		 case 2:
-			 alarm.cancel(pintent);
+			 alarm.cancel(pintent2);//這裡原本是pintent,我改成pintent2
 			 pintent2.cancel();
 			 break;
 		 case 3:
@@ -525,10 +531,10 @@ public class BackStage extends Service{
 	}
 
     /**
-     * 描述 : 如果有連線了，才開始取得和解析資料<br/>
+     * 描述 : 如果有連線能力了，才開始取得和解析資料<br/>
      */
     public static void startWork(Context context){
-    	if(Net.check3GConnectStatus(context)|Net.checkInitWifiStatus(context)){
+    	if(Net.check3GConnectStatus(context)|Net./*checkInitWifiStatus*/checkEnableingWifiStatus(context)){
 			RssReader.handler1.sendEmptyMessage(1);	
 		}
     }
@@ -576,6 +582,8 @@ public class BackStage extends Service{
 		Encode="UTF-8";
 		Log.i(path, "create wronglist finish");
 	}
+	
+	
     /**
      * 這個類別用來記錄螢幕的相關資訊
      * @author simon

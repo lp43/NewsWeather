@@ -48,12 +48,12 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0035";
+	private String softVersion="v1.0036";
 	/**
 	 * 因為Button已經是動態產生，所以只要宣告一個變數，
 	 * 之後各個按鈕的控制都靠Button.getId()去的值去決定
 	 */
-	private static Button button;
+	private static Button button,first_button;
 	/**為了讓下面的新聞欄可以左右滑動，需把HorizontalScrollView宣告出來*/
 	private static HorizontalScrollView slv;
 	/**用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑*/
@@ -100,8 +100,8 @@ public class RssReader extends Activity implements OnTouchListener {
 
 	/**取出該Apk的套件名稱	 */
 	String packageName;
-	private mReceiver Rreceiver1;
-	public GetBackStageData Rreceiver2;
+	private mReceiver Rreceiver_Widget;
+	public GetBackStageData Rreceiver_getData;
 	/**NewsWeather專屬的更新記錄*/
 	public static int updateVersion=0;
 	static ActivityManager  activitymanager;
@@ -113,7 +113,9 @@ public class RssReader extends Activity implements OnTouchListener {
 	IntentFilter mFilter1,mFilter2;
 	int screen_width;
 	public static Handler handler1;
-
+	private static final int open=1;
+	private static final int close=0;
+	private static boolean receiver_getData_status=true;
 
 	/** Called when the activity is first created. */
     @Override
@@ -135,14 +137,14 @@ public class RssReader extends Activity implements OnTouchListener {
     	//每onResume啟動時馬上註冊廣播，不能寫在onCreate()，因為每個函式間都有各自的生命週期
     	//向系統註冊Receiver1，讓MyWidgetProvider.mReceiver產生功能
         mFilter1=new IntentFilter(BackStage.CHANGE_LIST_IMMEDIATE);
-        Rreceiver1 = new MyWidgetProvider.mReceiver();
-        registerReceiver(Rreceiver1,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
+        Rreceiver_Widget = new MyWidgetProvider.mReceiver();
+        registerReceiver(Rreceiver_Widget,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
         Log.i(tag, "registerReceiverIntentFilter 1 is: CHANGE_LIST_IMMEDIATE");
         
         //向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
         mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
-        Rreceiver2=new RssReader.GetBackStageData();
-        registerReceiver(Rreceiver2,mFilter2);
+        Rreceiver_getData=new RssReader.GetBackStageData();
+        registerReceiver(Rreceiver_getData,mFilter2);
         Log.i(tag, "registerReceiver IntentFilter 2 is: GET_NEW_ENTITY");  
         	
         handler1=new Handler(){
@@ -171,19 +173,67 @@ public class RssReader extends Activity implements OnTouchListener {
 				    	   up_layout.removeAllViews();
 				    	   down_layout.removeAllViews();
 				    	   
-				    	   sendBroadForSwitchWidget(0);//0代表關閉Service
+				    	   
+				    	   if(BackStage.BufferDatabaseNumber!=BackStage.checkDatabaseNumber(RssReader.this)){
+				    		 //程式一開始,第1個按鈕顯示為[取消載入]按鈕
+					    	   first_button = new Button(RssReader.this);
+					    	   first_button.setText("取消載入");
+					    	   first_button.setEnabled(false);//還沒載入至少1筆資料,不能執行[取消載入]功能
+					    	   first_button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
+					    	   LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
+						       up_layout.addView(first_button,param);
+						       
+						       //這個時候還是[取消載入]的字樣
+						       first_button.setOnClickListener(new View.OnClickListener() {
+					    		
+									@Override
+									public void onClick(View v) {
+										//關閉解析的Service
+								    	   intent = new Intent(RssReader.this, BackStage.class);
+								           RssReader.this.stopService(intent);
+								           unregisterReceiver(Rreceiver_getData);
+								           receiver_getData_status=false;//告知系統receiver_getData_status被關閉了
+								           Toast.makeText(RssReader.this, "取消載入...", Toast.LENGTH_SHORT).show();
+								           sendBroadForSwitchWidget(open);
+								           setTitle("RssReader");
+//										   BackStage.button_order=BackStage.cursor.getCount()-1;
+								           
+								           //現在是[重新載入]:當使用者按下[取消載入]按鈕後,第1個按鈕馬上變成[重新載入]按鈕,讓使用者可以重載看看
+								           first_button.setText("重新載入");
+										   first_button.setOnClickListener(new View.OnClickListener() {
+											
+											@Override
+											public void onClick(View v) {
+												reRegisterBroadcaast_getData();					   	
+												//要先將資料庫的版本設回none，重新載入時才會更新
+												BackStage.DatabaseNumber="none";
+												onResume();
+											}
+										});
+									}
+								});
+				    	   }
+				    	   
+				    	   
+				    	   
+				    	   
+				    	   
+				    	   sendBroadForSwitchWidget(close);//0代表關閉Service
 				    	   
 
 				    	   
 				    	 //啟動Service以解析資料
 				    	   intent = new Intent(RssReader.this, BackStage.class);
 				           startService(intent); 
-
+				           
 				    	   
-				          
+				           
 				       }else{
 				    	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", doing nothing..");
 				       }
+					break;
+				case 2:
+					setTitle("[RssReader] 正在載入"+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name);
 					break;
 				}
 				super.handleMessage(msg);
@@ -208,6 +258,7 @@ public class RssReader extends Activity implements OnTouchListener {
     Log.i(tag, "=====================================");
 	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
+	reRegisterBroadcaast_getData();
 
 		final Thread t =new Thread(){
 			
@@ -215,7 +266,7 @@ public class RssReader extends Activity implements OnTouchListener {
 				Looper.prepare();
 				
 				Net.autoWifi(RssReader.this);
-				Log.i(tag, "WifiStatus: "+Net.checkInitWifiStatus(RssReader.this));
+				Log.i(tag, "WifiStatus: "+Net./*checkInitWifiStatus*/checkEnableingWifiStatus(RssReader.this));
 
 			}
 		};
@@ -251,16 +302,8 @@ public class RssReader extends Activity implements OnTouchListener {
     		})
     		.show();
          }
+		setTitle("RssReader");
 		BackStage.startWork(this);
-	}
-   
-    
-	@Override
-	protected void onPause() {
-	
-	
-		super.onPause();
-		 Log.i(tag, "RssReader.onPause()=>unregisterReceiver: RssReader.GetBackStageData & WidgetReceiver");
 	}
 	
 	
@@ -268,8 +311,8 @@ public class RssReader extends Activity implements OnTouchListener {
 	protected void onDestroy() {
 		Log.i(tag, "into RssReader.onDestroy()");
 		
-		unregisterReceiver(Rreceiver1);
-		unregisterReceiver(Rreceiver2);//離開畫面仍更新的問題沒有處理掉
+		unregisterReceiver(Rreceiver_Widget);
+		unregisterReceiver(Rreceiver_getData);
 		super.onDestroy();
 	}
 
@@ -281,10 +324,10 @@ public class RssReader extends Activity implements OnTouchListener {
 	 */
     private void sendBroadForSwitchWidget(int status){	
     	
-    	  if(status==0){
-	    	   Log.i(tag, "==>RssReader.sendBroadForStopWidget(), status is: "+status);
+    	  if(status==close){
+	    	   Log.i(tag, "==>RssReader.sendBroadForStopWidget(), status is close");
 	       }else{
-	    	   Log.i(tag, "==>RssReader.sendBroadForStartWidget(), status is: "+status);
+	    	   Log.i(tag, "==>RssReader.sendBroadForStartWidget(), status is opne");
 	    	   MyWidgetProvider.liAll=BackStage.liAll;
 	    	   MyWidgetProvider.widget_namelist=BackStage.backstage_widget_namelist;
 	       }
@@ -419,10 +462,14 @@ public class RssReader extends Activity implements OnTouchListener {
 
 
 	/**
-	 * 描述 : 如果資料還沒有載入完就讓會影響到資料庫的指令變成失效
+	 * 描述 : 如果資料還沒有載入完就讓會影響到資料庫的相關指令變成失效
 	 */
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
+		if(!receiver_getData_status){//如果按了[取消載入],退回桌面再進入,為了讓Menu變回原樣,特設此判斷
+			 BackStage.button_order=BackStage.cursor.getCount()-1;
+		}
+		
 		if(BackStage.button_order<BackStage.cursor.getCount()-1){
 			menu.getItem(0).setEnabled(false);
 			menu.getItem(1).setEnabled(false);
@@ -444,7 +491,7 @@ public class RssReader extends Activity implements OnTouchListener {
 		menu.add(0, 0, 0, "新增頻道");
 		menu.add(0, 1, 1, "頻道清單");
 		menu.add(0, 2, 2, "重新載入");
-		menu.add(0, 3, 3, "關於");
+		menu.add(0, 3, 3, "連絡作者");
 		menu.getItem(1).setIcon(R.drawable.setting);
 		menu.getItem(3).setIcon(R.drawable.about);
 		
@@ -465,6 +512,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
 			case 0:
+				reRegisterBroadcaast_getData();
 //				Log.i(tag, "now button order is: "+BackStage.button_order);
 
 					createNewChannelButton();	
@@ -472,7 +520,7 @@ public class RssReader extends Activity implements OnTouchListener {
 				break;
 			
 			case 1:
-
+				reRegisterBroadcaast_getData();
 				Intent intent = new Intent();
 				intent.setClass(RssReader.this, Setting.class);
 				startActivity(intent);
@@ -480,7 +528,11 @@ public class RssReader extends Activity implements OnTouchListener {
 				break;
 				
 			case 2:
-
+				reRegisterBroadcaast_getData();
+				   
+				
+				
+				//要先將資料庫的版本設回none，重新載入時才會更新
 				BackStage.DatabaseNumber="none";
 				onResume();
 
@@ -490,8 +542,20 @@ public class RssReader extends Activity implements OnTouchListener {
 				new AlertDialog.Builder(RssReader.this)
 				.setMessage("RssReader"+ softVersion +"\n作者：Camangi Corporation\n\n版權所有 2010")
 				.setIcon(R.drawable.icon)
-				.setTitle("關於")	
-				.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+				.setTitle("關於")
+				.setPositiveButton("問題回報", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						Intent sendIntent = new Intent(Intent.ACTION_SEND);
+						sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{"simon@camangi.com"}); 
+						sendIntent.putExtra(Intent.EXTRA_TEXT, "write your suggestion here");
+						sendIntent.putExtra(Intent.EXTRA_SUBJECT, "RssReader issue report");
+						sendIntent.setType("message/rfc822");
+						startActivity(Intent.createChooser(sendIntent, "Title:"));
+					}
+				})
+				.setNeutralButton("返回", new DialogInterface.OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -505,7 +569,16 @@ public class RssReader extends Activity implements OnTouchListener {
 		return super.onOptionsItemSelected(item);
 	}
 
-	
+	private void reRegisterBroadcaast_getData(){
+		if(!receiver_getData_status){
+			//向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
+	           mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
+	           Rreceiver_getData=new RssReader.GetBackStageData();
+	           registerReceiver(Rreceiver_getData,mFilter2);
+	           Log.i(tag, "registerReceiver IntentFilter 2 is: GET_NEW_ENTITY");
+	           receiver_getData_status=true;
+		}
+	}
 
 
 
@@ -522,15 +595,15 @@ public class RssReader extends Activity implements OnTouchListener {
 			   Log.i(tag, "get button_order: "+button_order);
 			   id = intent.getExtras().getInt("id");
 			   getData=(ArrayList<News>) intent.getSerializableExtra("getData");
-			   if(button_order==0){
-				   Toast.makeText(RssReader.this, "請稍等，共計"+String.valueOf(BackStage.cursor.getCount())+"筆資料需要下載...", Toast.LENGTH_SHORT).show();
-			   }
+//			   if(button_order==0){
+//				   Toast.makeText(RssReader.this, "請稍等，共計"+String.valueOf(BackStage.cursor.getCount())+"筆資料需要下載...", Toast.LENGTH_SHORT).show();
+//			   }
 			   
-			   
+			   first_button.setEnabled(true);//資料還沒撈出第1筆,先把[取消載入]的功能關閉
 			  
 			   liAll.put(button_order, getData);
 			  
-				//動態新增按鈕
+				//開始動態新增按鈕
 				button = new Button(context);
 //				Log.i(tag, "new button pass");
 		        button.setText(name);
@@ -796,8 +869,19 @@ public class RssReader extends Activity implements OnTouchListener {
 								   Log.i(tag, "Data load finish, stop (Service)BackStage");
 								   
 								   Toast.makeText(context, "資料下載完成...", Toast.LENGTH_SHORT).show();
-//								   createNewChannelButton();
-								   sendBroadForSwitchWidget(1);					  
+								   
+								   //當資料都下載完了,[取消載入]就變成[新增頻道]的功能
+								   first_button.setText("新增頻道");
+								   first_button.setOnClickListener(new View.OnClickListener() {
+									
+									@Override
+									public void onClick(View v) {
+										createNewChannelButton();
+									}
+								});
+								   
+								   setTitle("RssReader");
+								   sendBroadForSwitchWidget(open);					  
 							   }
 					        
 							   

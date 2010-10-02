@@ -21,7 +21,7 @@ public class Net extends Service{
 	
 	@Override
 	public void onCreate() {
-		if(!(Net.check3GConnectStatus(Net.this)|Net.checkInitWifiStatus(Net.this))){
+		if(!(Net.check3GConnectStatus(Net.this)|Net./*checkInitWifiStatus*/checkEnableingWifiStatus(Net.this))){
 			autoWifi(Net.this);
 		}
 	
@@ -53,12 +53,12 @@ public class Net extends Service{
 	 * @param context 顯示Toast的Context主體
      * @return if wifi connected retun true, else teturn false;
      */
-	public static boolean checkInitWifiStatus(Context context){
-		wm =(WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-		boolean wifistatus =wm.isWifiEnabled();
-		Log.i(tag, "WIFI status: "+wifistatus);
-		return wifistatus;
-	}
+//	public static boolean checkInitWifiStatus(Context context){
+//		wm =(WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+//		boolean wifistatus =wm.isWifiEnabled();
+//		Log.i(tag, "WIFI status: "+wifistatus);
+//		return wifistatus;
+//	}
 	
 	public static boolean checkEnableingWifiStatus(Context context){
 		wm =(WifiManager) context.getSystemService(Context.WIFI_SERVICE);
@@ -78,9 +78,9 @@ public class Net extends Service{
 	 */
 	public static void autoWifi(Context context){
 		Log.i(tag, "into autoWifi");
-		if(!checkInitWifiStatus(context)){
+		if(!/*checkInitWifiStatus*/checkEnableingWifiStatus(context)){
 
-			wm.setWifiEnabled(false);
+//			wm.setWifiEnabled(false);
 			wm.setWifiEnabled(true);
 			
 		}	

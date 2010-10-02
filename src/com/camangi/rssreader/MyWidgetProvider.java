@@ -99,7 +99,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		Log.i(tag, "Provider_OnUpdate");
 		super.onUpdate(context, appWidgetManager, appWidgetIds);
 		
-		if(!(Net.check3GConnectStatus(context)|Net.checkInitWifiStatus(context))){
+		if(!(Net.check3GConnectStatus(context)|Net./*checkInitWifiStatus*/checkEnableingWifiStatus(context))){
+			//如果沒有連線上網就啟動等待上網模式
 			BackStage.startAlarmManager(context, 3);
 			Log.i(tag, "BackStage.startAlarmManager(context, 3);");
 		}else{
@@ -142,7 +143,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		@Override
 		public void onStart(Intent intent, int startId) {
 			packageName=this.getPackageName();
-			if(!(Net.check3GConnectStatus(this)|Net.checkInitWifiStatus(this))){
+			if(!(Net.check3GConnectStatus(this)|Net./*checkInitWifiStatus*/checkEnableingWifiStatus(this))){
 				Log.i(tag, "Test.service if");
 				RemoteViews updateViews = new RemoteViews(packageName,R.layout.widget);
 				updateViews.setTextViewText(R.id.widgetContent, "點我連至預設WIFI");
@@ -185,12 +186,13 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		 */
 		@Override
 		public void onCreate() {
-
-			while(!Net.checkEnableingWifiStatus(this)){
-				while(!(Net.check3GConnectStatus(this)|Net.checkInitWifiStatus(this))){
-					BackStage.letThreadSleep();
-				}
+			//如果wifi和3g都沒有連線，就讓widget進入等待連線模式
+			while(!(Net.checkEnableingWifiStatus(this)|Net.check3GConnectStatus(this)|Net.checkEnableingWifiStatus(this))){
+//				while(!(Net.check3GConnectStatus(this)|Net.checkEnableingWifiStatus(this))){
+//					BackStage.letThreadSleep();
+//				}
 				BackStage.letThreadSleep();
+				Log.i(tag, "waiting for connect...");
 			}
 			
 			
