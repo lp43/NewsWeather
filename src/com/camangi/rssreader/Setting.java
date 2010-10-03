@@ -105,18 +105,10 @@ public class Setting extends Activity {
 	 		cursor = myDB.getTruePath();
 	 		if(cursor.getCount()==0){//讓設定的頻道至少留一筆是為了防止Widget的實體為空而出錯
 	 			Log.i(tag, "cursor.getcount() is: "+cursor.getCount());
-	 			new AlertDialog.Builder(this)
-				.setTitle("錯誤！")
-				.setMessage("請至少勾選一筆頻道再離開...")
-				.setIcon(R.drawable.warning01)
-				.setPositiveButton("重設", new DialogInterface.OnClickListener() {
-
-					@Override
-					public void onClick(DialogInterface dialog, int which) {}
-					})
-				
-				.show();
+	 			
 	 		
+	 		BackStage.remainOneChannel(Setting.this);//跳出至少要保留一筆頻道的視窗	
+	 			
 			cursor.close();
 			myDB.close();
 			buffer =true;//如果要讓程式在onKeyDown後的顯示視窗停留並等待指令，就必須讓onKeyDown回傳true

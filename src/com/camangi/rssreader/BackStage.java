@@ -46,7 +46,10 @@ import android.widget.Toast;
  * @author simon
  */
 public class BackStage extends Service{
-
+	/**
+	 * Widget的更新速度
+	 */
+	public static int updatespeed=1000;
 	/**記錄了RSS目前的最新更新編號*/
 	public static int updateVersion=1;
 	final static String tag ="tag";
@@ -80,14 +83,12 @@ public class BackStage extends Service{
 	public static final String GET_NEW_ENTITY="get_new_entity_from_backstage";
 	public static final String CHANGE_LIST_IMMEDIATE="changeListimmediate";
 	public static String DatabaseNumber="none";
+	/**BufferDatabaseNumber是每筆資料的id值轉成String的長串數字*/
 	static String BufferDatabaseNumber="";
 	public static HashMap<Integer,String> backstage_widget_namelist;
 
 	public static boolean widgetExist=false;
-	/**
-	 * Widget的更新速度
-	 */
-	public static int updatespeed=5000;
+
 	/**
 	 * ProgressDialog的暫存變數
 	 */
@@ -145,11 +146,7 @@ public class BackStage extends Service{
 					getData = convert(path);
 					liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
 
-					
-
-					
-					
-				
+			
 				rssreader_namelist.put(id,name);
 				backstage_widget_namelist.put(button_order,name);
 				
@@ -242,9 +239,8 @@ public class BackStage extends Service{
 		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
 		      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
 		      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",true);//Yahoo!奇摩股市
-		      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",true);//wretch;IO錯誤
-		      myDB.insert("Bloger", " http://lp43.blogspot.com/feeds/posts/default",true);//Bloger;不是通用解析格式
+		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
+		      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
 		      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
 		      
 		    myDB.close(); 
@@ -539,6 +535,24 @@ public class BackStage extends Service{
 		}
     }
 
+    /**
+     * 描述 : 當使用者將顯示頻道設為<0時,會跳出視窗告知使用者至少要保留一筆頻道,否則Widget可能會沒有資料,甚至出錯
+     * @param context 顯示出錯視窗的主體
+     */
+    public static void remainOneChannel(Context context){
+    	new AlertDialog.Builder(context)
+		.setTitle("錯誤！")
+		.setMessage("至少要有一筆頻道才行...")
+		.setIcon(R.drawable.warning01)
+		.setPositiveButton("重設", new DialogInterface.OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {}
+			})
+		
+		.show();
+    }
+    
     /**
      * 讓執行緒休眠1秒
      */
