@@ -48,7 +48,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0036";
+	private String softVersion="v1.0038";
 	/**
 	 * 因為Button已經是動態產生，所以只要宣告一個變數，
 	 * 之後各個按鈕的控制都靠Button.getId()去的值去決定
@@ -116,7 +116,11 @@ public class RssReader extends Activity implements OnTouchListener {
 	private static final int open=1;
 	private static final int close=0;
 	private static boolean receiver_getData_status=true;
+	public static String pathyouwanttoadd,nameyouwanttoadd="";
 
+	EditText newname;
+	EditText newpath;
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -195,7 +199,7 @@ public class RssReader extends Activity implements OnTouchListener {
 								           receiver_getData_status=false;//告知系統receiver_getData_status被關閉了
 								           Toast.makeText(RssReader.this, "取消載入...", Toast.LENGTH_SHORT).show();
 								           sendBroadForSwitchWidget(open);
-								           setTitle("[RssReader] 從"+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name+ " 開始, 沒有載入...");
+								           setTitle("從"+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name+ " 開始, 沒有載入...");
 //										   BackStage.button_order=BackStage.cursor.getCount()-1;
 								           
 								           //現在是[重新載入]:當使用者按下[取消載入]按鈕後,第1個按鈕馬上變成[重新載入]按鈕,讓使用者可以重載看看
@@ -233,7 +237,7 @@ public class RssReader extends Activity implements OnTouchListener {
 				       }
 					break;
 				case 2:
-					setTitle("[RssReader] 正在載入"+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name);
+					setTitle("正在載入"+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name);
 					break;
 				}
 				super.handleMessage(msg);
@@ -345,95 +349,160 @@ public class RssReader extends Activity implements OnTouchListener {
 
     
 	private void createNewChannelButton(){
-	
+
 		//生產一個新增頻道按鈕
 
-				 LayoutInflater factory = LayoutInflater.from(RssReader.this);
-		            final View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
-						new AlertDialog.Builder(RssReader.this)
-						.setTitle("新增頻道")
-						.setView(addchannel_layout)
+		 LayoutInflater factory = LayoutInflater.from(RssReader.this);
+         View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
+         
+          newname=(EditText) addchannel_layout.findViewById(R.id.new_channel_name);
+         newname.setText("I will auto-find later");
+         newname.setFocusable(false);
+          newpath=(EditText) addchannel_layout.findViewById(R.id.new_channel_path);
+         newpath.setFocusable(true);
+         newpath.setHint("將找到的Rss網址貼在這");
+         
+         
+				new AlertDialog.Builder(RssReader.this)
+				.setTitle("新增頻道")
+				.setView(addchannel_layout)
+			
+				.setPositiveButton("驗證", new DialogInterface.OnClickListener() {
+		
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+//					EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
+					String newchannelname=newname.getText().toString();
+//					EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
+					String newchannelpath=newpath.getText().toString();
+					pathyouwanttoadd=newchannelpath;
+					nameyouwanttoadd="";
 					
-						.setPositiveButton("確認", new DialogInterface.OnClickListener() {
+					
+						if(newchannelname.equals("") ||newchannelpath.equals("")){
+						new AlertDialog.Builder(RssReader.this)
+						.setTitle("錯誤！")
+						.setMessage("請輸入完整才能驗證...")
+						.setIcon(R.drawable.warning01)
+						.setPositiveButton("返回", new DialogInterface.OnClickListener() {
 				
 						@Override
-						public void onClick(DialogInterface dialog, int which) {
-				
-				
-							EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
-							String newchannelname=new_channel_name.getText().toString();
-							EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
-							String newchannelpath=new_channel_path.getText().toString();
-					
-							if(newchannelname.equals("") ||newchannelpath.equals("")){
-								new AlertDialog.Builder(RssReader.this)
-								.setTitle("錯誤！")
-								.setMessage("請輸入完整方可新增...")
-								.setIcon(R.drawable.warning01)
-								.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {}
+						})
+						.show();	
+						}
+						
+//						
+						if(BackStage.verifyPath(RssReader.this,pathyouwanttoadd)!=null){
+							
+
+								//當驗證完畢回剛剛的新增訊息視窗,此時的頻道名稱已從剛剛解析的過程中抓出來,現在也可以被編輯了
+								LayoutInflater factory = LayoutInflater.from(RssReader.this);
+					            View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
+					            EditText newname=(EditText) addchannel_layout.findViewById(R.id.new_channel_name);
+					            newname.setText(nameyouwanttoadd);
+					            newname.setFocusable(true);
+					            EditText newpath=(EditText) addchannel_layout.findViewById(R.id.new_channel_path);
+					            newpath.setText(pathyouwanttoadd);
+					            newpath.setFocusable(false);
+					            
+					            new AlertDialog.Builder(RssReader.this)
+								.setTitle("驗證成功!")
+								.setView(addchannel_layout)
+								.setMessage("請按[加入]繼續...")
+								.setPositiveButton("加入", new DialogInterface.OnClickListener() {
 						
 								@Override
-								public void onClick(DialogInterface dialog, int which) {}
-								})
-					
-								.show();
+								public void onClick(DialogInterface dialog, int which) {
+						
 				
-				
-						}else{
-							myDB=new DB(RssReader.this);
-							myDB.insert(newchannelname, newchannelpath, true);
 							
-							cursor=myDB.getTruePath();
-							cursor.moveToLast();
-							name=cursor.getString(cursor.getColumnIndex("_name"));
-							path=cursor.getString(cursor.getColumnIndex("_path"));
-							button = new Button(RssReader.this);
-							id = cursor.getInt(cursor.getColumnIndex("_id"));
+									if(nameyouwanttoadd.equals("") ||pathyouwanttoadd.equals("")){
+										new AlertDialog.Builder(RssReader.this)
+										.setTitle("錯誤！")
+										.setMessage("請輸入完整方可新增...")
+										.setIcon(R.drawable.warning01)
+										.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+								
+										@Override
+										public void onClick(DialogInterface dialog, int which) {}
+										})
 							
-							ArrayList<News> buffer=BackStage.convert(path);
-							BackStage.liAll.put(BackStage.button_order, buffer);
-							BackStage.rssreader_namelist.put(id,name);
-							BackStage.backstage_widget_namelist.put(BackStage.button_order,name);
-							
-					        button.setText(name);
-					        button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
-					        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
-					        Log.i(tag, "move to last id: "+id);
-					        Log.i(tag, "setting tag is: "+BackStage.button_order);
-					        
+										.show();
+									}
+									
+									myDB=new DB(RssReader.this);
+									myDB.insert(nameyouwanttoadd, pathyouwanttoadd, true);
+									
+									cursor=myDB.getTruePath();
+									cursor.moveToLast();
+									name=cursor.getString(cursor.getColumnIndex("_name"));
+									path=cursor.getString(cursor.getColumnIndex("_path"));
+									button = new Button(RssReader.this);
+									id = cursor.getInt(cursor.getColumnIndex("_id"));
+//									
+									ArrayList<News> buffer=BackStage.convert(path);
+									BackStage.liAll.put(BackStage.button_order, buffer);
 
-					        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
-//					        Log.i(tag, "setlinearlayout pass");
-					        up_layout.addView(button,param);
-					        
-					        button.setTag(BackStage.button_order);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
-					        buttonClickListener(button,RssReader.this);
-					        buttonLongClickListener(button,RssReader.this);
-					        
-					        
-					        //動態新增ListView
-						    ListView newlv = new ListView(RssReader.this);
-						    LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(screen_width,LinearLayout.LayoutParams.FILL_PARENT);
-						    down_layout.addView(newlv,param2);
-						    
-						    newlv.setTag(BackStage.button_order);
-					        newlv.setAdapter(new NewsAdapter(RssReader.this,buffer));
-					        ListViewListener(newlv,RssReader.this);
-					        
-					        BackStage.DatabaseNumber+=id;//後台的資料庫版本要順便更新,免得新增頻道後看新聞又返回一直重載入
-					        BackStage.button_order++;
-						}
+									BackStage.rssreader_namelist.put(id,name);
+									BackStage.backstage_widget_namelist.put(BackStage.button_order,name);
+									
+							        button.setText(name);
+							        button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
+							        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
+							        Log.i(tag, "move to last id: "+id);
+							        Log.i(tag, "setting tag is: "+BackStage.button_order);
+							        
+
+							        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
+//							        Log.i(tag, "setlinearlayout pass");
+							        up_layout.addView(button,param);
+							        
+							        button.setTag(BackStage.button_order);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
+							        buttonClickListener(button,RssReader.this);
+							        buttonLongClickListener(button,RssReader.this);
+							        
+							        
+							        //動態新增ListView
+								    ListView newlv = new ListView(RssReader.this);
+								    LinearLayout.LayoutParams param2 =new LinearLayout.LayoutParams(screen_width,LinearLayout.LayoutParams.FILL_PARENT);
+								    down_layout.addView(newlv,param2);
+								    
+								    newlv.setTag(BackStage.button_order);
+							        newlv.setAdapter(new NewsAdapter(RssReader.this,buffer));
+							        ListViewListener(newlv,RssReader.this);
+							        
+							        BackStage.DatabaseNumber+=id;//後台的資料庫版本要順便更新,免得新增頻道後看新聞又返回一直重載入
+							        BackStage.button_order++;
+									
+							        //將2筆剛剛暫存的新增頻道和名稱的變數清空
+							        nameyouwanttoadd="";
+							        pathyouwanttoadd="";
+							       BackStage.bufferlist=null;
+							        
+								}
+								})
+								.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+									
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+									}
+									})
+								.show(); 
+					            
+					            
+						}     
+            
+					}	
+				})
 				
-						}
-						})
-				
-						.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-				
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-						}
-						})
-						.show(); 		
+				.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+		
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+				}
+				})
+				.show(); 	
 
 	}
 
@@ -460,7 +529,9 @@ public class RssReader extends Activity implements OnTouchListener {
 	private void buttonLongClickListener(Button button, final Context context){
 		button.setOnLongClickListener(new View.OnLongClickListener() {
             public boolean onLongClick(final View v) {
-           	 
+            	if(BackStage.button_order<BackStage.cursor.getCount()-1){
+            		BackStage.loadingCantUseDataDialog(RssReader.this);
+            	}else{
         		myDB=new DB(context);
         		
        		new AlertDialog.Builder(context)
@@ -608,7 +679,7 @@ public class RssReader extends Activity implements OnTouchListener {
        					}})
        		.show();
        		
-
+            	}
        		return false;
             }					        
        });

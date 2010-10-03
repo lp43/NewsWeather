@@ -50,8 +50,6 @@ public class BackStage extends Service{
 	 * Widget的更新速度
 	 */
 	public static int updatespeed=1000;
-	/**記錄了RSS目前的最新更新編號*/
-	public static int updateVersion=1;
 	final static String tag ="tag";
 	/**判斷xml文件編碼並儲存在Encode*/
 	static String Encode; 
@@ -93,8 +91,7 @@ public class BackStage extends Service{
 	 * ProgressDialog的暫存變數
 	 */
 	static ProgressDialog pd;
-	private static ArrayList<News> bufferlist,wronglist;
-	
+	public static ArrayList<News> bufferlist,wronglist;
 	
 	//===========================================================================================
 	
@@ -303,15 +300,15 @@ public class BackStage extends Service{
 		} catch (MalformedURLException e) {
 			Log.i(tag, "MalformedURLException: "+e.getMessage());
 			appearExceptionMessage("MalformedURLException",e);
-			Log.i(path, "create wronglist finish");
+//			Log.i(path, "create wronglist finish");
 		}catch (IOException e) {
 			Log.i(tag, "IOException: "+e.getMessage());
 			appearExceptionMessage("IOException",e);
-			Log.i(path, "create wronglist finish");
+//			Log.i(path, "create wronglist finish");
 		}catch(Exception e){
 			Log.i("tag", "Exception: "+e.getMessage());
 			appearExceptionMessage("Exception",e);
-			Log.i(path, "create wronglist finish");
+//			Log.i(path, "create wronglist finish");
 		}
 		
 		return getRss(path);
@@ -450,6 +447,8 @@ public class BackStage extends Service{
 				}
 			}
 		bufferlist = new ArrayList<News>();
+		bufferlist.clear();//看看有沒有改善重覆實體的問題
+		
 		Log.i(tag,"BackStage.getRss() parse To GetData finish");
 		bufferlist=(ArrayList<News>) myHandler.getParasedData();
 		if(myHandler.getParasedData()==null){//如果沒有資料，代表解析錯誤，傳回解析錯誤
@@ -595,6 +594,57 @@ public class BackStage extends Service{
 		wronglist.add(news);
 		Encode="UTF-8";
 		Log.i(path, "create wronglist finish");
+	}
+	
+	public static ArrayList<News> verifyPath(Context context,String path){
+		ArrayList<News> buffer = new ArrayList<News>();
+		
+		
+		try {
+			checkEncode(path);
+			encodeTransfer(path);
+			buffer=getRss(path);
+		} catch (MalformedURLException e) {
+			Log.i(tag, "MalformedURLException: "+e.getMessage());
+			verifyErrorDialog(context,"MalformedURLException",e);
+			buffer=null;//如果解析出現Exception,將回傳值傳回null
+		}catch (UnsupportedEncodingException e) {
+			Log.i("tag", "UnsupportedEncodingException: "+e.getMessage());
+			verifyErrorDialog(context,"UnsupportedEncodingException",e);
+			buffer=null;//如果解析出現Exception,將回傳值傳回null
+		}catch (FileNotFoundException e) {
+			Log.i("tag", "FileNotFoundException: "+e.getMessage());
+			verifyErrorDialog(context,"FileNotFoundException",e);
+			buffer=null;//如果解析出現Exception,將回傳值傳回null
+		} catch (IOException e) {
+			Log.i(tag, "IOException: "+e.getMessage());
+			verifyErrorDialog(context,"IOException",e);
+			buffer=null;//如果解析出現Exception,將回傳值傳回null
+		}catch(Exception e){
+			Log.i("tag", "Exception: "+e.getMessage());
+			verifyErrorDialog(context,"Exception",e);
+			buffer=null;//如果解析出現Exception,將回傳值傳回null
+		}
+		
+		return buffer;
+	}
+	
+	/**
+	 * 描述 : 當驗證網址遇到Exception時會出現的Dialog視窗
+	 * @param context 顯示錯誤訊息視窗的主體
+	 */
+	public static void verifyErrorDialog(Context context,String errormessage,Exception e){
+		new AlertDialog.Builder(context)
+		.setTitle("錯誤！")
+		.setMessage("無法解析此筆頻道!\n錯誤原因: "+errormessage+", "+e.getMessage())
+		.setIcon(R.drawable.warning01)
+		.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+
+		@Override
+		public void onClick(DialogInterface dialog, int which) {}
+		})
+
+		.show();
 	}
 	
 	
