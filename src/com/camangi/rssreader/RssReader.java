@@ -399,7 +399,7 @@ public class RssReader extends Activity implements OnTouchListener {
 								//當驗證完畢回剛剛的新增訊息視窗,此時的頻道名稱已從剛剛解析的過程中抓出來,現在也可以被編輯了
 								LayoutInflater factory = LayoutInflater.from(RssReader.this);
 					            View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
-					            EditText newname=(EditText) addchannel_layout.findViewById(R.id.new_channel_name);
+					            final EditText newname=(EditText) addchannel_layout.findViewById(R.id.new_channel_name);
 					            newname.setText(nameyouwanttoadd);
 					            newname.setFocusable(true);
 					            EditText newpath=(EditText) addchannel_layout.findViewById(R.id.new_channel_path);
@@ -415,7 +415,8 @@ public class RssReader extends Activity implements OnTouchListener {
 								@Override
 								public void onClick(DialogInterface dialog, int which) {
 						
-				
+									 
+									
 							
 									if(nameyouwanttoadd.equals("") ||pathyouwanttoadd.equals("")){
 										new AlertDialog.Builder(RssReader.this)
@@ -432,7 +433,7 @@ public class RssReader extends Activity implements OnTouchListener {
 									}
 									
 									myDB=new DB(RssReader.this);
-									myDB.insert(nameyouwanttoadd, pathyouwanttoadd, true);
+									myDB.insert(newname.getText().toString(), pathyouwanttoadd, true);
 									
 									cursor=myDB.getTruePath();
 									cursor.moveToLast();

@@ -4,4 +4,6 @@
     <string name="please_wait">請稍待片刻</string>
     <string name="data_loading">資料載入中...</string>
 	<string name="wifi_connecting">資料重整中</string>
+<string name="back">返回</string>
+<string name="verifying">驗證中...</string>
 </resources>
