@@ -12,3 +12,8 @@ v1.0037
 
 v1.0038
 1.新增網址前事先驗證機制
+
+10/4
+1.更改Widget圖示
+2.中文字參數化
+從R檔轉String: Transfer.transfer(RssReader.this, Transfer.back)

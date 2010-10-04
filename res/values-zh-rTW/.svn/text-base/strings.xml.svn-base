@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<!-- appname -->
+<string name="app_name">工作管理</string>
+
+<!-- menu -->
+<string name="title_menu_about">關於</string>
+<string name="title_menu_close">關閉</string>
+
+<!-- Dialog -->
+<string name="title_endall">關閉所有程式</string>
+<string name="msg_endall">你確定要關閉全部程式？</string>
+<string name="title_dialog_about">關於工作管理</string>
+<string name="msg_aboutus_content">工作管理 v1.1\n作者 Camangi Corporation\n\n版權所有 2010 </string>
+<string name="title_close">關閉</string>
+<string name="msg_close">你確定要關閉此程式？</string>
+
+<!-- btn -->
+<string name="ok">確認</string>
+<string name="cancel">取消</string>
+
+
+<!-- after close show msg -->
+<string name="single_close_msg">  已經關閉</string>
+
+<!-- Error msg -->
+<string name="msg_error">不小心發生錯誤</string>
+
+<!-- show info -->
+<string name="info_availablememory">剩餘記憶體</string>
+
+<!-- hours下拉選單 -->
+<string-array name="hours">
+<item>0</item>
+<item>1</item>
+<item>2</item>
+<item>3</item>
+<item>4</item>
+<item>5</item>
+<item>6</item>
+<item>7</item>
+<item>8</item>
+<item>9</item>
+<item>10</item>
+<item>11</item>
+<item>13</item>
+<item>14</item>
+<item>15</item>
+<item>16</item>
+<item>17</item>
+<item>18</item>
+<item>19</item>
+<item>20</item>
+<item>21</item>
+<item>22</item>
+<item>23</item>
+<item>24</item>
+</string-array>
+<!-- minutes下拉選單 -->
+<string-array name="minutes">
+<item>0</item>
+<item>1</item>
+<item>10</item>
+<item>15</item>
+<item>30</item>
+<item>45</item>
+</string-array>
+
+<!-- Settings -->
+<string name="detected_service_timespan">記憶體警告</string>
+<string name="title_hours">時</string>
+<string name="title_minutes">分</string>
+<string name="Switch_On">開啟</string>
+<string name="Switch_Off">關閉</string>
+<string name="service_info">設定系統於一段時間後會自動偵測記憶體，並通知使用者。</string>
+<string name="Service_Start">服務已啟動</string>
+<string name="Service_Stop">服務已關閉</string>
+<string name="btn_complete">完成</string>
+<string name="info_selecttime">請選擇時間</string>
+
+<!-- Service -->
+<string name="info_memory">記憶體: </string>
+<string name="notify_lowmemory">記憶體不足，請使用工作管理</string>
+
+<!-- widget -->
+<string name="info_endall">已清除所有工作</string>
+
+
+
+</resources>

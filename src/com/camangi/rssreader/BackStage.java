@@ -540,10 +540,10 @@ public class BackStage extends Service{
      */
     public static void remainOneChannel(Context context){
     	new AlertDialog.Builder(context)
-		.setTitle("錯誤！")
-		.setMessage("至少要有一筆頻道才行...")
+		.setTitle(Transfer.transfer(context, Transfer.error))
+		.setMessage(Transfer.transfer(context, Transfer.least_one_channel))
 		.setIcon(R.drawable.warning01)
-		.setPositiveButton("重設", new DialogInterface.OnClickListener() {
+		.setPositiveButton(Transfer.transfer(context, Transfer.reset), new DialogInterface.OnClickListener() {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {}
@@ -571,10 +571,10 @@ public class BackStage extends Service{
 	public static void loadingCantUseDataDialog(Context context){
 		
 			new AlertDialog.Builder(context)
-			.setTitle("錯誤！")
-			.setMessage("資料載入完畢尚可執行動作...")
+			.setTitle(Transfer.transfer(context, Transfer.error))
+			.setMessage(Transfer.transfer(context, Transfer.loading_completely_to_action))
 			.setIcon(R.drawable.warning01)
-			.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+			.setPositiveButton(Transfer.transfer(context, Transfer.back), new DialogInterface.OnClickListener() {
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {}
@@ -587,8 +587,8 @@ public class BackStage extends Service{
 	private static void appearExceptionMessage(String ExceptionName,Exception e){
 		Log.i("tag", "Exception: "+e.getMessage());
 		News news = new News();
-		news.setDate("錯誤原因︰ "+ ExceptionName +", 訊息: "+e.getMessage());
-		news.setTitle("解析錯誤！");
+		news.setDate(R.string.error_reason+" "+ ExceptionName +", \n"+e.getMessage());
+		news.setTitle("parse_error");
 		news.setLink("http://");
 		wronglist=new ArrayList<News>();
 		wronglist.add(news);
@@ -634,11 +634,13 @@ public class BackStage extends Service{
 	 * @param context 顯示錯誤訊息視窗的主體
 	 */
 	public static void verifyErrorDialog(Context context,String errormessage,Exception e){
+		Log.i(tag, "inito VerifyErrorDialog");
 		new AlertDialog.Builder(context)
-		.setTitle("錯誤！")
-		.setMessage("無法解析此筆頻道!\n錯誤原因: "+errormessage+", "+e.getMessage())
+		
+		.setTitle(Transfer.transfer(context, Transfer.error))
+		.setMessage(Transfer.transfer(context, Transfer.cant_parse)+"\n"+Transfer.transfer(context, Transfer.error_reason)+" "+errormessage+", "+e.getMessage())
 		.setIcon(R.drawable.warning01)
-		.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+		.setPositiveButton(Transfer.transfer(context, Transfer.back), new DialogInterface.OnClickListener() {
 
 		@Override
 		public void onClick(DialogInterface dialog, int which) {}

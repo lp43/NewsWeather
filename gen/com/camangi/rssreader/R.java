@@ -17,18 +17,26 @@ public final class R {
     }
     public static final class drawable {
         public static final int about=0x7f020000;
-        public static final int alert_dialog_icon=0x7f020001;
-        public static final int fram=0x7f020002;
-        public static final int fram_press=0x7f020003;
-        public static final int gallery_photo_1=0x7f020004;
-        public static final int gallery_photo_2=0x7f020005;
-        public static final int gallery_photo_3=0x7f020006;
-        public static final int gallery_photo_4=0x7f020007;
-        public static final int icon=0x7f020008;
-        public static final int pic=0x7f020009;
-        public static final int q01=0x7f02000a;
-        public static final int setting=0x7f02000b;
-        public static final int warning01=0x7f02000c;
+        public static final int add=0x7f020001;
+        public static final int alert_dialog_icon=0x7f020002;
+        public static final int button=0x7f020003;
+        public static final int button_press=0x7f020004;
+        public static final int fram=0x7f020005;
+        public static final int fram_connect=0x7f020006;
+        public static final int fram_press=0x7f020007;
+        public static final int gallery_photo_1=0x7f020008;
+        public static final int gallery_photo_2=0x7f020009;
+        public static final int gallery_photo_3=0x7f02000a;
+        public static final int gallery_photo_4=0x7f02000b;
+        public static final int icon=0x7f02000c;
+        public static final int pic=0x7f02000d;
+        public static final int q01=0x7f02000e;
+        public static final int quill=0x7f02000f;
+        public static final int refresh=0x7f020010;
+        public static final int setting=0x7f020011;
+        public static final int verify=0x7f020012;
+        public static final int warning01=0x7f020013;
+        public static final int zoom=0x7f020014;
     }
     public static final class id {
         public static final int cancel_verify=0x7f07000e;
@@ -60,12 +68,59 @@ public final class R {
         public static final int widget=0x7f030006;
     }
     public static final class string {
+        public static final int about=0x7f060021;
+        public static final int add=0x7f06000b;
+        public static final int add_channel=0x7f060001;
+        public static final int add_when_completely=0x7f060006;
         public static final int app_name=0x7f060000;
-        public static final int back=0x7f060004;
-        public static final int data_loading=0x7f060002;
-        public static final int please_wait=0x7f060001;
-        public static final int verifying=0x7f060005;
-        public static final int wifi_connecting=0x7f060003;
+        public static final int are_you_sure_delete=0x7f060018;
+        public static final int attention=0x7f06002a;
+        public static final int author=0x7f060022;
+        public static final int back=0x7f060029;
+        public static final int back_to_set=0x7f060034;
+        public static final int cancel=0x7f060026;
+        public static final int cancel_loading=0x7f06001f;
+        public static final int cant_detect_internet=0x7f060031;
+        public static final int cant_parse=0x7f06000c;
+        public static final int channel_list=0x7f06001a;
+        public static final int click_Add_continue=0x7f06000a;
+        public static final int click_to_wifi=0x7f060030;
+        public static final int connect_to_default_WIFI=0x7f060033;
+        public static final int contact_author=0x7f060020;
+        public static final int copyright=0x7f060023;
+        public static final int data_refresh=0x7f06002f;
+        public static final int delete=0x7f060017;
+        public static final int enter_completely_to_rename=0x7f060015;
+        public static final int enter_completely_to_verify=0x7f06000d;
+        public static final int enter_new_name=0x7f060014;
+        public static final int error=0x7f060027;
+        public static final int error_reason=0x7f06000e;
+        public static final int for_channel=0x7f06000f;
+        public static final int from_num_no_load=0x7f060019;
+        public static final int hide=0x7f060011;
+        public static final int i_will_auto_find=0x7f060004;
+        public static final int internet_connecting=0x7f06002c;
+        public static final int least_one_channel=0x7f06001b;
+        public static final int loading=0x7f06001d;
+        public static final int loading_completed=0x7f06001c;
+        public static final int loading_completely_to_action=0x7f060016;
+        public static final int no_internet_what_do_you_want=0x7f060032;
+        public static final int ok=0x7f060028;
+        public static final int parse_error=0x7f06002e;
+        public static final int path_parse_here=0x7f060005;
+        public static final int please_enter_the_URL=0x7f060003;
+        public static final int please_enter_the_title=0x7f060002;
+        public static final int please_wait=0x7f060025;
+        public static final int reloading=0x7f06001e;
+        public static final int rename=0x7f060012;
+        public static final int rename_for=0x7f060013;
+        public static final int report_problem=0x7f060024;
+        public static final int reset=0x7f06002b;
+        public static final int verification=0x7f060007;
+        public static final int verification_established=0x7f060009;
+        public static final int verifying=0x7f060008;
+        public static final int what_do_you_want=0x7f060010;
+        public static final int wifi_connecting=0x7f06002d;
     }
     public static final class xml {
         public static final int widget_template=0x7f040000;

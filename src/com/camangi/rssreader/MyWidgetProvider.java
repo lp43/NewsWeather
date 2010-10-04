@@ -146,8 +146,8 @@ public class MyWidgetProvider extends AppWidgetProvider {
 			if(!(Net.check3GConnectStatus(this)|Net./*checkInitWifiStatus*/checkEnableingWifiStatus(this))){
 				Log.i(tag, "Test.service if");
 				RemoteViews updateViews = new RemoteViews(packageName,R.layout.widget);
-				updateViews.setTextViewText(R.id.widgetContent, "點我連至預設WIFI");
-				updateViews.setTextViewText(R.id.widgetSource, "沒有偵測到網路...");
+				updateViews.setTextViewText(R.id.widgetContent, Transfer.transfer(this, Transfer.click_to_wifi));
+				updateViews.setTextViewText(R.id.widgetSource, Transfer.transfer(this, Transfer.cant_detect_internet));
 
 				Log.i(tag, "updateViews.set finish");
 				//按Widget後會發生的事
