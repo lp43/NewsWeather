@@ -24,6 +24,7 @@ public class MyHandler extends DefaultHandler {
 	final int in_author=11;
 	final int in_img=12;
 	final int in_url=13;
+	final int big_title=14;
 	private ArrayList<News> li;
 	private News news;
 	int currentcase = 0;
@@ -56,6 +57,10 @@ public class MyHandler extends DefaultHandler {
 			news= new News();
 			return;
 		}else if(localName.equals("title")){
+			if(RssReader.nameyouwanttoadd.equals("")){
+				currentcase=big_title;
+			}
+			
 			if(itemswitch)currentcase=in_title;
 			return;
 		}else if(localName.equals("link")){
@@ -138,6 +143,13 @@ public class MyHandler extends DefaultHandler {
 			case in_url:
 				currentcase=0;
 				break;
+			case big_title:
+				if(RssReader.nameyouwanttoadd.equals("")){
+					RssReader.nameyouwanttoadd=bufString;
+				}
+				
+				currentcase=0;
+				break;
 			default:return;
 			}
 	}
@@ -146,7 +158,9 @@ public class MyHandler extends DefaultHandler {
 	@Override//結析到Element結尾時用的method
 	public void endElement(String uri, String localName, String qName)
 			throws SAXException {
-		if(localName.equals("item")){
+		if(localName.equals("title")){
+			
+		}else if(localName.equals("item")){
 				li.add(news);
 		}
 //		Log.i(tag,"endElement");

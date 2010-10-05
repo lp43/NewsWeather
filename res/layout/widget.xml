@@ -5,17 +5,9 @@
   android:orientation="vertical" 
   android:layout_width="294dip" 
   android:layout_height="72dip" 
-  android:id="@+id/widget_layout"
-  
->
-  <ImageView 
-    android:id="@+id/myImageView1" 
-    android:layout_width="wrap_content" 
-    android:layout_height="wrap_content" 
-    android:layout_gravity="center"
-    android:layout_marginRight="5dip"
-    android:layout_marginTop="6dip"
-   /> 
+  android:id="@+id/widget_layout">
+
+   
   <TextView 
     android:id="@+id/widgetContent" 
     android:layout_width="fill_parent"  
@@ -26,8 +18,9 @@
     android:layout_marginLeft="20dip"
 	android:textSize="20dp"
     android:textColor="@color/blue"
-    android:text="@string/no_internet"
+    android:text="@string/please_wait"
   />
+  
     <TextView 
     android:id="@+id/widgetSource" 
     android:layout_width="fill_parent"  
@@ -36,6 +29,6 @@
     android:layout_marginLeft="14dip"
 	android:textSize="12dp"
     android:textColor="@color/black"
-    android:text="@string/no_internet2"
+    android:text="@string/wifi_connecting"
   />
 </RelativeLayout>

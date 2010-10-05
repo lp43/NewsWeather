@@ -35,7 +35,6 @@ public final class R {
         public static final int down_layout=0x7f070009;
         public static final int edit_rename=0x7f070003;
         public static final int hsv=0x7f070008;
-        public static final int myImageView1=0x7f07000c;
         public static final int new_channel_name=0x7f070001;
         public static final int new_channel_path=0x7f070002;
         public static final int news_date=0x7f070005;
@@ -43,8 +42,8 @@ public final class R {
         public static final int news_title=0x7f070004;
         public static final int setView=0x7f07000a;
         public static final int up_layout=0x7f070007;
-        public static final int widgetContent=0x7f07000d;
-        public static final int widgetSource=0x7f07000e;
+        public static final int widgetContent=0x7f07000c;
+        public static final int widgetSource=0x7f07000d;
         public static final int widget_layout=0x7f07000b;
     }
     public static final class layout {
@@ -57,10 +56,9 @@ public final class R {
     }
     public static final class string {
         public static final int app_name=0x7f060000;
-        public static final int no_internet=0x7f060003;
-        public static final int no_internet2=0x7f060004;
-        public static final int str_dialog_body=0x7f060002;
-        public static final int str_dialog_title=0x7f060001;
+        public static final int data_loading=0x7f060002;
+        public static final int please_wait=0x7f060001;
+        public static final int wifi_connecting=0x7f060003;
     }
     public static final class xml {
         public static final int widget_template=0x7f040000;

@@ -1,0 +1,14 @@
+﻿10/2
+1.將3G和WIFI的判斷模式(RssReader和widget)更改,
+因模擬器無法模擬wifi,故需要在實機再測一次是否可行
+2.將NET.checkInitWifiStatus()反註解掉,並將程式多行用到此method的語法改成checkEnableingWifiStatus()
+需檢驗是否可行
+
+10/3
+v1.0037
+1.讓主UI在隱藏頻道時,至少要保留一筆頻道
+2.使用者新增頻道時不用重新載入了
+3.重新命名的EditText空格會取出原頻道名
+
+v1.0038
+1.新增網址前事先驗證機制

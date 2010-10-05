@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.SparseBooleanArray;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,10 +33,9 @@ import android.widget.Toast;
 
 public class Setting extends Activity {
 
+
+	final static String tag ="tag";
 	private DB myDB;
-
-
-
 	private Cursor cursor;
 	private ListView lv;
 	public CheckBox myCheckBox;
@@ -91,6 +91,39 @@ public class Setting extends Activity {
 			
 			
 		});
+
+		
+	}
+	
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		boolean buffer =false;
+		Log.i(tag, "Setting.onKeyDown()");
+		if(keyCode == KeyEvent.KEYCODE_BACK){
+			myDB = new DB(this);		
+	 		cursor = myDB.getTruePath();
+	 		if(cursor.getCount()==0){//讓設定的頻道至少留一筆是為了防止Widget的實體為空而出錯
+	 			Log.i(tag, "cursor.getcount() is: "+cursor.getCount());
+	 			
+	 		
+	 		BackStage.remainOneChannel(Setting.this);//跳出至少要保留一筆頻道的視窗	
+	 			
+			cursor.close();
+			myDB.close();
+			buffer =true;//如果要讓程式在onKeyDown後的顯示視窗停留並等待指令，就必須讓onKeyDown回傳true
+			
+	 		}else{
+	 			Intent intent = new Intent();
+				intent.setClass(Setting.this, RssReader.class);
+				startActivity(intent);
+				buffer= super.onKeyDown(keyCode, event);
+	 		}
+			
+			
+		}
+		return buffer;
+		
 		
 	}
 	
