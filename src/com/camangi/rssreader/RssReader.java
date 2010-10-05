@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 import com.camangi.rssreader.MyWidgetProvider.mReceiver;
 import android.app.Activity;
@@ -197,9 +199,9 @@ public class RssReader extends Activity implements OnTouchListener {
 								           RssReader.this.stopService(intent);
 								           unregisterReceiver(Rreceiver_getData);
 								           receiver_getData_status=false;//告知系統receiver_getData_status被關閉了
-								           Toast.makeText(RssReader.this, R.string.cancel_loading+"...", Toast.LENGTH_SHORT).show();
+								           Toast.makeText(RssReader.this, getString(R.string.cancel_loading)+"...", Toast.LENGTH_SHORT).show();
 								           sendBroadForSwitchWidget(open);
-								           setTitle((BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name+ R.string.from_num_no_load);
+								           setTitle((getString(R.string.from_num_no_load).replace("#title",(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+" "+BackStage.name)));
 //										   BackStage.button_order=BackStage.cursor.getCount()-1;
 								           
 								           //現在是[重新載入]:當使用者按下[取消載入]按鈕後,第1個按鈕馬上變成[重新載入]按鈕,讓使用者可以重載看看
@@ -236,8 +238,8 @@ public class RssReader extends Activity implements OnTouchListener {
 				    	   Log.i(tag, "checkDatabaseNumber is:"+buffer+", BackStage.DatabaseNumber is: "+BackStage.DatabaseNumber+", doing nothing..");
 				       }
 					break;
-				case 2:
-					setTitle(Transfer.transfer(RssReader.this, Transfer.loading)+" "+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name);
+				case 2:					
+					setTitle(getString(R.string.loading)+" "+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name);
 					break;
 				}
 				super.handleMessage(msg);
@@ -277,13 +279,13 @@ public class RssReader extends Activity implements OnTouchListener {
 
 		if(!(Net.check3GConnectStatus(RssReader.this)|Net.checkEnableingWifiStatus(RssReader.this))){
 			Log.i(tag, "into if");
-			String connect_to_default = (String) this.getResources().getText(R.string.connect_to_default_WIFI);
-			String back_to_set = (String) this.getResources().getText(R.string.back_to_set);
+//			String connect_to_default = (String) this.getResources().getText(R.string.connect_to_default_WIFI);
+//			String back_to_set = (String) this.getResources().getText(R.string.back_to_set);
 			new AlertDialog.Builder(RssReader.this)
     		
     		.setTitle(R.string.no_internet_what_do_you_want)
     		.setIcon(R.drawable.q01)
-    		.setItems(new String[]{connect_to_default,back_to_set}, new DialogInterface.OnClickListener(){
+    		.setItems(new String[]{getString(R.string.connect_to_default_WIFI),getString(R.string.back_to_set)}, new DialogInterface.OnClickListener(){
     			
     			@Override
     			public void onClick(DialogInterface dialog, int which) {
@@ -309,7 +311,7 @@ public class RssReader extends Activity implements OnTouchListener {
 
     		.show();
          }
-		setTitle("RssReader");
+		setTitle(getString(R.string.app_name));
 		BackStage.startWork(this);
 	}
 	
@@ -357,32 +359,27 @@ public class RssReader extends Activity implements OnTouchListener {
 
 		 LayoutInflater factory = LayoutInflater.from(RssReader.this);
          View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
-         
-          newname=(EditText) addchannel_layout.findViewById(R.id.new_channel_name);
-         newname.setText(R.string.i_will_auto_find);
-         newname.setFocusable(false);
+
           newpath=(EditText) addchannel_layout.findViewById(R.id.new_channel_path);
-         newpath.setFocusable(true);
-         newpath.setHint(R.string.path_parse_here);
+          newpath.setFocusable(true);
+          newpath.setHint(R.string.path_parse_here);
          
          
 				new AlertDialog.Builder(RssReader.this)
 				.setTitle(R.string.add_channel)
 				.setView(addchannel_layout)
 				.setIcon(R.drawable.add)
-				.setPositiveButton(R.string.verification, new DialogInterface.OnClickListener() {
+				.setPositiveButton(R.string.verify, new DialogInterface.OnClickListener() {
 		
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-//					EditText new_channel_name = (EditText) addchannel_layout.findViewById(R.id.new_channel_name);
-					String newchannelname=newname.getText().toString();
-//					EditText new_channel_path = (EditText) addchannel_layout.findViewById(R.id.new_channel_path);
+
 					String newchannelpath=newpath.getText().toString();
 					pathyouwanttoadd=newchannelpath;
 					nameyouwanttoadd="";
 					
 					
-						if(newchannelname.equals("") ||newchannelpath.equals("")){
+						if(newchannelpath.equals("")){
 						new AlertDialog.Builder(RssReader.this)
 						.setTitle(R.string.error)
 						.setMessage(R.string.enter_completely_to_verify)
@@ -401,7 +398,7 @@ public class RssReader extends Activity implements OnTouchListener {
 
 								//當驗證完畢回剛剛的新增訊息視窗,此時的頻道名稱已從剛剛解析的過程中抓出來,現在也可以被編輯了
 								LayoutInflater factory = LayoutInflater.from(RssReader.this);
-					            View addchannel_layout = factory.inflate(R.layout.alert_dialog_newchannel, null);
+					            View addchannel_layout = factory.inflate(R.layout.alert_dialog_verified, null);
 					            final EditText newname=(EditText) addchannel_layout.findViewById(R.id.new_channel_name);
 					            newname.setText(nameyouwanttoadd);
 					            newname.setFocusable(true);
@@ -422,7 +419,7 @@ public class RssReader extends Activity implements OnTouchListener {
 									 
 									
 							
-									if(nameyouwanttoadd.equals("") ||pathyouwanttoadd.equals("")){
+									if(newname.equals("") ||pathyouwanttoadd.equals("")){
 										new AlertDialog.Builder(RssReader.this)
 										.setTitle(R.string.error)
 										.setMessage(R.string.add_when_completely)
@@ -540,12 +537,12 @@ public class RssReader extends Activity implements OnTouchListener {
             	}else{
         		myDB=new DB(context);
 
-        		
+//        		String buffer=getString(R.string.what_do_you_want);
+//        		String channel=buffer.replace("#title", "123");
        		new AlertDialog.Builder(context)
-       		
-       		.setTitle(Transfer.transfer(RssReader.this,Transfer.for_channel)+" "+BackStage.rssreader_namelist.get(v.getId())+" "+Transfer.transfer(RssReader.this,Transfer.what_do_you_want))
+       		.setTitle(getString(R.string.what_do_you_want).replace("#title",BackStage.rssreader_namelist.get(v.getId())))
        		.setIcon(R.drawable.q01)
-       		.setItems(new String[]{Transfer.transfer(RssReader.this,Transfer.hide),Transfer.transfer(RssReader.this,Transfer.rename),Transfer.transfer(RssReader.this,Transfer.delete)}, new DialogInterface.OnClickListener(){
+       		.setItems(new String[]{getString(R.string.hide),getString(R.string.rename),getString(R.string.delete)}, new DialogInterface.OnClickListener(){
        			
        			@Override
        			public void onClick(DialogInterface dialog, int which) {
@@ -579,11 +576,11 @@ public class RssReader extends Activity implements OnTouchListener {
 			 					
 			 					
        							new AlertDialog.Builder(context)
-       							.setTitle(Transfer.transfer(RssReader.this, Transfer.for_channel)+" "+BackStage.rssreader_namelist.get(v.getId())+" "+Transfer.transfer(RssReader.this, Transfer.rename_for))
+       							.setTitle(getString(R.string.rename_for).replace("#title", BackStage.rssreader_namelist.get(v.getId())))
        							.setView(rename_layout)
        							
        							
-       							.setPositiveButton(Transfer.transfer(RssReader.this, Transfer.ok), new DialogInterface.OnClickListener() {
+       							.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
 
        									@Override
        									public void onClick(DialogInterface dialog, int which) {	
@@ -599,8 +596,8 @@ public class RssReader extends Activity implements OnTouchListener {
        												
        												String back = (String) getResources().getText(R.string.back);
        												new AlertDialog.Builder(context)
-       												.setTitle(Transfer.transfer(RssReader.this, Transfer.error))
-       												.setMessage(Transfer.transfer(RssReader.this, Transfer.enter_completely_to_rename))
+       												.setTitle(getString(R.string.error))
+       												.setMessage(getString(R.string.enter_completely_to_rename))
        												.setIcon(R.drawable.warning01)
        												.setPositiveButton(back, new DialogInterface.OnClickListener() {
 
@@ -622,7 +619,7 @@ public class RssReader extends Activity implements OnTouchListener {
        									}
        									})
        							
-       							.setNegativeButton(Transfer.transfer(RssReader.this, Transfer.cancel), new DialogInterface.OnClickListener() {
+       							.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
        								
        									@Override
        									public void onClick(DialogInterface dialog, int which) {
@@ -646,10 +643,10 @@ public class RssReader extends Activity implements OnTouchListener {
        						
        							new AlertDialog.Builder(context)
        							.setIcon(R.drawable.warning01)
-       							.setMessage(BackStage.rssreader_namelist.get(v.getId())+": "+Transfer.transfer(RssReader.this, Transfer.are_you_sure_delete))
-       							.setTitle(Transfer.transfer(RssReader.this, Transfer.attention))
+       							.setMessage(getString(R.string.are_you_sure_delete).replace("#title", BackStage.rssreader_namelist.get(v.getId())))
+       							.setTitle(getString(R.string.attention))
        							
-       							.setPositiveButton(Transfer.transfer(RssReader.this, Transfer.ok), new DialogInterface.OnClickListener() {
+       							.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
        								
        								@Override
        								public void onClick(DialogInterface dialog, int which) {
@@ -659,7 +656,7 @@ public class RssReader extends Activity implements OnTouchListener {
        								}
        							})
        							
-       							.setNegativeButton(Transfer.transfer(RssReader.this, Transfer.cancel), new DialogInterface.OnClickListener() {
+       							.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
        								
        								@Override
        								public void onClick(DialogInterface dialog, int which) {
@@ -675,9 +672,9 @@ public class RssReader extends Activity implements OnTouchListener {
        							new AlertDialog.Builder(context)
        							
        								.setMessage("程式出錯了，將返回！")
-       								.setTitle(Transfer.transfer(RssReader.this, Transfer.attention))
+       								.setTitle(getString(R.string.attention))
        								
-       								.setPositiveButton(Transfer.transfer(RssReader.this, Transfer.ok), new DialogInterface.OnClickListener() {
+       								.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
        							
        							@Override
        							public void onClick(DialogInterface dialog, int which) {
@@ -694,7 +691,7 @@ public class RssReader extends Activity implements OnTouchListener {
        			}
        			
        		})
-       		.setPositiveButton(Transfer.transfer(RssReader.this, Transfer.back), new DialogInterface.OnClickListener() {
+       		.setPositiveButton(getString(R.string.back), new DialogInterface.OnClickListener() {
        					
        					@Override
        					public void onClick(DialogInterface dialog, int which) {
@@ -832,10 +829,10 @@ public class RssReader extends Activity implements OnTouchListener {
 				
 			case 3:
 				new AlertDialog.Builder(RssReader.this)
-				.setMessage("RssReader"+ softVersion +"\n"+Transfer.transfer(RssReader.this, Transfer.author)+"：Camangi Corporation\n\n"+Transfer.transfer(RssReader.this, Transfer.copyright)+" 2010")
+				.setMessage("RssReader"+ softVersion +"\n"+getString(R.string.author)+"：Camangi Corporation\n\n"+getString(R.string.copyright)+" 2010")
 				.setIcon(R.drawable.icon)
-				.setTitle(Transfer.transfer(RssReader.this, Transfer.about))
-				.setPositiveButton(Transfer.transfer(RssReader.this, Transfer.report_problem), new DialogInterface.OnClickListener() {
+				.setTitle(getString(R.string.about))
+				.setPositiveButton(getString(R.string.report_problem), new DialogInterface.OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -847,7 +844,7 @@ public class RssReader extends Activity implements OnTouchListener {
 						startActivity(Intent.createChooser(sendIntent, "Title:"));
 					}
 				})
-				.setNeutralButton(Transfer.transfer(RssReader.this, Transfer.back), new DialogInterface.OnClickListener() {
+				.setNeutralButton(getString(R.string.back), new DialogInterface.OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -934,7 +931,7 @@ public class RssReader extends Activity implements OnTouchListener {
 								   context.stopService(intent2);
 								   Log.i(tag, "Data load finish, stop (Service)BackStage");
 								   
-								   Toast.makeText(context, R.string.loading_completed, Toast.LENGTH_SHORT).show();
+								   Toast.makeText(context, getString(R.string.loading_completed), Toast.LENGTH_SHORT).show();
 								   
 								   //當資料都下載完了,[取消載入]就變成[新增頻道]的功能
 								   first_button.setText(R.string.add_channel);
@@ -946,7 +943,7 @@ public class RssReader extends Activity implements OnTouchListener {
 									}
 								});
 								   
-								   setTitle("RssReader");
+								   setTitle(getString(R.string.app_name));
 								   sendBroadForSwitchWidget(open);					  
 							   }
 					        

@@ -540,10 +540,10 @@ public class BackStage extends Service{
      */
     public static void remainOneChannel(Context context){
     	new AlertDialog.Builder(context)
-		.setTitle(Transfer.transfer(context, Transfer.error))
-		.setMessage(Transfer.transfer(context, Transfer.least_one_channel))
+		.setTitle(context.getString(R.string.error))
+		.setMessage(context.getString(R.string.least_one_channel))
 		.setIcon(R.drawable.warning01)
-		.setPositiveButton(Transfer.transfer(context, Transfer.reset), new DialogInterface.OnClickListener() {
+		.setPositiveButton(context.getString(R.string.reset), new DialogInterface.OnClickListener() {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {}
@@ -571,10 +571,10 @@ public class BackStage extends Service{
 	public static void loadingCantUseDataDialog(Context context){
 		
 			new AlertDialog.Builder(context)
-			.setTitle(Transfer.transfer(context, Transfer.error))
-			.setMessage(Transfer.transfer(context, Transfer.loading_completely_to_action))
+			.setTitle(context.getString(R.string.error))
+			.setMessage(context.getString(R.string.loading_completely_to_action))
 			.setIcon(R.drawable.warning01)
-			.setPositiveButton(Transfer.transfer(context, Transfer.back), new DialogInterface.OnClickListener() {
+			.setPositiveButton(context.getString(R.string.back), new DialogInterface.OnClickListener() {
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {}
@@ -637,10 +637,10 @@ public class BackStage extends Service{
 		Log.i(tag, "inito VerifyErrorDialog");
 		new AlertDialog.Builder(context)
 		
-		.setTitle(Transfer.transfer(context, Transfer.error))
-		.setMessage(Transfer.transfer(context, Transfer.cant_parse)+"\n"+Transfer.transfer(context, Transfer.error_reason)+" "+errormessage+", "+e.getMessage())
+		.setTitle(context.getString(R.string.error))
+		.setMessage(context.getString(R.string.cant_parse)+"\n"+context.getString(R.string.error_reason)+" "+errormessage+", "+e.getMessage())
 		.setIcon(R.drawable.warning01)
-		.setPositiveButton(Transfer.transfer(context, Transfer.back), new DialogInterface.OnClickListener() {
+		.setPositiveButton(context.getString(R.string.back), new DialogInterface.OnClickListener() {
 
 		@Override
 		public void onClick(DialogInterface dialog, int which) {}
