@@ -126,6 +126,8 @@ public class RssReader extends Activity implements OnTouchListener {
 	EditText newname;
 	EditText newpath;
 	
+	int oldChoiceButton,curChoiceButton=-1;
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -518,20 +520,25 @@ public class RssReader extends Activity implements OnTouchListener {
 
 	}
 
-	private void buttonClickListener(Button button, final Context context) {
+	private void buttonClickListener(final Button button, final Context context) {
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-//        		switch(v.getId()){
-//       		
-//       
-//       		default:
-//       			Log.i(tag, "you press button: default");
+
        		int a=Integer.parseInt(v.getTag().toString());
        		Log.i(tag, "tag is: "+v.getTag());
            	slv.smoothScrollTo((a*screen_width),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
-//       		v.setBackgroundResource(R.color.brown);//試圖改變背景顏色，結果...	]
-//           		break;
-//       		}
+        
+           	//以下這段判斷如果1個按鈕被點擊了,另一個按鈕就還原,不要被點擊
+    	if(oldChoiceButton!=-1){
+    		Log.i(tag, "oldChoiceButton: "+oldChoiceButton);
+    		up_layout.findViewWithTag(oldChoiceButton).setBackgroundResource(R.drawable.button);         		
+          }           	 	
+           	curChoiceButton=Integer.valueOf(button.getTag().toString());
+           	button.setBackgroundResource(R.drawable.button_press);
+           	oldChoiceButton=curChoiceButton;
+//        	Log.i(tag, "curChoiceButton= "+curChoiceButton);
+           	curChoiceButton=-1;
+//           	Log.i(tag, "oldChoiceButton= "+oldChoiceButton); 
             }
         });
 		
@@ -737,19 +744,21 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**描述 : 滑動手勢指令換頁*/
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		
-		
+//		Log.i(tag, String.valueOf(v.getParent().));
 		if(getstart==0){
 			getstart = event.getX();
 		}else if(event.getAction()!=event.ACTION_MOVE){
 			getend =event.getX();
 			
-			if (getstart-getend >0){
-				slv.smoothScrollBy(screen_width, 0);				
-			}else{
+			if (getstart-getend >6){//向左移
+				slv.smoothScrollBy(screen_width, 0);
+//					up_layout.scrollBy(100, 0);
+			}else if(getstart-getend <6){
 				slv.smoothScrollBy(-screen_width, 0);
+//					up_layout.scrollBy(-100, 0);
 			}
-			
+
+
 			getstart=0;
 		}		
 		return true;
