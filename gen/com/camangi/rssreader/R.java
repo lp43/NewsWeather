@@ -14,6 +14,7 @@ public final class R {
         public static final int black=0x7f050001;
         public static final int blue=0x7f050002;
         public static final int brown=0x7f050000;
+        public static final int white=0x7f050003;
     }
     public static final class drawable {
         public static final int about=0x7f020000;
@@ -29,14 +30,17 @@ public final class R {
         public static final int gallery_photo_3=0x7f02000a;
         public static final int gallery_photo_4=0x7f02000b;
         public static final int icon=0x7f02000c;
-        public static final int pic=0x7f02000d;
-        public static final int q01=0x7f02000e;
-        public static final int quill=0x7f02000f;
-        public static final int refresh=0x7f020010;
-        public static final int setting=0x7f020011;
-        public static final int verify=0x7f020012;
-        public static final int warning01=0x7f020013;
-        public static final int zoom=0x7f020014;
+        public static final int main_button_background=0x7f02000d;
+        public static final int new_button_background=0x7f02000e;
+        public static final int newchannel=0x7f02000f;
+        public static final int q01=0x7f020010;
+        public static final int quill=0x7f020011;
+        public static final int refresh=0x7f020012;
+        public static final int setting=0x7f020013;
+        public static final int verify=0x7f020014;
+        public static final int warning01=0x7f020015;
+        public static final int widget_background=0x7f020016;
+        public static final int zoom=0x7f020017;
     }
     public static final class id {
         public static final int cancel_verify=0x7f070008;
@@ -48,9 +52,9 @@ public final class R {
         public static final int new_channel_name=0x7f070004;
         public static final int new_channel_path=0x7f070001;
         public static final int new_channel_title_text=0x7f070003;
-        public static final int news_date=0x7f07000a;
-        public static final int news_img=0x7f07000b;
-        public static final int news_title=0x7f070009;
+        public static final int news_date=0x7f07000b;
+        public static final int news_img=0x7f070009;
+        public static final int news_title=0x7f07000a;
         public static final int setView=0x7f07000f;
         public static final int up_layout=0x7f07000c;
         public static final int verify_progressbar=0x7f070006;
@@ -108,7 +112,6 @@ public final class R {
         public static final int no_internet_what_do_you_want=0x7f060031;
         public static final int ok=0x7f060027;
         public static final int parse_error=0x7f06002d;
-        public static final int path_parse_here=0x7f060005;
         public static final int please_enter_the_URL=0x7f060003;
         public static final int please_enter_the_title=0x7f060002;
         public static final int please_wait=0x7f060024;
@@ -117,6 +120,7 @@ public final class R {
         public static final int rename_for=0x7f060012;
         public static final int report_problem=0x7f060023;
         public static final int reset=0x7f06002a;
+        public static final int type_path_here=0x7f060005;
         public static final int verification_established=0x7f060009;
         public static final int verify=0x7f060007;
         public static final int verifying=0x7f060008;

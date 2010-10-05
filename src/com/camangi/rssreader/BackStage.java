@@ -587,7 +587,7 @@ public class BackStage extends Service{
 	private static void appearExceptionMessage(String ExceptionName,Exception e){
 		Log.i("tag", "Exception: "+e.getMessage());
 		News news = new News();
-		news.setDate(R.string.error_reason+" "+ ExceptionName +", \n"+e.getMessage());
+		news.setDate("Error reason: "+ ExceptionName +", \n"+e.getMessage());
 		news.setTitle("parse_error");
 		news.setLink("http://");
 		wronglist=new ArrayList<News>();

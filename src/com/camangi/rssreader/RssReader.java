@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,6 +37,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
@@ -50,7 +52,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0038";
+	private String softVersion="v1.0039";
 	/**
 	 * 因為Button已經是動態產生，所以只要宣告一個變數，
 	 * 之後各個按鈕的控制都靠Button.getId()去的值去決定
@@ -183,10 +185,12 @@ public class RssReader extends Activity implements OnTouchListener {
 				    	   if(BackStage.BufferDatabaseNumber!=BackStage.checkDatabaseNumber(RssReader.this)){
 				    		 //程式一開始,第1個按鈕顯示為[取消載入]按鈕
 					    	   first_button = new Button(RssReader.this);
+					    	   first_button.setTextSize(16);
+					    	   first_button.setPadding(20, 0, 20, 0);
 					    	   first_button.setText(R.string.cancel_loading);
 					    	   first_button.setEnabled(false);//還沒載入至少1筆資料,不能執行[取消載入]功能
-					    	   first_button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
-					    	   LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
+
+					    	   LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,65);
 						       up_layout.addView(first_button,param);
 						       
 						       //這個時候還是[取消載入]的字樣
@@ -204,6 +208,7 @@ public class RssReader extends Activity implements OnTouchListener {
 								           setTitle((getString(R.string.from_num_no_load).replace("#title",(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+" "+BackStage.name)));
 //										   BackStage.button_order=BackStage.cursor.getCount()-1;
 								           
+								           first_button.setPadding(30, 0, 30, 0);
 								           //現在是[重新載入]:當使用者按下[取消載入]按鈕後,第1個按鈕馬上變成[重新載入]按鈕,讓使用者可以重載看看
 								           first_button.setText(R.string.reloading);
 										   first_button.setOnClickListener(new View.OnClickListener() {
@@ -362,7 +367,7 @@ public class RssReader extends Activity implements OnTouchListener {
 
           newpath=(EditText) addchannel_layout.findViewById(R.id.new_channel_path);
           newpath.setFocusable(true);
-          newpath.setHint(R.string.path_parse_here);
+          newpath.setText(R.string.type_path_here);
          
          
 				new AlertDialog.Builder(RssReader.this)
@@ -450,13 +455,16 @@ public class RssReader extends Activity implements OnTouchListener {
 									BackStage.backstage_widget_namelist.put(BackStage.button_order,name);
 									
 							        button.setText(name);
-							        button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
+							        button.setTextSize(16);
+							        button.setTextColor(Color.WHITE);
+							        button.setBackgroundResource(R.drawable.main_button_background);
+
 							        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
 							        Log.i(tag, "move to last id: "+id);
 							        Log.i(tag, "setting tag is: "+BackStage.button_order);
 							        
 
-							        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
+							        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,65);
 //							        Log.i(tag, "setlinearlayout pass");
 							        up_layout.addView(button,param);
 							        
@@ -829,7 +837,7 @@ public class RssReader extends Activity implements OnTouchListener {
 				
 			case 3:
 				new AlertDialog.Builder(RssReader.this)
-				.setMessage("RssReader"+ softVersion +"\n"+getString(R.string.author)+"：Camangi Corporation\n\n"+getString(R.string.copyright)+" 2010")
+				.setMessage(getString(R.string.app_name)+" "+ softVersion +"\n"+getString(R.string.author)+"：Camangi Corporation\n\n"+getString(R.string.copyright)+" 2010")
 				.setIcon(R.drawable.icon)
 				.setTitle(getString(R.string.about))
 				.setPositiveButton(getString(R.string.report_problem), new DialogInterface.OnClickListener() {
@@ -894,13 +902,15 @@ public class RssReader extends Activity implements OnTouchListener {
 			  
 				//開始動態新增按鈕
 				button = new Button(context);
-//				Log.i(tag, "new button pass");
+				button.setTextColor(Color.WHITE);
+				button.setTextSize(16);
+				button.setBackgroundResource(R.drawable.main_button_background);
 		        button.setText(name);
-		        button.setEllipsize(TextUtils.TruncateAt.MARQUEE);//太長就縮小文字
+		        button.setPadding(20, 0, 20, 0);
 //		        Log.i(tag, "setname pass");
 		        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
 
-		        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(120,65);
+		        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,65);
 //		        Log.i(tag, "setlinearlayout pass");
 		        up_layout.addView(button,param);
 //		        Log.i(tag, "set up_layout pass");
@@ -934,7 +944,9 @@ public class RssReader extends Activity implements OnTouchListener {
 								   Toast.makeText(context, getString(R.string.loading_completed), Toast.LENGTH_SHORT).show();
 								   
 								   //當資料都下載完了,[取消載入]就變成[新增頻道]的功能
+								   first_button.setTextColor(Color.WHITE);
 								   first_button.setText(R.string.add_channel);
+								   first_button.setBackgroundResource(R.drawable.new_button_background);
 								   first_button.setOnClickListener(new View.OnClickListener() {
 									
 									@Override

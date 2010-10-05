@@ -5,7 +5,7 @@
 	<string name="please_enter_the_title">請輸入標題</string>
 	<string name="please_enter_the_URL">請輸入網址:</string>
 	<string name="i_will_auto_find">我會自動搜尋</string>
-	<string name="path_parse_here">將找到的Rss網址貼在這</string>
+	<string name="type_path_here">http://</string>
 	<string name="add_when_completely">請輸入完整方可新增...</string>
 	<string name="verify">驗證</string>
 	<string name="verifying">驗證中...</string>

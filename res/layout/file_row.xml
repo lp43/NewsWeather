@@ -3,25 +3,34 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent">
+ 
+ 
+      <ImageView
+	  android:id="@+id/news_img"
+	  android:layout_width="wrap_content"
+	  android:layout_height="wrap_content"
+	  android:layout_alignParentLeft="true"
+	  android:layout_marginTop="32dp"
+	  android:layout_marginLeft="8dp"/>
   
      <TextView
 	  android:id="@+id/news_title"
-	  android:textSize="28dp"
+	  android:textSize="24dp"
+	  android:textColor="@color/white"
 	  android:layout_width="wrap_content"
 	  android:layout_height="wrap_content"
-	  android:layout_marginLeft="10sp"/>
+	  android:layout_marginLeft="50dp"
+	  android:layout_marginTop="10dp"/>
+	  
      <TextView
 	  android:id="@+id/news_date"
 	  android:textSize="12dp"
 	  android:layout_width="wrap_content"
 	  android:layout_height="wrap_content"
 	  android:layout_below="@id/news_title"
-	  android:layout_marginLeft="10sp"/>
-     <ImageView
-	  android:id="@+id/news_img"
-	  android:layout_width="wrap_content"
-	  android:layout_height="wrap_content"
-	  android:layout_alignParentRight="true"
-	  android:layout_marginRight="15sp"/>
+	  android:layout_marginTop="4dp"
+	  android:layout_marginLeft="60dp"
+	  android:layout_marginBottom="30dp"/>
+
 	  
 </RelativeLayout>

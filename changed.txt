@@ -17,3 +17,8 @@ v1.0038
 1.更改Widget圖示
 2.中文字參數化
 從R檔轉String: Transfer.transfer(RssReader.this, Transfer.back)
+
+10/5
+v1.0039
+1.UI畫面美觀完成
+基本上沒有問題
