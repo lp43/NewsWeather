@@ -28,7 +28,6 @@
         
       <LinearLayout 
          android:id="@+id/down_layout"
-         android:background="#ff666666"
          android:orientation="horizontal"
 	     android:layout_width="fill_parent"  
 	     android:layout_height="wrap_content">

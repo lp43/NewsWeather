@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<!-- appname -->
+<string name="app_name">TaskManager</string>
+
+<!-- menu -->
+<string name="title_menu_about">About</string>
+<string name="title_menu_close">Close</string>
+
+<!-- Dialog -->
+<string name="title_endall">Close all app</string>
+<string name="msg_endall">Do you want to close all app?</string>
+<string name="title_dialog_about">About TaskManager</string>
+<string name="msg_aboutus_content">Android TaskManager v1.1\nAuthor Camangi Corporation\n\nCopyright 2010 </string>
+<string name="title_close">Close</string>
+<string name="msg_close">Do you want to close?</string>
+
+<!-- btn -->
+<string name="ok">Ok</string>
+<string name="cancel">Cancel</string>
+
+
+<!-- after close show msg -->
+<string name="single_close_msg">  was closed</string>
+
+<!-- Error msg -->
+<string name="msg_error">Oops!! </string>
+
+<!-- show info -->
+<string name="info_availablememory">Available Memory </string>
+
+<!-- hours下拉選單 -->
+<string-array name="hours">
+<item>0</item>
+<item>1</item>
+<item>2</item>
+<item>3</item>
+<item>4</item>
+<item>5</item>
+<item>6</item>
+<item>7</item>
+<item>8</item>
+<item>9</item>
+<item>10</item>
+<item>11</item>
+<item>13</item>
+<item>14</item>
+<item>15</item>
+<item>16</item>
+<item>17</item>
+<item>18</item>
+<item>19</item>
+<item>20</item>
+<item>21</item>
+<item>22</item>
+<item>23</item>
+<item>24</item>
+</string-array>
+<!-- minutes下拉選單 -->
+<string-array name="minutes">
+<item>0</item>
+<item>1</item>
+<item>10</item>
+<item>15</item>
+<item>30</item>
+<item>45</item>
+</string-array>
+
+<!-- Settings -->
+<string name="detected_service_timespan">Memory Alert</string>
+<string name="title_hours">Hour</string>
+<string name="title_minutes">Minute</string>
+<string name="Switch_On">On</string>
+<string name="Switch_Off">Off</string>
+<string name="service_info">Set up a period of time that allows .apk to check memory availability of the device automatically and regularly. </string>
+<string name="Service_Start">Service started</string>
+<string name="Service_Stop">Service stopped</string>
+<string name="btn_complete">Complete</string>
+<string name="info_selecttime">Please select time</string>
+
+<!-- Service -->
+<string name="info_memory">Memory: </string>
+<string name="notify_lowmemory">Memory not enough, please use TaskManager</string>
+
+<!-- widget -->
+<string name="info_endall">Clear all task</string>
+
+
+
+</resources>

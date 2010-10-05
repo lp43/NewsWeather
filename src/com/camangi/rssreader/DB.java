@@ -21,15 +21,15 @@ public class DB extends SQLiteOpenHelper{
 		//0 is false
 	
 	
-		public DB(Context context){
-			super(context, DATABASE_NAME,null,DATABASE_VERSION);	
+		public DB(Context context){	
+			super(context, DATABASE_NAME,null,DATABASE_VERSION);
 		}
 	
-
+		
+		
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			db.execSQL(DATABASE_CREATE);
-		
+			db.execSQL(DATABASE_CREATE);	
 		}
 
 

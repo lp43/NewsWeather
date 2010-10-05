@@ -28,6 +28,8 @@ import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -226,6 +228,7 @@ public class BackStage extends Service{
 	  File file = new File(Environment.getDataDirectory().getPath()+"/data/"+context.getPackageName()+"/databases/database.db");
 //	  Log.i(tag, "File pass");
 		if(!file.exists()){
+			
 			Log.i(tag, "Because database exist is: "+String.valueOf(file.exists())+", so insert BackStage.initializeData() to database");
 			myDB = new DB(context);
 		      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
@@ -245,6 +248,21 @@ public class BackStage extends Service{
 //		Log.i(tag, "BackStage.initializeDataBase() finish");
 	}
 	
+	
+	/**
+	 * 描述 : 取得Android configuration裡的語系檔
+	 * @param context 從該主體去取得資源(getResource())
+	 * @return 回傳國家簡稱
+	 */
+	public static String getCountry(Context context){
+        Resources rs=context.getResources();
+        Configuration cf=rs.getConfiguration();
+        String country=cf.locale.getCountry();
+        Log.i(tag, "get current country is: "+country);
+        return country;
+	}
+	
+
 
 	/**描述 : 初始化參數 */
 	//獲取RSS資料,讓大容器小容器都有資料
@@ -540,10 +558,10 @@ public class BackStage extends Service{
      */
     public static void remainOneChannel(Context context){
     	new AlertDialog.Builder(context)
-		.setTitle("錯誤！")
-		.setMessage("至少要有一筆頻道才行...")
-		.setIcon(R.drawable.warning01)
-		.setPositiveButton("重設", new DialogInterface.OnClickListener() {
+		.setTitle(context.getString(R.string.error))
+		.setMessage(context.getString(R.string.least_one_channel))
+		.setIcon(R.drawable.warning)
+		.setPositiveButton(context.getString(R.string.reset), new DialogInterface.OnClickListener() {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {}
@@ -571,10 +589,10 @@ public class BackStage extends Service{
 	public static void loadingCantUseDataDialog(Context context){
 		
 			new AlertDialog.Builder(context)
-			.setTitle("錯誤！")
-			.setMessage("資料載入完畢尚可執行動作...")
-			.setIcon(R.drawable.warning01)
-			.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+			.setTitle(context.getString(R.string.error))
+			.setMessage(context.getString(R.string.loading_completely_to_action))
+			.setIcon(R.drawable.warning)
+			.setPositiveButton(context.getString(R.string.back), new DialogInterface.OnClickListener() {
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {}
@@ -587,8 +605,8 @@ public class BackStage extends Service{
 	private static void appearExceptionMessage(String ExceptionName,Exception e){
 		Log.i("tag", "Exception: "+e.getMessage());
 		News news = new News();
-		news.setDate("錯誤原因︰ "+ ExceptionName +", 訊息: "+e.getMessage());
-		news.setTitle("解析錯誤！");
+		news.setDate("Error reason: "+ ExceptionName +", \n"+e.getMessage());
+		news.setTitle("parse_error");
 		news.setLink("http://");
 		wronglist=new ArrayList<News>();
 		wronglist.add(news);
@@ -634,11 +652,13 @@ public class BackStage extends Service{
 	 * @param context 顯示錯誤訊息視窗的主體
 	 */
 	public static void verifyErrorDialog(Context context,String errormessage,Exception e){
+		Log.i(tag, "inito VerifyErrorDialog");
 		new AlertDialog.Builder(context)
-		.setTitle("錯誤！")
-		.setMessage("無法解析此筆頻道!\n錯誤原因: "+errormessage+", "+e.getMessage())
-		.setIcon(R.drawable.warning01)
-		.setPositiveButton("返回", new DialogInterface.OnClickListener() {
+		
+		.setTitle(context.getString(R.string.error))
+		.setMessage(context.getString(R.string.cant_parse)+"\n"+context.getString(R.string.error_reason)+" "+errormessage+", "+e.getMessage())
+		.setIcon(R.drawable.warning)
+		.setPositiveButton(context.getString(R.string.back), new DialogInterface.OnClickListener() {
 
 		@Override
 		public void onClick(DialogInterface dialog, int which) {}
