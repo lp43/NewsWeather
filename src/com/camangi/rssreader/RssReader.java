@@ -53,14 +53,15 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0040";
+	private String softVersion="v1.0041";
+	int currentView;
 	/**
 	 * 因為Button已經是動態產生，所以只要宣告一個變數，
 	 * 之後各個按鈕的控制都靠Button.getId()去的值去決定
 	 */
 	private static Button button,first_button;
 	/**為了讓下面的新聞欄可以左右滑動，需把HorizontalScrollView宣告出來*/
-	private static HorizontalScrollView slv;
+	private static HorizontalScrollView slv,up_lv;
 	/**用來存放手勢的第1個值和最後一個值，好比較是往前或往後滑*/
 	double getend,getstart=0;
 	/**List小容器，一個getData放了一個頻道的資訊,索引值從0開始，
@@ -126,7 +127,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	EditText newname;
 	EditText newpath;
 	
-	int oldChoiceButton,curChoiceButton=-1;
+	int curChoiceButton;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -168,11 +169,18 @@ public class RssReader extends Activity implements OnTouchListener {
 					
 					   up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
 					   down_layout = (LinearLayout) findViewById(R.id.down_layout);//找出主畫面下方的水平scrollbar的id位置		    
-							   
+				
+
+					
+						   
+					  
+
+					   
 						//滑動選單的初始設定
+				       up_lv = (HorizontalScrollView) findViewById(R.id.up_sv);
 				       slv = (HorizontalScrollView) findViewById(R.id.hsv);
 				       slv.setOnTouchListener(RssReader.this);
-
+				       
 //				       BackStage.button_order=0;
 				       String buffer="";
 				       buffer=BackStage.checkDatabaseNumber(RssReader.this);
@@ -333,7 +341,82 @@ public class RssReader extends Activity implements OnTouchListener {
 		unregisterReceiver(Rreceiver_getData);
 		super.onDestroy();
 	}
+	
+	@Override  /**描述 : 滑動手勢指令換頁*/
+	public boolean onTouch(View v, MotionEvent event) {
+//		Log.i(tag, String.valueOf(v.get));
+		HorizontalScrollView horizontalScrollView=(HorizontalScrollView)v;
+		LinearLayout linearLayout=(LinearLayout) horizontalScrollView.getChildAt(0);
+		
 
+		int a=horizontalScrollView.getScrollX()/BackStage.ScreenSize.getScreenWidth(RssReader.this);
+
+		
+		if(getstart==0){
+			getstart = event.getX();
+//			Log.i(tag, "start: "+String.valueOf(getstart));
+		}else if(event.getAction()!=event.ACTION_MOVE){
+			getend =event.getX();
+//			Log.i(tag, "end: "+String.valueOf(getend));
+			
+			//向左移
+			if (getstart-getend >/*50*/0 & getstart>(BackStage.ScreenSize.getScreenWidth(RssReader.this)/2) && getend<(BackStage.ScreenSize.getScreenWidth(RssReader.this)/2)){			
+				slv.smoothScrollBy(screen_width, 0);		
+				Log.i(tag, "turn left");
+				
+				
+				if(a==0){
+					currentView=1;
+				}else{
+					if(a<linearLayout.getChildCount()-1){
+						currentView=a+1;	
+					}
+					
+				}
+				Log.i(tag, "current view: "+currentView);
+				
+				for(int i=0;i<linearLayout.getChildCount()-1;i++){
+					up_layout.findViewWithTag(i).setBackgroundResource(R.drawable.button);	
+				}
+				up_layout.findViewWithTag(currentView).setBackgroundResource(R.drawable.button_press);
+				
+				//當該頻道的Button顯示在螢幕外時,往內顯示出來
+				Log.i(tag, "button location: "+String.valueOf(up_layout.findViewWithTag(currentView).getRight()));
+				if(up_layout.findViewWithTag(currentView).getRight()>BackStage.ScreenSize.getScreenWidth(RssReader.this)){
+					up_lv.scrollBy(up_layout.findViewWithTag(currentView).getRight()-BackStage.ScreenSize.getScreenWidth(RssReader.this), 0);
+				}
+				
+				
+			//向右移	
+			}else if(getstart-getend </*-50*/0 && getstart<(BackStage.ScreenSize.getScreenWidth(RssReader.this)/2) && getend>(BackStage.ScreenSize.getScreenWidth(RssReader.this)/2)){
+				slv.smoothScrollBy(-screen_width, 0);		
+				Log.i(tag, "turn right");
+				
+				if(a>0){
+					currentView=a-1;
+				}else{
+					currentView=0;		
+				}
+				
+				Log.i(tag, "current view: "+currentView);
+				
+				for(int i=0;i<linearLayout.getChildCount();i++){
+					up_layout.findViewWithTag(i).setBackgroundResource(R.drawable.button);	
+				}
+				up_layout.findViewWithTag(currentView).setBackgroundResource(R.drawable.button_press);
+				
+				//當該頻道的Button顯示在螢幕外時,往內顯示出來
+				Log.i(tag, "button location: "+String.valueOf(up_layout.findViewWithTag(currentView).getLeft()));
+				if(up_layout.findViewWithTag(currentView).getLeft()<BackStage.ScreenSize.getScreenWidth(RssReader.this)){
+					up_lv.scrollBy(up_layout.findViewWithTag(currentView).getLeft()-BackStage.ScreenSize.getScreenWidth(RssReader.this), 0);
+				}
+				
+			}
+
+			getstart=0;
+		}
+		return true;
+	}
 
 	/**
 	 * 描述 : 若呼叫此方法，會寄出廣播讓Widget的Service停止<br/>
@@ -527,18 +610,17 @@ public class RssReader extends Activity implements OnTouchListener {
        		int a=Integer.parseInt(v.getTag().toString());
        		Log.i(tag, "tag is: "+v.getTag());
            	slv.smoothScrollTo((a*screen_width),0);//因為getTag()取出的值button_order是從1開始，而螢幕起始點是(0,0)
-        
+           	
+           	Log.i(tag, "up_layout count: "+up_layout.getChildCount());
+           	
            	//以下這段判斷如果1個按鈕被點擊了,另一個按鈕就還原,不要被點擊
-    	if(oldChoiceButton!=-1){
-    		Log.i(tag, "oldChoiceButton: "+oldChoiceButton);
-    		up_layout.findViewWithTag(oldChoiceButton).setBackgroundResource(R.drawable.button);         		
-          }           	 	
-           	curChoiceButton=Integer.valueOf(button.getTag().toString());
-           	button.setBackgroundResource(R.drawable.button_press);
-           	oldChoiceButton=curChoiceButton;
-//        	Log.i(tag, "curChoiceButton= "+curChoiceButton);
-           	curChoiceButton=-1;
-//           	Log.i(tag, "oldChoiceButton= "+oldChoiceButton); 
+           	for(int i=0;i<up_layout.getChildCount()-1;i++){
+           		Log.i(tag, "i:"+i);
+				up_layout.findViewWithTag(i).setBackgroundResource(R.drawable.button);	
+			}
+			up_layout.findViewWithTag(a).setBackgroundResource(R.drawable.button_press);
+			         	 	
+ 
             }
         });
 		
@@ -741,28 +823,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	}
 	
 	
-	/**描述 : 滑動手勢指令換頁*/
-	@Override
-	public boolean onTouch(View v, MotionEvent event) {
-//		Log.i(tag, String.valueOf(v.getParent().));
-		if(getstart==0){
-			getstart = event.getX();
-		}else if(event.getAction()!=event.ACTION_MOVE){
-			getend =event.getX();
-			
-			if (getstart-getend >6){//向左移
-				slv.smoothScrollBy(screen_width, 0);
-//					up_layout.scrollBy(100, 0);
-			}else if(getstart-getend <6){
-				slv.smoothScrollBy(-screen_width, 0);
-//					up_layout.scrollBy(-100, 0);
-			}
 
-
-			getstart=0;
-		}		
-		return true;
-	}
 
 	
 
@@ -877,6 +938,9 @@ public class RssReader extends Activity implements OnTouchListener {
 		return super.onOptionsItemSelected(item);
 	}
 
+
+	
+	
 	private void reRegisterBroadcaast_getData(){
 		if(!receiver_getData_status){
 			//向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
