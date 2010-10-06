@@ -53,7 +53,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0042";
+	private String softVersion="v1.0043";
 	int currentView;
 	/**
 	 * 因為Button已經是動態產生，所以只要宣告一個變數，
@@ -984,7 +984,7 @@ public class RssReader extends Activity implements OnTouchListener {
 		        button.setPadding(20, 0, 20, 0);
 //		        Log.i(tag, "setname pass");
 		        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
-
+		        
 		        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,65);
 //		        Log.i(tag, "setlinearlayout pass");
 		        up_layout.addView(button,param);

@@ -229,115 +229,102 @@ public class BackStage extends Service{
 //	  Log.i(tag, "File pass");
 		if(!file.exists()){
 			Log.i(tag, "Because database exist is: "+String.valueOf(file.exists())+", so insert BackStage.initializeData() to database");
-			if(getCountry(context).equals("TW")){
+			if(getCountry(context).equals("TW")){//台灣
 				myDB = new DB(context);
-			      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-			      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-			      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
-			      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-			      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-			      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
+			      myDB.insert("yahoo!", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
+			      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
+			      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
+			      myDB.insert("交通部公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
+			      myDB.insert("蘋果", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+//			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
+//			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
 			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
-			      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
-			      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
 			      
 			    myDB.close(); 
-			}else if(getCountry(context).equals("CN")){
+			}else if(getCountry(context).equals("CN")){//簡中
 				myDB = new DB(context);
-			      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-			      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-			      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
-			      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-			      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-			      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
-			      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
-			      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+			      myDB.insert("韩寒", "http://blog.sina.com.cn/rss/twocold.xml",true);	
+			      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);
+			      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);
+			      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);
+			      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);
+			      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);
+			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);
 			      
 			    myDB.close(); 
-			}else if(getCountry(context).equals("JP")){
+			}else if(getCountry(context).equals("JP")){//日文
 				myDB = new DB(context);
-			      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-			      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-			      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
-			      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-			      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-			      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
-			      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
-			      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+			      myDB.insert("Yahoo!トピックス", "http://dailynews.yahoo.co.jp/fc/rss.xml",true);
+			      myDB.insert("Yahoo!経済", "http://headlines.yahoo.co.jp/rss/nkbp_tren_bus.xml",false);
+			      myDB.insert("Yahoo!海外", "http://headlines.yahoo.co.jp/rss/cnn_c_int.xml",false);
+			      myDB.insert("全ジャンル一覧", "http://komachi-rss.yomiuri.co.jp/rss/yol/komachi/rss00",true);
+			      myDB.insert("生活", "http://komachi-rss.yomiuri.co.jp/rss/yol/komachi/rss01",false);
+			      myDB.insert("職場", "http://komachi-rss.yomiuri.co.jp/rss/yol/komachi/rss02",false);
+			      myDB.insert("人間関係", "http://komachi-rss.yomiuri.co.jp/rss/yol/komachi/rss06",false);
+			      myDB.insert("妊娠", "http://komachi-rss.yomiuri.co.jp/rss/yol/komachi/rss05",false);
+			      myDB.insert("旅行", "http://komachi-rss.yomiuri.co.jp/rss/yol/komachi/rss09",false);
+			      myDB.insert("主要ニュース", "http://rss.yomiuri.co.jp/rss/yol/topstories",false);
 			      
 			    myDB.close(); 
 			
-		}else if(getCountry(context).equals("FR")){
+		}else if(getCountry(context).equals("FR")){//法文
 			myDB = new DB(context);
-		      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-		      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-		      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
-		      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-		      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-		      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-		      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
-		      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
-		      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+			myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+//		      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",false);//雅虎UTF-8	
+//		      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",false);//天下雜誌BIG5
+//		      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
+//		      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
+//		      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
+//		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+//		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
+		      
 		      
 		    myDB.close(); 
-		}else if(getCountry(context).equals("ES")){
+		}else if(getCountry(context).equals("ES")){//西班牙文
 			myDB = new DB(context);
-		      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-		      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-		      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
-		      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-		      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-		      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-		      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
-		      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
-		      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+			myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World  
+//			myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",false);//雅虎UTF-8	
+//		      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",false);//天下雜誌BIG5
+//		      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
+//		      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
+//		      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
+//		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+//		      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
 		      
 		    myDB.close();
-		}else if(getCountry(context).equals("US")){
+		}else if(getCountry(context).equals("US")){//美國
 			myDB = new DB(context);
-			 myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+			 myDB.insert("BBC World", "http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+			 myDB.insert("NYT > Global", "http://www.nytimes.com/services/xml/rss/nyt/GlobalHome.xml",true);//BBC News - World
+			 myDB.insert("NYT > Home", "http://feeds.nytimes.com/nyt/rss/HomePage",true);//BBC News - World
+			 myDB.insert("Engadget", "http://www.engadget.com/rss.xml",false);//BBC News - World
+			 myDB.insert("ReadWriteWeb", "http://feeds.feedburner.com/readwriteweb",false);//BBC News - World
+			 myDB.insert("TechCrunch", "http://feeds.feedburner.com/Techcrunch",false);//BBC News - World
+			
+			 
 			 myDB.close();
-		}else if(getCountry(context).equals("DE")){
+		}else if(getCountry(context).equals("DE")){//德文
 			myDB = new DB(context);
-		      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-		      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-		      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
-		      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-		      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-		      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-		      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
-		      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
-		      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+			  myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+//		      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",false);//雅虎UTF-8	
+//		      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",false);
+//		      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);
+//		      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);
+//		      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);
+//		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);
+//		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);
 		      
 		    myDB.close();
 		}else{
 			myDB = new DB(context);
-		      myDB.insert("yahoo", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
-		      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-		      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
-		      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-		      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-		      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-		      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-		      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-		      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
-		      myDB.insert("wretch", "http://www.wretch.cc/blog/Thereseun&commentsRss20=1",false);//wretch;IO錯誤
-		      myDB.insert("BBC World", " http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
-		      
+			 myDB.insert("BBC World", "http://feeds.bbci.co.uk/news/world/rss.xml",true);//BBC News - World
+			 myDB.insert("NYT > Global", "http://www.nytimes.com/services/xml/rss/nyt/GlobalHome.xml",true);//BBC News - World
+			 myDB.insert("NYT > Home", "http://feeds.nytimes.com/nyt/rss/HomePage",true);//BBC News - World
+			 myDB.insert("Engadget", "http://www.engadget.com/rss.xml",false);//BBC News - World
+			 myDB.insert("ReadWriteWeb", "http://feeds.feedburner.com/readwriteweb",false);//BBC News - World
+			 myDB.insert("TechCrunch", "http://feeds.feedburner.com/Techcrunch",false);//BBC News - World
+			
 		    myDB.close(); 
 		}
 		}
