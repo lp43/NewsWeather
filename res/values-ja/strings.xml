@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-	<string name="app_name">RssReader</string>
+	<string name="app_name">RSSリーダー</string>
 	<string name="add_channel">チャンネル追加</string>
 	<string name="please_enter_the_title">タイトルを入力してください:</string>
 	<string name="please_enter_the_URL">URLを入力してください:</string>
@@ -17,15 +17,15 @@
 	<string name="what_do_you_want">対して #title のチャンネルではあなたがしたいですか？</string>
 	<string name="hide">隠す</string>
 	<string name="rename">名前の変更</string>
-	<string name="rename_for"> #title の名前が変更された</string>
+	<string name="rename_for">#title の名前が変更された</string>
 	<string name="enter_new_name">新しい名前を入力してください</string>
 	<string name="enter_completely_to_rename">再名に完全な名前を入力してください...</string>
 	<string name="loading_completely_to_action">データの読み込みにアクションを実行することはできますが完了...</string>
 	<string name="delete">削除</string>
-	<string name="are_you_sure_delete">これは、XXのシャネルが削除されます,あなたはよろしいですかあなた?</string>
+	<string name="are_you_sure_delete">それはあなたが削除してもよろしいです、 #title チャネルを削除するのだろうか？</string>
 	<string name="from_num_no_load">#title から,ない読み込んでいます...</string>
 	<string name="channel_list">チャンネルリスト</string>
-	<string name="least_one_channel">少なくとも一つのチャネル...</string>
+	<string name="least_one_channel">少なくとも一つのチャネルを維持する必要がある...</string>
 	<string name="loading_completed">ダウンロードが完了...</string>
 	<string name="loading">ロード</string>
 	<string name="reloading">リロード</string>
@@ -43,12 +43,12 @@
 	<string name="attention">注意！</string>
 	<string name="reset">リセット</string>
 	<string name="internet_connecting">インターネット接続</string>
-	<string name="wifi_connecting">WIFI接続...</string>
+	<string name="wifi_connecting">WiFi 接続...</string>
 	<string name="parse_error">解析エラー!</string>
 	<string name="data_refresh">データの再編成</string>
 	<string name="click_to_wifi">私は、デフォルトのWIFIに接続する</string>
 	<string name="cant_detect_internet">インターネットを検出することはできません...</string>
 	<string name="no_internet_what_do_you_want">ここで、ネットワークに接続されていない、あなたがする...？</string>
-	<string name="connect_to_default_WIFI">デフォルトのW I F I に接続してください</string>
+	<string name="connect_to_default_WIFI">デフォルトのWiFi に接続してください</string>
 	<string name="back_to_set">戻ると、独自の設定</string>
 </resources>

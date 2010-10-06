@@ -25,7 +25,7 @@
 	<string name="are_you_sure_delete">這樣會刪除 #title 頻道,你確定嗎？</string>
 	<string name="from_num_no_load">從 #title 開始，沒有載入...</string>
 	<string name="channel_list">頻道清單</string>
-	<string name="least_one_channel">至少要有一筆頻道才行...</string>
+	<string name="least_one_channel">至少要保留一筆頻道才行...</string>
 	<string name="loading_completed">資料下載完成...</string>
 	<string name="loading">正在載入</string>
 	<string name="reloading">重新載入</string>
@@ -43,12 +43,12 @@
 	<string name="attention">注意!</string>
 	<string name="reset">重設</string>
 	<string name="internet_connecting">網路連線中</string>
-	<string name="wifi_connecting">WIFI連線中...</string>
+	<string name="wifi_connecting">WiFi連線中...</string>
 	<string name="parse_error">解析錯誤!</string>
 	<string name="data_refresh">資料重整中</string>
-	<string name="click_to_wifi">點我連線至預設WIFI</string>
+	<string name="click_to_wifi">點我連線至預設WiFi</string>
 	<string name="cant_detect_internet">沒有偵測到網路...</string>
 	<string name="no_internet_what_do_you_want">現在沒有連上網路,你想要...?</string>
-	<string name="connect_to_default_WIFI">連到預設W I F I</string>
+	<string name="connect_to_default_WIFI">連到預設WiFi</string>
 	<string name="back_to_set">返回並自行設定</string>
 </resources>

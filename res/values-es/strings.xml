@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-	<string name="app_name">RssReader</string>
+	<string name="app_name">Lector de Rss</string>
 	<string name="add_channel">Añadir canal</string>
 	<string name="please_enter_the_title">Por favor, introduzca un título</string>
 	<string name="please_enter_the_URL">Por favor, introduzca la dirección URL:</string>
@@ -12,7 +12,7 @@
 	<string name="click_Add_continue">Haga clic en [Añadir] para continuar</string>
 	<string name="add">Únete</string>
 	<string name="cant_parse">No se puede analizar el canal!</string>
-	<string name="enter_completely_to_verify">Por favor, introduzca por completo a fin de verificar...</string>
+	<string name="enter_completely_to_verify">Por favor, introduzca por completo a fin de verificar ...</string>
 	<string name="error_reason">Error razón:</string>
 	<string name="what_do_you_want">Por canal #title que quieres?</string>
 	<string name="hide">Ocultar</string>
@@ -22,10 +22,10 @@
 	<string name="enter_completely_to_rename">Por favor, introduzca un nombre completo para cambiar el nombre...</string>
 	<string name="loading_completely_to_action">Carga por completo, puede ejecutar la acción...</string>
 	<string name="delete">Eliminar</string>
-	<string name="are_you_sure_delete">Se eliminará canal #title , ¿estás seguro?</string>
-	<string name="from_num_no_load">En el #title , sin carga...</string>
+	<string name="are_you_sure_delete">Se eliminará el canal #título, ¿estás seguro de borrar?</string>
+	<string name="from_num_no_load">No hay carga en el #títle...</string>
 	<string name="channel_list">Lista de canales</string>
-	<string name="least_one_channel">Al menos un canal...</string>
+	<string name="least_one_channel">Necesidad de mantener al menos un canal...</string>
 	<string name="loading_completed">Descarga de datos completamente...</string>
 	<string name="loading">Cargando</string>
 	<string name="reloading">Recarga</string>
@@ -43,12 +43,12 @@
 	<string name="attention">¡Atención!</string>
 	<string name="reset">Restablecer</string>
 	<string name="internet_connecting">Conexión a Internet en el</string>
-	<string name="wifi_connecting">WiFi de conexión en el...</string>
+	<string name="wifi_connecting">WiFi  de conexión en el...</string>
 	<string name="parse_error">Error de análisis!</string>
 	<string name="data_refresh">Actualizar los datos</string>
-	<string name="click_to_wifi">Me conecto a la wifi por defecto</string>
-	<string name="cant_detect_internet">No detecta la red...</string>
-	<string name="no_internet_what_do_you_want">Ahora no está conectado a la red, que desea ...?</string>
-	<string name="connect_to_default_WIFI">Wi-Fi con el valor por defecto</string>
-	<string name="back_to_set">Atrás y establecer su propio</string>
+	<string name="click_to_wifi">Haga clic en mí y conectarse a Wi-Fi por defecto</string>
+	<string name="cant_detect_internet">No hay Internet disponible...</string>
+	<string name="no_internet_what_do_you_want">No hay Internet disponible, ¿quieres ...?</string>
+	<string name="connect_to_default_WIFI">Conectarse a la Wi-Fi por defecto</string>
+	<string name="back_to_set">Atrás y configurar su propio entorno</string>
 </resources>

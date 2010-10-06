@@ -53,7 +53,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0041";
+	private String softVersion="v1.0042";
 	int currentView;
 	/**
 	 * 因為Button已經是動態產生，所以只要宣告一個變數，

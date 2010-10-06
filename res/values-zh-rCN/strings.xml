@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-	<string name="app_name">RssReader</string>
+	<string name="app_name">Rss阅读器</string>
 	<string name="add_channel">新增频道</string>
 	<string name="please_enter_the_title">请输入标题</string>
 	<string name="please_enter_the_URL">请输入网址:</string>
@@ -25,7 +25,7 @@
 	<string name="are_you_sure_delete">这样会删除 #title 频道,你确定吗？</string>
 	<string name="from_num_no_load">从 #title 开始,没有载入...</string>
 	<string name="channel_list">频道列表</string>
-	<string name="least_one_channel">至少要有一笔频道才行...</string>
+	<string name="least_one_channel">至少要保留一笔频道才行...</string>
 	<string name="loading_completed">数据下载完成...</string>
 	<string name="loading">正在载入</string>
 	<string name="reloading">重载</string>
