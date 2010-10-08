@@ -29,7 +29,7 @@
 	android:textSize="12dp"	
     android:textColor="@color/blue"
     android:layout_below="@id/widgetContent"
-    android:text="@string/wifi_connecting"
+    android:text="@string/data_refresh"
   />
   
 

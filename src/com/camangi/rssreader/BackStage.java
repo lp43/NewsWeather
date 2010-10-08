@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -425,8 +426,10 @@ public class BackStage extends Service{
     	int a,b;
 	
 				url = new URL(path);
-				InputStream is;
-				is = url.openConnection().getInputStream();
+				 URLConnection uc  = url.openConnection();
+	  				uc.setConnectTimeout(5000);
+	  				uc.setReadTimeout(5000);
+	  				InputStream is = uc.getInputStream();
 				InputStreamReader isr = new InputStreamReader(is);
 				 BufferedReader br = new BufferedReader(isr);
 				   String buffera = br.readLine();
@@ -465,8 +468,10 @@ public class BackStage extends Service{
   			   
 //  				   Log.i(tag,"RssReader.encodeTransfer(),button_order "+button_order+": "+path+" COPY TO (String)contentBuffer");
   				   url = new URL(path);
-  				   InputStream is = url.openConnection().getInputStream();
-
+  				 URLConnection uc  = url.openConnection();
+  				uc.setConnectTimeout(5000);
+  				uc.setReadTimeout(5000);
+  				InputStream is = uc.getInputStream();
   				   InputStreamReader isr = new InputStreamReader(is,Encode);
   				   BufferedReader br = new BufferedReader(isr);
   				   

@@ -53,7 +53,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0043";
+	private String softVersion="v1.0045";
 	/**
 	 * 描述 : 這個變數用來進階控制上面按鈕的被選取狀態<br/>
 	 * 依照滑動的動作，和最左邊x軸的位置，去判斷現在是在第幾個畫面，
@@ -138,6 +138,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	EditText newpath;
 	
 	int curChoiceButton;
+	private boolean service_getData_status=false;
 	
 	
 	public final static int initiateRssReaderUIthenStartBackStageService=0;
@@ -225,7 +226,7 @@ public class RssReader extends Activity implements OnTouchListener {
 										Log.i(tag, "you press Button Stop!");
 										
 								          
-										 registerBroadcaast_getData(false);//告訴系統將receiver_getData_status關閉
+										switchBroadcaast_getData(false);//告訴系統將receiver_getData_status關閉
 										 Log.i(tag, "stopReceiver: getData");
 								           Toast.makeText(RssReader.this, getString(R.string.cancel_loading)+"...", Toast.LENGTH_SHORT).show();
 								           //接著把Widget打開
@@ -244,14 +245,7 @@ public class RssReader extends Activity implements OnTouchListener {
 									     
 									        	   
 									        	   first_button.setClickable(false);
-									        	   
 
-								        
-//									       	BackStage.letThreadSleep();
-//											BackStage.letThreadSleep();
-//											BackStage.letThreadSleep();
-								           
-								      
 
 								           
 								           first_button.setPadding(30, 0, 30, 0);
@@ -285,8 +279,11 @@ public class RssReader extends Activity implements OnTouchListener {
 
 				    	   
 				    	 //啟動Service以解析資料
-				    	   switch_Service_getData(true,RssReader.this);
-				           Log.i(tag, "start BackStage.service()");
+				    	   if(service_getData_status==false){
+				    		   switch_Service_getData(true,RssReader.this);
+					           Log.i(tag, "start BackStage.service()");
+				    	   }
+				    	   
 				           
 				    	   
 				           
@@ -331,13 +328,24 @@ public class RssReader extends Activity implements OnTouchListener {
     Log.i(tag, "=====================================");
 	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
+	
+	//啟動getData的Service以解析資料
+	   if(service_getData_status==false){
+		   switch_Service_getData(true,RssReader.this);
+        Log.i(tag, "start BackStage.service()");
+	   }
+	 //啟動getData的Receiver以接收解析資料
 	if(receiver_getData_status==false){
-		registerBroadcaast_getData(true);
+		switchBroadcaast_getData(true);
 	}
-	if(getData!=null&receiver_getData_status){
+	myDB = new DB(RssReader.this);
+	cursor =myDB.getTruePath();
+	
+	if(getData!=null&receiver_getData_status!=false&BackStage.button_order!=cursor.getCount()-1){
 		setTitle(getString(R.string.loading)+" "+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name);
 	}
-	
+	cursor.close();
+	myDB.close();
 	
 
 		final Thread t =new Thread(){
@@ -398,7 +406,7 @@ public class RssReader extends Activity implements OnTouchListener {
 		
 		unregisterReceiver(Rreceiver_Widget);
 		Log.i(tag, "unregisterR_W");
-		registerBroadcaast_getData(false);
+		switchBroadcaast_getData(false);
 		BackStage.button_order=0;
 		
 		Log.i(tag, "Because Destroy, close 2 Receiver & BackStage.service");
@@ -900,7 +908,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	 */
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		if(!receiver_getData_status){//如果按了[取消載入],退回桌面再進入,為了讓Menu變回原樣,特設此判斷
+		if(receiver_getData_status==false){//如果按了[取消載入],退回桌面再進入,為了讓Menu變回原樣,特設此判斷
 			 BackStage.button_order=BackStage.cursor.getCount()-1;
 		}
 		
@@ -956,7 +964,6 @@ public class RssReader extends Activity implements OnTouchListener {
 				break;
 			
 			case 1:
-//				registerBroadcaast_getData(true);
 				Intent intent = new Intent();
 				intent.setClass(RssReader.this, Setting.class);
 				startActivity(intent);
@@ -964,10 +971,7 @@ public class RssReader extends Activity implements OnTouchListener {
 				break;
 				
 			case 2:
-//				registerBroadcaast_getData(true);
-				   
-				
-				
+			
 				//要先將資料庫的版本設回none，重新載入時才會更新
 				BackStage.DatabaseNumber="none";
 				onResume();
@@ -1008,17 +1012,18 @@ public class RssReader extends Activity implements OnTouchListener {
 
 	
 	
-	private void registerBroadcaast_getData(boolean open){
+	private void switchBroadcaast_getData(boolean open){
 		if(open){
 			//向系統註冊Receiver2，讓RssReader.GetBackStageData產生功能，專收從BackStage來的實體
 	           mFilter2=new IntentFilter(BackStage.GET_NEW_ENTITY);
 	           Rreceiver_getData=new RssReader.GetBackStageData();
 	           registerReceiver(Rreceiver_getData,mFilter2);
-	           Log.i(tag, "registerReceiver IntentFilter 2 is: GET_NEW_ENTITY");
+	           Log.i(tag, "start Receiver Receiver_get_Data");
 	           receiver_getData_status=true;        
 		}else{
-			unregisterReceiver(Rreceiver_getData);
+				unregisterReceiver(Rreceiver_getData);
 		    	receiver_getData_status=false;
+		    	Log.i(tag, "close Receiver_get_Data");
 		}
 	}
 	
@@ -1026,9 +1031,13 @@ public class RssReader extends Activity implements OnTouchListener {
 		if(open){
 			   intent2 = new Intent(context, BackStage.class);
 			   context.startService(intent2);
+			   service_getData_status=true;
+			   Log.i(tag, "start Service_getData");
 		}else{
 	    	   intent = new Intent(RssReader.this, BackStage.class);
 	           RssReader.this.stopService(intent);
+	           service_getData_status=false;
+	           Log.i(tag, "close Service_getData");
 		}
 	}
 
@@ -1040,7 +1049,8 @@ public class RssReader extends Activity implements OnTouchListener {
 		@Override
 		public void onReceive(final Context context, Intent intent) {
 			Log.i(tag, ">=RssReader.GetBackStageData.onReceive(), get entity name:"+intent.getExtras().getString("entity_name"));
-
+				
+			
 		    
 			   name = intent.getExtras().getString("entity_name");
 			   button_order=intent.getExtras().getInt("button_order");
@@ -1087,13 +1097,17 @@ public class RssReader extends Activity implements OnTouchListener {
 //		        Log.i(tag, "currentDatabaseNum= "+currentDatabaseNum);
 					        
 					      //啟動Service以解析資料
-		        		switch_Service_getData(true,RssReader.this);
+		        Log.i(tag, "service_getdATA_STATUS: "+service_getData_status);
+//		        		if(service_getData_status==false){
+		        			switch_Service_getData(true,RssReader.this);
+//		        		}
+		        		
 
 					        
 							   Log.i(tag, "BackStage.cursor count= "+BackStage.cursor.getCount()+", BackStage.liAll.size()= "+BackStage.liAll.size());
 					        if(BackStage.cursor.isLast()){
-					        	intent2 = new Intent(context, BackStage.class);
-								   context.stopService(intent2);
+					        	switch_Service_getData(false,context);
+					        
 								   Log.i(tag, "Data load finish, stop (Service)BackStage");
 								   
 								   Toast.makeText(context, getString(R.string.loading_completed), Toast.LENGTH_SHORT).show();
