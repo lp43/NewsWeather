@@ -61,7 +61,7 @@ public class BackStage extends Service{
 	public static String name,path;
 	/**描述 : 這個id是database裡的id,不一定會照順序*/
 	int id;
-	private DB myDB;
+	private static DB myDB;
 	public static Cursor cursor;
 	/**
 	 * 描述 : 記錄頻道按鈕的排序位置<br/>
@@ -80,6 +80,7 @@ public class BackStage extends Service{
 	private static boolean AppWidgetExist;
 	private static ActivityManager activitymanager;
 	public  ArrayList<News> getData;
+	public static  Thread thread;
 	public static final String GET_NEW_ENTITY="get_new_entity_from_backstage";
 	public static final String CHANGE_LIST_IMMEDIATE="changeListimmediate";
 	public static String DatabaseNumber="none";
@@ -94,6 +95,7 @@ public class BackStage extends Service{
 	 */
 	static ProgressDialog pd;
 	public static ArrayList<News> bufferlist,wronglist;
+	public static boolean status=true;
 	
 	//===========================================================================================
 	
@@ -126,8 +128,11 @@ public class BackStage extends Service{
 			
 			
 			new Thread(){
+
+			public void run(){
 				
-			  public void run(){
+
+				
 				Log.i(tag, "into Backstage.onStart() start THREAD for parse path");
 				
 				if(button_order<cursor.getCount()){
@@ -140,7 +145,7 @@ public class BackStage extends Service{
 				path=cursor.getString(cursor.getColumnIndex("_path"));
 				id = cursor.getInt(cursor.getColumnIndex("_id"));
 				
-				RssReader.handler1.sendEmptyMessage(2);//通知主UI要更新title的更新狀態了
+				RssReader.handler1.sendEmptyMessage(RssReader.setTitleStatus);//通知主UI要更新title的更新狀態了
 				
 					getData = convert(path);
 					liAll.put(button_order, getData);//將轉存的xml檔容器getData再放進大容器liAll
@@ -158,17 +163,16 @@ public class BackStage extends Service{
 					cursor.close();
 					
 					Log.i(tag, "cursor path parse finish");
+				}	
+				button_order++;	
+			}
 				}
-		
-				button_order++;
-		
+			
 				
-			}
-				
-				
-			}
-			}.start();
 
+			
+			}.start();
+			
 		
 	}
 	
@@ -223,9 +227,9 @@ public class BackStage extends Service{
 	 * 好讓之後要取得各筆新聞資料時，能用HashMap.get(index)才輕鬆存取資料。
 	 * @param context 程式主體
 	 */
-	public void initializeDatabase(Context context){
+	public static void initializeDatabase(Context context){
 		Log.i(tag, "into BackStage.initializeData()");
-	  File file = new File(Environment.getDataDirectory().getPath()+"/data/"+context.getPackageName()+"/databases/database.db");
+	    File file = new File(Environment.getDataDirectory().getPath()+"/data/"+context.getPackageName()+"/databases/database.db");
 //	  Log.i(tag, "File pass");
 		if(!file.exists()){
 			Log.i(tag, "Because database exist is: "+String.valueOf(file.exists())+", so insert BackStage.initializeData() to database");
@@ -233,29 +237,18 @@ public class BackStage extends Service{
 				myDB = new DB(context);
 			      myDB.insert("yahoo!", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
 			      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-			      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",false);//中時UTF-8
-			      myDB.insert("交通部公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-			      myDB.insert("蘋果", "http://tw.nextmedia.com/rss/create/type/1077",false);//蘋果utf8
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-//			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8
-//			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
-			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
+			      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
+			      myDB.insert("交通部公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",true);//交通部公路總局UTF8
+			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
+			      myDB.insert("蘋果", "http://tw.nextmedia.com/rss/create/type/1077",true);//蘋果utf8
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",true);//明報BIG5
+			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",true);//台灣大學圖書館UTF8
 			      
-			    myDB.close(); 
-			}else if(getCountry(context).equals("CN")){//簡中
-				myDB = new DB(context);
-			      myDB.insert("韩寒", "http://blog.sina.com.cn/rss/twocold.xml",true);	
-			      myDB.insert("cw", "http://www.cw.com.tw/RSS/cw_content.xml",true);
-			      myDB.insert("chinatime", "http://rss.chinatimes.com/rss/focus-u.rss",false);
-			      myDB.insert("thb", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);
-			      myDB.insert("apple", "http://tw.nextmedia.com/rss/create/type/1077",false);
-			      myDB.insert("mingpao", "http://inews.mingpao.com/rss/INews/gb.xml",false);
-			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);
-			      
+//			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
 			    myDB.close(); 
 			}else if(getCountry(context).equals("JP")){//日文
 				myDB = new DB(context);
-			      myDB.insert("Yahoo!トピックス", "http://dailynews.yahoo.co.jp/fc/rss.xml",true);
+//			      myDB.insert("Yahoo!トピックス", "http://dailynews.yahoo.co.jp/fc/rss.xml",true);
 			      myDB.insert("Yahoo!経済", "http://headlines.yahoo.co.jp/rss/nkbp_tren_bus.xml",false);
 			      myDB.insert("Yahoo!海外", "http://headlines.yahoo.co.jp/rss/cnn_c_int.xml",false);
 			      myDB.insert("全ジャンル一覧", "http://komachi-rss.yomiuri.co.jp/rss/yol/komachi/rss00",true);
@@ -619,7 +612,7 @@ public class BackStage extends Service{
 						e.printStackTrace();
 					}finally{
 						pd.dismiss();
-						startWork(context);
+						ifWifiPassThenSendMessage(context);
 						Log.i(tag, "close progressDialog");
 					}
 				}
@@ -629,9 +622,9 @@ public class BackStage extends Service{
     /**
      * 描述 : 如果有連線能力了，才開始取得和解析資料<br/>
      */
-    public static void startWork(Context context){
+    public static void ifWifiPassThenSendMessage(Context context){
     	if(Net.check3GConnectStatus(context)|Net./*checkInitWifiStatus*/checkEnableingWifiStatus(context)){
-			RssReader.handler1.sendEmptyMessage(1);	
+			RssReader.handler1.sendEmptyMessage(RssReader.initiateRssReaderUIthenStartBackStageService);	
 		}
     }
 
