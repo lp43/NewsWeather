@@ -170,6 +170,8 @@ public class RssReader extends Activity implements OnTouchListener {
         registerReceiver(Rreceiver_Widget,mFilter1);//MyWidgetProvider.mReceiver()的<IntentFilter>是CHANGE_LIST_IMMEDIATE
         Log.i(tag, "registerReceiverIntentFilter 1 is: CHANGE_LIST_IMMEDIATE");
         
+        
+        ;
      	
         handler1=new Handler(){
 
@@ -262,6 +264,8 @@ public class RssReader extends Activity implements OnTouchListener {
 												Log.i(tag, "BackStage.databasenum set to none");
 												BackStage.button_order=0;
 												Log.i(tag,"BackStage.button_order set to 0");
+//												sendBroadForSwitchWidget(close);
+												
 												onResume();
 												Log.i(tag, "start onResume()");
 											}
@@ -306,10 +310,14 @@ public class RssReader extends Activity implements OnTouchListener {
     @Override
 	protected void onStart() {
 		super.onStart();
+		myDB = new DB(RssReader.this);
+		cursor =myDB.getTruePath();
 		//如果使用者按了Home鍵再返回到RssReader,Title會抓出Service還在解析中的頻道狀態
-		if(BackStage.button_order!=0){
+		if/*(BackStage.button_order!=0)*/(getData!=null&receiver_getData_status==true&BackStage.button_order!=cursor.getCount()){
 			handler1.sendEmptyMessage(setTitleStatus);
 		}
+		cursor.close();
+		myDB.close();
 	}
 
 
@@ -329,19 +337,27 @@ public class RssReader extends Activity implements OnTouchListener {
 	Log.i(tag, "into RssReader.onResume()");
 	super.onResume();
 	
-	//啟動getData的Service以解析資料
-	   if(service_getData_status==false){
-		   switch_Service_getData(true,RssReader.this);
-        Log.i(tag, "start BackStage.service()");
-	   }
+/*	 up_layout =(LinearLayout) findViewById(R.id.up_layout);//找出主畫面上方的水平scrollbar的id位置
+	if(up_layout.getChildCount()==0){
+		//啟動getData的Service以解析資料
+		   if(service_getData_status==false){
+			   switch_Service_getData(true,RssReader.this);
+	        Log.i(tag, "start BackStage.service()");
+		   }
+	}*/
 	 //啟動getData的Receiver以接收解析資料
 	if(receiver_getData_status==false){
 		switchBroadcaast_getData(true);
 	}
+	
+	
 	myDB = new DB(RssReader.this);
 	cursor =myDB.getTruePath();
 	
-	if(getData!=null&receiver_getData_status!=false&BackStage.button_order!=cursor.getCount()-1){
+	if(getData!=null&receiver_getData_status==true&BackStage.button_order!=cursor.getCount()){
+		Log.i(tag, "into onResume().setTitle");
+		Log.i(tag, "BackStage.button_order= "+BackStage.button_order);
+		Log.i(tag, "cursor.getCount(): "+cursor.getCount());
 		setTitle(getString(R.string.loading)+" "+(BackStage.button_order+1)+"/"+BackStage.cursor.getCount()+": "+BackStage.name);
 	}
 	cursor.close();

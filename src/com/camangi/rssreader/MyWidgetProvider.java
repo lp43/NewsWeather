@@ -237,9 +237,15 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		
 			BackStage.widgetExist=true;
 
+			try{//為防解析出空值的getData實體,包住這段的Exception
 				Log.i(tag, "UpdateService.OnStart(), "+"NOW_channel_is:"+widget_namelist.get(currentnews.news_channel)+"..."+(currentnews.news_number+1)+"/"+((liAll.get(currentnews.news_channel).size())-1));
 				currentnews.content=MyWidgetProvider.liAll.get(currentnews.news_channel).get(currentnews.news_number).getTitle();	
-				currentnews.source=widget_namelist.get(currentnews.news_channel);	
+				currentnews.source=widget_namelist.get(currentnews.news_channel);					
+			}catch(IndexOutOfBoundsException e){
+				Log.i(tag, "into IndexOutOfBoundsException");
+				currentnews.news_number=0;
+				currentnews.news_channel++;
+			}
 				
 			int channelTotal=MyWidgetProvider.liAll.size();//算出大容器liAll的總頻道數
 			int newsTotal=MyWidgetProvider.liAll.get(currentnews.news_channel).size();//算出指定的小容器getData的總新聞數
@@ -257,6 +263,7 @@ public class MyWidgetProvider extends AppWidgetProvider {
 								}
 							}
 						}
+
 						
 					RemoteViews updateViews = new RemoteViews(packageName,R.layout.widget);
 					updateViews.setTextViewText(R.id.widgetContent, currentnews.content);
