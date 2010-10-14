@@ -1,6 +1,7 @@
 
 package com.camangi.rssreader;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -55,7 +57,7 @@ public class BackStage extends Service{
 	public static int updatespeed=1000;
 	final static String tag ="tag";
 	/**判斷xml文件編碼並儲存在Encode*/
-	static String Encode; 
+//	static String Encode; 
 	/**將BIG5的來源資料，用readLine()一行一行讀出來，並存成UTF-8的存放空間變數*/
 	static String contentBuffer;
 	/**將資料庫的name,path,int存到hashmap用的變數*/
@@ -97,6 +99,9 @@ public class BackStage extends Service{
 	static ProgressDialog pd;
 	public static ArrayList<News> bufferlist,wronglist;
 	public static boolean status=true;
+	public static boolean parseFinish;//在Handler裡如果有完全解析，那麼為True
+	private static String Encode;
+
 	
 	//===========================================================================================
 	
@@ -119,9 +124,9 @@ public class BackStage extends Service{
 		Log.i(tag, "================================");
 		super.onStart(intent, startId);
 		
-			myDB = new DB(this);//DB得重載，否則換了頻道排序會用舊資料庫，無法即時讀取新的資料庫
-			Log.i(tag, "into Backstage.onStart()");
-			cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
+//			myDB = new DB(this);//DB得重載，否則換了頻道排序會用舊資料庫，無法即時讀取新的資料庫
+//			Log.i(tag, "into Backstage.onStart()");
+//			cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
 			
 			if(button_order==0){
 				liAll.clear();
@@ -132,7 +137,9 @@ public class BackStage extends Service{
 
 			public void run(){
 				
-
+				myDB = new DB(BackStage.this);//DB得重載，否則換了頻道排序會用舊資料庫，無法即時讀取新的資料庫
+				Log.i(tag, "into Backstage.onStart()");
+				cursor =myDB.getTruePath();//取得user要看的頻道的資料清單
 				
 				Log.i(tag, "into Backstage.onStart() start THREAD for parse path");
 				
@@ -155,14 +162,16 @@ public class BackStage extends Service{
 				rssreader_namelist.put(id,name);
 				backstage_widget_namelist.put(button_order,name);
 				
+				cursor.close();
 				myDB.close();
+				
 				
 				Log.i(tag, "Backstage.onStart().Thread.sendBroadToRssReader()");
 				sendBroadToRssReader();
 				
 				if(button_order==cursor.getCount()-1){
-					cursor.close();
-					
+//					cursor.close();
+//					myDB.close();
 					Log.i(tag, "cursor path parse finish");
 				}	
 				button_order++;	
@@ -185,6 +194,7 @@ public class BackStage extends Service{
 		while(cursor.moveToNext()){			
 			BufferDatabaseNumber += String.valueOf(cursor.getInt(cursor.getColumnIndex("_id")));
 		}
+			cursor.close();
 			myDB.close();
 			return BufferDatabaseNumber;
 	}
@@ -199,7 +209,8 @@ public class BackStage extends Service{
 		
 		DatabaseNumber=checkDatabaseNumber(context);
 		Log.i(tag, "BackStage.DatabaseNumber is: "+DatabaseNumber);
-		
+		myDB=new DB(context);
+		cursor =myDB.getTruePath();
 		while(cursor.moveToNext()){
 			Log.i(tag, "-------------<MyWidgetProvider.BackStage> to NEXT cursor: "+button_order+"------------");
 			name=cursor.getString(cursor.getColumnIndex("_name"));
@@ -236,16 +247,29 @@ public class BackStage extends Service{
 			Log.i(tag, "Because database exist is: "+String.valueOf(file.exists())+", so insert BackStage.initializeData() to database");
 			if(getCountry(context).equals("TW")){//台灣
 				myDB = new DB(context);
-			      myDB.insert("yahoo!", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8	
+			      myDB.insert("yahoo!", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8
+			      myDB.insert("android-tw", "http://feeds.feedburner.com/android-tw",true);//Android-台灣-程式另外解析沒有出錯,在主程式單獨執行也沒問題
+			      myDB.insert("NBA", "http://www.nba.com/rss/nba_rss.xml",false);//NBA,在別的程式就先出錯了
+			      myDB.insert("上班族投資", "http://www.pjhuang.net/rss.xml",false);//上班族投資-程式另外解析沒有出錯,主程式出現NullPointerException
 			      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
+			      myDB.insert("遊戲基地", "http://www.gamebase.com.tw/news/rss/9/0",true);//遊戲基地沒編碼，改用預設UTF-8	
 			      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
-			      myDB.insert("交通部公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",true);//交通部公路總局UTF8
-			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
+			      myDB.insert("交通部公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
+			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",true);//台東大學圖書館BIG5
 			      myDB.insert("蘋果", "http://tw.nextmedia.com/rss/create/type/1077",true);//蘋果utf8
 			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",true);//明報BIG5
-			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",true);//台灣大學圖書館UTF8
-			      
-//			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
+			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",true);//台灣大學圖書館UTF8   
+			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",true);//Yahoo!奇摩股市
 			    myDB.close(); 
 			}else if(getCountry(context).equals("JP")){//日文
 				myDB = new DB(context);
@@ -358,6 +382,7 @@ public class BackStage extends Service{
 		 Log.i(tag, "cursor amount: "+cursor.getCount());
 		 getData = new ArrayList<News>();
 //		 Log.i(tag, "BackStage.initialize() finish");	
+		 cursor.close();
 		 myDB.close();
 	}
 	
@@ -387,25 +412,21 @@ public class BackStage extends Service{
 	 * @throws Exception 在用Url連結和解析的過程中，會產生些許的Exception.
 	 */
 	public static ArrayList<News> convert(String path){
-		
-		try{
-			checkEncode(path);
-			encodeTransfer(path);
-			
-		} catch (MalformedURLException e) {
-			Log.i(tag, "MalformedURLException: "+e.getMessage());
-			appearExceptionMessage("MalformedURLException",e);
+
+
+			try {
+				checkEncode(path);
+			} catch (MalformedURLException e) {
+				appearExceptionMessage("MalformedURLException",e);
 //			Log.i(path, "create wronglist finish");
-		}catch (IOException e) {
-			Log.i(tag, "IOException: "+e.getMessage());
-			appearExceptionMessage("IOException",e);
-//			Log.i(path, "create wronglist finish");
-		}catch(Exception e){
-			Log.i("tag", "Exception: "+e.getMessage());
-			appearExceptionMessage("Exception",e);
-//			Log.i(path, "create wronglist finish");
-		}
-		
+			} catch (IOException e) {
+				Log.i(tag, "IOException: "+e.getMessage());
+				appearExceptionMessage("IOException",e);
+//				Log.i(path, "create wronglist finish");
+			}
+
+
+//		Encode="UTF-8";
 		return getRss(path);
 	}
 	
@@ -424,27 +445,45 @@ public class BackStage extends Service{
     	URL url = null;
     	String encode="";
     	int a,b;
-	
+
 				url = new URL(path);
-				 URLConnection uc  = url.openConnection();
-	  				uc.setConnectTimeout(5000);
-	  				uc.setReadTimeout(5000);
+				Log.i(tag, "into checkEncode() path: "+path);
+				HttpURLConnection uc  = (HttpURLConnection)url.openConnection();
+				while((uc.getResponseCode()!=HttpURLConnection.HTTP_OK)){
+					uc.disconnect();
+					uc  = (HttpURLConnection)url.openConnection();
+				}
+				if(uc.getResponseCode()==HttpURLConnection.HTTP_OK){
+					uc.setConnectTimeout(1000);
+//	  				uc.setReadTimeout(1000);
+
 	  				InputStream is = uc.getInputStream();
-				InputStreamReader isr = new InputStreamReader(is);
-				 BufferedReader br = new BufferedReader(isr);
+	  				InputStreamReader isr = new InputStreamReader(is);		
+	  				BufferedReader br = new BufferedReader(isr);
+//	  				
 				   String buffera = br.readLine();
-				   br.close();
-				   Log.i(tag,path+", buffera.indexOf(<)= "+buffera.indexOf("<"));
+//				   Log.i(tag, "first line: "+buffera);
+////				   Log.i(tag,path+", buffera0.indexOf(<)= "+buffera0.indexOf("<"));
 				   a=buffera.indexOf("\"", 25)+1;
 				   b=buffera.indexOf("\"", a+1);
 				   encode = buffera.substring(a, b);
-				   Log.i(tag, "BackStage.checkEncode(): "+path+" -> "+encode);
-   	 
+				   br.close();
+//	  				isr.close();
+		    	   uc.disconnect();
+//				   Log.i(tag, "BackStage.checkEncode(): "+path+" -> "+encode);
+//				
 	    	   if(encode.equals("big5")|encode.equals("BIG5")){
 	    		 Encode ="BIG5";  
 			   }else if(encode.equals("utf-8")|encode.equals("UTF-8")|encode.equals("Utf-8")){
 				 Encode ="UTF-8";
-			   }	
+			   }else{
+				 Encode ="UTF-8";  
+			   }
+//	    	  
+	    	   //編碼轉換
+	    	   encodeTransfer(path);
+				}
+//	  				
 	    	   
     }
     
@@ -456,21 +495,27 @@ public class BackStage extends Service{
      * 因XML無法解析BIG5，會出現paraexception(not-well formed(invalid tocken))
      * 所以只要網址一進來，一定存到utf-8的buffxml(列表編號(從1開始)).xml檔裡
      * @param path 傳進來的Rss來源網址
-     * @see checkEncode(String path)
+	 * @throws IOException 
+	 * @see checkEncode(String path)
      * @see getRss()
      */
-    public static void encodeTransfer(String path) throws UnsupportedEncodingException,FileNotFoundException,IOException{
+    public static void encodeTransfer(String path) throws IOException {
     	
-    	if(!Encode.equals("UTF-8")){
+//    	if(!Encode.equals("UTF-8")){
 
       	  URL url = null;
       	  String buffera="";
   			   
-//  				   Log.i(tag,"RssReader.encodeTransfer(),button_order "+button_order+": "+path+" COPY TO (String)contentBuffer");
+  				   Log.i(tag,"RssReader.encodeTransfer(),button_order "+button_order+": "+path+" COPY TO (String)contentBuffer");
   				   url = new URL(path);
-  				 URLConnection uc  = url.openConnection();
-  				uc.setConnectTimeout(5000);
-  				uc.setReadTimeout(5000);
+  				 HttpURLConnection uc  = (HttpURLConnection)url.openConnection();
+  				while((uc.getResponseCode()!=HttpURLConnection.HTTP_OK)){
+					uc.disconnect();
+					uc  = (HttpURLConnection)url.openConnection();
+				}
+  				if(uc.getResponseCode()==HttpURLConnection.HTTP_OK){
+  					uc.setConnectTimeout(3000);
+  					uc.setReadTimeout(3000);
   				InputStream is = uc.getInputStream();
   				   InputStreamReader isr = new InputStreamReader(is,Encode);
   				   BufferedReader br = new BufferedReader(isr);
@@ -482,9 +527,12 @@ public class BackStage extends Service{
 	  						 contentBuffer+=new String(buffera.getBytes(),"UTF-8");   
 	  					   } 					   
   				   } while(buffera !=null);
+  				   br.close();
+  				   uc.disconnect();
 
   			Log.i(tag,"BackStage.encodeTransfer() finish");
     	}
+//    	}		
 	}
 
 	
@@ -524,37 +572,103 @@ public class BackStage extends Service{
 //				android.util.Xml.parse(fis, Xml.Encoding.UTF_8, myHandler);
 				
 				try {
+//					Log.i(tag, "contentBuffer: "+contentBuffer);
 					android.util.Xml.parse(contentBuffer, myHandler);
 				} catch (SAXException e) {
+					News news = new News();
+					news.setDate("Error reason: "+ "SAXException" +", \n"+e.getMessage());
+					news.setTitle("parse_error");
+					news.setLink("http://");
+					wronglist=new ArrayList<News>();
+					wronglist.add(news);
+					Encode="UTF-8";
+					Log.i(path, "create wronglist finish");
 					Log.i(tag, e.getMessage());
 				}
-				//取得RSS標題與內容列表
+
 				
 		}else{
+			//如果是UTF-8直接解析
 			Log.i(tag, "Because Encode is: "+Encode+", into path parse directly");
 			   
 				try {
-					URL url = null;//編碼為UTF-8直接解析的寫法	
-					url = new URL(path);
-					android.util.Xml.parse(url.openConnection().getInputStream(), Xml.Encoding.UTF_8, myHandler);
-				} catch (MalformedURLException e) {
-					Log.i(tag, e.getMessage());
-				} catch (IOException e) {
-					Log.i(tag, e.getMessage());
-				} catch (SAXException e) {
-					Log.i(tag, e.getMessage());
-				}
+//					URL url = null;//編碼為UTF-8直接解析的寫法	
+//					url = new URL("http://www.gamebase.com.tw/news/rss/9/0");
+		
+//					url = new URL(path);
+//					HttpURLConnection uc=(HttpURLConnection)url.openConnection();
+//					while(uc.getResponseCode()!=HttpURLConnection.HTTP_OK){
+//						Log.i(tag, "Server Response: "+uc.getResponseCode());
+////						
+//						uc.disconnect();
+//						uc=(HttpURLConnection)url.openConnection();
+//					}
+//					if(uc.getResponseCode()==HttpURLConnection.HTTP_OK){
+//					InputStream i=uc.getInputStream();
+//					InputStream i=url.openConnection().getInputStream();
+//					InputStreamReader ir = new InputStreamReader(i);
+//					BufferedReader br=new BufferedReader(ir);
+//					Log.i(tag, "second request first line: "+br.readLine());
+					
+//				String s,ss="";
+//					while((s=br.readLine())!=null){			
+//						ss+=s;					
+//					}
+//					Log.i(tag, "String ss: "+ss);
+					android.util.Xml.parse(contentBuffer, myHandler);
+					
+//					android.util.Xml.parse(/*url.openConnection().getInputStream()*/i, Xml.Encoding.UTF_8, myHandler);
+//					br.close();
+//					i.close();
+//					uc.disconnect();
+//					br.close();
+//				} catch (MalformedURLException e) {
+//					Log.i(tag, "MalformedURLException"+e.getMessage());
+//					News news = new News();
+//					news.setDate("Error reason: "+ "MalformedURLException" +", \n"+e.getMessage());
+//					news.setTitle("parse_error");
+//					news.setLink("http://");
+//					wronglist=new ArrayList<News>();
+//					wronglist.add(news);
+//					Encode="UTF-8";
+//					Log.i(path, "create wronglist finish");
+//					}
+				}catch (SAXException e) {
+						Log.i(tag, "SAXException"+e.getMessage());
+						News news = new News();
+						news.setDate("Error reason: "+ "SAXException" +", \n"+e.getMessage());
+						news.setTitle("parse_error");
+						news.setLink("http://");
+						wronglist=new ArrayList<News>();
+						wronglist.add(news);
+						Encode="UTF-8";
+						Log.i(tag, "create wronglist finish");
+//					}catch (IOException e) {
+//						Log.i(tag, "IOException"+e.getMessage());
+//						News news = new News();
+//						news.setDate("Error reason: "+ "IOException" +", \n"+e.getMessage());
+//						news.setTitle("parse_error");
+//						news.setLink("http://");
+//						wronglist=new ArrayList<News>();
+//						wronglist.add(news);
+//						Encode="UTF-8";
+//						Log.i(path, "create wronglist finish");
+					} 
+				 
 			}
 		bufferlist = new ArrayList<News>();
 		bufferlist.clear();//看看有沒有改善重覆實體的問題
 		
 		Log.i(tag,"BackStage.getRss() parse To GetData finish");
 		bufferlist=(ArrayList<News>) myHandler.getParasedData();
-		if(myHandler.getParasedData()==null){//如果沒有資料，代表解析錯誤，傳回解析錯誤
+		Log.i(tag, "BackStage.parseFinish= "+String.valueOf(BackStage.parseFinish));
+		if(BackStage.parseFinish==false){//如果沒有資料，代表解析錯誤，傳回解析錯誤
 			bufferlist=wronglist;
-			
+			Log.i(tag, "bufferlist=wronglist;");
 		}
+		
 		return bufferlist;
+		
 	}
 
 	/**
@@ -701,8 +815,8 @@ public class BackStage extends Service{
 		
 		try {
 			checkEncode(path);
-			encodeTransfer(path);
 			buffer=getRss(path);
+			
 		} catch (MalformedURLException e) {
 			Log.i(tag, "MalformedURLException: "+e.getMessage());
 			verifyErrorDialog(context,"MalformedURLException",e);

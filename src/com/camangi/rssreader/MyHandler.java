@@ -40,6 +40,8 @@ public class MyHandler extends DefaultHandler {
 	@Override//XML文件開始解析時呼叫此方法
 	public void startDocument() throws SAXException {
 		li = new ArrayList<News>();
+		BackStage.parseFinish=false;//一開始預設解析沒有成功
+		Log.i(tag, "set parseFinish=false");
 		Log.i(tag,"startDocument");
 	}
 	
@@ -47,7 +49,7 @@ public class MyHandler extends DefaultHandler {
 	@Override//解析到Element開頭時的method
 	public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException {
-//		Log.i(tag,"startElement");
+//		Log.i(tag,"startElement: "+localName);
 		if(localName.equals("channel")){
 			currentcase=0;
 			return;
@@ -159,17 +161,20 @@ public class MyHandler extends DefaultHandler {
 	public void endElement(String uri, String localName, String qName)
 			throws SAXException {
 		if(localName.equals("title")){
-			
+//			Log.i(tag, "localName: "+localName);
 		}else if(localName.equals("item")){
 				li.add(news);
+				BackStage.parseFinish=true;//當執行到了endElement，代表完全解析完成了
+				Log.i(tag, "set parseFinish=true");
 		}
-//		Log.i(tag,"endElement");
+//		Log.i(tag,"endElement: "+localName);
 	}
 	
 	
 	@Override//XML文件結束解析時呼叫此方法
 	public void endDocument() throws SAXException {
 		Log.i(tag, "endDocument");
+
 	}
 
 }

@@ -53,7 +53,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0045";
+	private String softVersion="v1.0045b5";
 	/**
 	 * 描述 : 這個變數用來進階控制上面按鈕的被選取狀態<br/>
 	 * 依照滑動的動作，和最左邊x軸的位置，去判斷現在是在第幾個畫面，
@@ -561,23 +561,23 @@ public class RssReader extends Activity implements OnTouchListener {
 					String newchannelpath=newpath.getText().toString();
 					pathyouwanttoadd=newchannelpath;
 					nameyouwanttoadd="";
+
 					
-					
-						if(newchannelpath.equals("")){
-						new AlertDialog.Builder(RssReader.this)
-						.setTitle(R.string.error)
-						.setMessage(R.string.enter_completely_to_verify)
-						.setIcon(R.drawable.warning)
-						.setPositiveButton(R.string.back, new DialogInterface.OnClickListener() {
-				
-						@Override
-						public void onClick(DialogInterface dialog, int which) {}
-						})
-						.show();	
-						}
+//						if(newchannelpath.equals("")){
+//						new AlertDialog.Builder(RssReader.this)
+//						.setTitle(R.string.error)
+//						.setMessage(R.string.enter_completely_to_verify)
+//						.setIcon(R.drawable.warning)
+//						.setPositiveButton(R.string.back, new DialogInterface.OnClickListener() {
+//				
+//						@Override
+//						public void onClick(DialogInterface dialog, int which) {}
+//						})
+//						.show();	
+//						}
 						
-//						
-						if(BackStage.verifyPath(RssReader.this,pathyouwanttoadd)!=null){
+//						//如果在Handler裡的endDoucument()將checkParse值改成true，代表解析成功，那麼就跑這段
+						if(BackStage.verifyPath(RssReader.this,pathyouwanttoadd)!=null&BackStage.parseFinish==true){
 							
 
 								//當驗證完畢回剛剛的新增訊息視窗,此時的頻道名稱已從剛剛解析的過程中抓出來,現在也可以被編輯了
@@ -600,26 +600,25 @@ public class RssReader extends Activity implements OnTouchListener {
 								@Override
 								public void onClick(DialogInterface dialog, int which) {
 						
-									 
-									
-							
-									if(newname.equals("") ||pathyouwanttoadd.equals("")){
-										new AlertDialog.Builder(RssReader.this)
-										.setTitle(R.string.error)
-										.setMessage(R.string.add_when_completely)
-										.setIcon(R.drawable.warning)
-										.setPositiveButton(R.string.back, new DialogInterface.OnClickListener() {
-								
-										@Override
-										public void onClick(DialogInterface dialog, int which) {}
-										})
-							
-										.show();
-									}
+//									if(newname.equals("") ||pathyouwanttoadd.equals("")){
+//										new AlertDialog.Builder(RssReader.this)
+//										.setTitle(R.string.error)
+//										.setMessage(R.string.add_when_completely)
+//										.setIcon(R.drawable.warning)
+//										.setPositiveButton(R.string.back, new DialogInterface.OnClickListener() {
+//								
+//										@Override
+//										public void onClick(DialogInterface dialog, int which) {}
+//										})
+//							
+//										.show();
+//									}
 									
 									myDB=new DB(RssReader.this);
 									myDB.insert(newname.getText().toString(), pathyouwanttoadd, true);
+									myDB.close();
 									
+									myDB=new DB(RssReader.this);
 									cursor=myDB.getTruePath();
 									cursor.moveToLast();
 									name=cursor.getString(cursor.getColumnIndex("_name"));
@@ -627,7 +626,7 @@ public class RssReader extends Activity implements OnTouchListener {
 									button = new Button(RssReader.this);
 									id = cursor.getInt(cursor.getColumnIndex("_id"));
 //									
-									ArrayList<News> buffer=BackStage.convert(path);
+									ArrayList<News> buffer=BackStage.verifyPath(RssReader.this,path);
 									BackStage.liAll.put(BackStage.button_order, buffer);
 
 									BackStage.rssreader_namelist.put(id,name);
@@ -635,16 +634,16 @@ public class RssReader extends Activity implements OnTouchListener {
 									
 							        button.setText(name);
 							        button.setTextSize(16);
-							        button.setTextColor(Color.WHITE);
+							        button.setTextColor(Color.YELLOW);        
 							        button.setBackgroundResource(R.drawable.main_button_background);
 
 							        button.setId(id);/*setId和namelist的key值、database的_id相對應，這個id值可能不會照順序而會跳號 */
-							        Log.i(tag, "move to last id: "+id);
-							        Log.i(tag, "setting tag is: "+BackStage.button_order);
+//							        Log.i(tag, "move to last id: "+id);
+//							        Log.i(tag, "setting tag is: "+BackStage.button_order);
 							        
 
 							        LinearLayout.LayoutParams param =new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,65);
-//							        Log.i(tag, "setlinearlayout pass");
+							        button.setPadding(20, 0, 20, 0);
 							        up_layout.addView(button,param);
 							        
 							        button.setTag(BackStage.button_order);//setTag是依照使用者的喜好頻道從1設到總筆數,每個button有各自的button_order
@@ -664,10 +663,13 @@ public class RssReader extends Activity implements OnTouchListener {
 							        BackStage.DatabaseNumber+=id;//後台的資料庫版本要順便更新,免得新增頻道後看新聞又返回一直重載入
 							        BackStage.button_order++;
 									
+							        cursor.close();//補加了這2行，但沒測能不能通
+							        myDB.close();
+							        
 							        //將2筆剛剛暫存的新增頻道和名稱的變數清空
 							        nameyouwanttoadd="";
 							        pathyouwanttoadd="";
-							       BackStage.bufferlist=null;
+//							       BackStage.bufferlist=null;
 							        
 								}
 								})
@@ -680,7 +682,12 @@ public class RssReader extends Activity implements OnTouchListener {
 								.show(); 
 					            
 					            
-						}     
+						}else{
+							//如果在Handler裡的endDoucument()沒有將checkParse值改成true，代表沒有真正解析成功，那麼就跑這段
+							Toast.makeText(RssReader.this, R.string.cant_parse, Toast.LENGTH_SHORT).show();
+							
+							
+						}
             
 					}	
 				})
@@ -707,7 +714,7 @@ public class RssReader extends Activity implements OnTouchListener {
            	
            	//以下這段判斷如果1個按鈕被點擊了,另一個按鈕就還原,不要被點擊
            	for(int i=0;i<up_layout.getChildCount()-1;i++){
-           		Log.i(tag, "i:"+i);
+//           		Log.i(tag, "i:"+i);
 				up_layout.findViewWithTag(i).setBackgroundResource(R.drawable.button);	
 			}
 			up_layout.findViewWithTag(a).setBackgroundResource(R.drawable.button_press);
@@ -738,7 +745,7 @@ public class RssReader extends Activity implements OnTouchListener {
        			public void onClick(DialogInterface dialog, int which) {
        				switch(which){
        				case 0:
-       					if(BackStage.cursor.getCount()==1){
+       					if(up_layout.getChildCount()==1){
        						BackStage.remainOneChannel(RssReader.this);//跳出至少要保留一筆頻道的視窗
        					}else{
        							if(BackStage.button_order<BackStage.cursor.getCount()-1){
@@ -825,7 +832,7 @@ public class RssReader extends Activity implements OnTouchListener {
 			 					
 			 					BackStage.loadingCantUseDataDialog(RssReader.this);
 			 				}else{
-			 					if(BackStage.cursor.getCount()==1){
+			 					if(up_layout.getChildCount()==1){
 		       						BackStage.remainOneChannel(RssReader.this);//跳出至少要保留一筆頻道的視窗
 		       					}else{
        					try{
@@ -972,7 +979,6 @@ public class RssReader extends Activity implements OnTouchListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch(item.getItemId()){
 			case 0:
-//				reRegisterBroadcaast_getData();
 				Log.i(tag, "now button order is: "+BackStage.button_order);
 
 					createNewChannelButton();	

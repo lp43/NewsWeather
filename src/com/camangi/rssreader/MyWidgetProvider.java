@@ -188,9 +188,6 @@ public class MyWidgetProvider extends AppWidgetProvider {
 		public void onCreate() {
 			//如果wifi和3g都沒有連線，就讓widget進入等待連線模式
 			while(!(Net.checkEnableingWifiStatus(this)|Net.check3GConnectStatus(this)|Net.checkEnableingWifiStatus(this))){
-//				while(!(Net.check3GConnectStatus(this)|Net.checkEnableingWifiStatus(this))){
-//					BackStage.letThreadSleep();
-//				}
 				BackStage.letThreadSleep();
 				Log.i(tag, "waiting for connect...");
 			}
