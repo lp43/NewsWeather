@@ -22,9 +22,12 @@ import org.apache.http.params.HttpConnectionParams;
 import org.xml.sax.SAXException;
 import com.camangi.rssreader.MyWidgetProvider.UpdateService;
 import com.camangi.rssreader.MyWidgetProvider.WaitConnect;
+
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.Service;
@@ -37,13 +40,16 @@ import android.database.Cursor;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.util.Xml;
 import android.view.Display;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 /**
@@ -101,7 +107,7 @@ public class BackStage extends Service{
 	public static boolean status=true;
 	public static boolean parseFinish;//在Handler裡如果有完全解析，那麼為True
 	private static String Encode;
-
+	public static boolean runStop;
 	
 	//===========================================================================================
 	
@@ -250,26 +256,16 @@ public class BackStage extends Service{
 			      myDB.insert("yahoo!", "http://tw.news.yahoo.com/rss/realtime",true);//雅虎UTF-8
 			      myDB.insert("android-tw", "http://feeds.feedburner.com/android-tw",true);//Android-台灣-程式另外解析沒有出錯,在主程式單獨執行也沒問題
 			      myDB.insert("NBA", "http://www.nba.com/rss/nba_rss.xml",false);//NBA,在別的程式就先出錯了
-			      myDB.insert("上班族投資", "http://www.pjhuang.net/rss.xml",false);//上班族投資-程式另外解析沒有出錯,主程式出現NullPointerException
+//			      myDB.insert("上班族投資", "http://www.pjhuang.net/rss.xml",false);//上班族投資-程式另外解析沒有出錯,主程式出現NullPointerException
 			      myDB.insert("天下雜誌", "http://www.cw.com.tw/RSS/cw_content.xml",true);//天下雜誌BIG5
-			      myDB.insert("遊戲基地", "http://www.gamebase.com.tw/news/rss/9/0",true);//遊戲基地沒編碼，改用預設UTF-8	
+			      myDB.insert("遊戲基地", "http://www.gamebase.com.tw/news/rss/9/0",false);//遊戲基地沒編碼，改用預設UTF-8	
 			      myDB.insert("中時", "http://rss.chinatimes.com/rss/focus-u.rss",true);//中時UTF-8
 			      myDB.insert("交通部公路總局", "http://www.thb.gov.tw/tm/Menus/Menu04/Trss/rss1_xml.aspx",false);//交通部公路總局UTF8
-			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",true);//台東大學圖書館BIG5
+			      myDB.insert("台東大圖書館", "http://acq.lib.nttu.edu.tw/RSS/RSS_NB.asp",false);//台東大學圖書館BIG5
 			      myDB.insert("蘋果", "http://tw.nextmedia.com/rss/create/type/1077",true);//蘋果utf8
 			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",true);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("明報", "http://inews.mingpao.com/rss/INews/gb.xml",false);//明報BIG5
-			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",true);//台灣大學圖書館UTF8   
-			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",true);//Yahoo!奇摩股市
+			      myDB.insert("台大圖書館", "http://www.lib.ntu.edu.tw/rss/newsrss.xml",false);//台灣大學圖書館UTF8   
+			      myDB.insert("Yahoo!奇摩股市", "http://tw.stock.yahoo.com/rss/url/d/e/N3.html",false);//Yahoo!奇摩股市
 			    myDB.close(); 
 			}else if(getCountry(context).equals("JP")){//日文
 				myDB = new DB(context);
@@ -715,11 +711,47 @@ public class BackStage extends Service{
  * @param open 傳進來的參數，0代表關，1代表開
  */
 	public static void WifiWaitDialog(final Context context){
-		
-			CharSequence dialogTitle = context.getString(R.string.please_wait);
-			CharSequence dialogBody = context.getString(R.string.wifi_connecting);
-			pd = ProgressDialog.show(context, dialogTitle, dialogBody,true);
-			
+		runStop=false;
+	
+			pd =new ProgressDialog(context);
+			pd.setTitle(context.getString(R.string.please_wait));
+			pd.setMessage(context.getString(R.string.wifi_connecting));
+			pd.setButton(-1,context.getString(R.string.cancel), new DialogInterface.OnClickListener(){
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					runStop=true;
+					ProgressDialog.show(context, context.getString(R.string.please_wait), context.getString(R.string.wifi_connecting));
+					RssReader.handler1=new Handler();
+					Runnable a =new Runnable(){
+
+						@Override
+						public void run() {
+							//一旦針測到WiFi有網路連線就繼續等到關閉為止
+							Log.i(tag, "wifi status: "+String.valueOf(Net.checkEnableingWifiStatus(context)));
+							while(Net.checkEnableingWifiStatus(context)==false){
+								letThreadSleep(1000);
+							}
+							Net.switchWifi(context, false);//一旦偵測到WiFi打開後，就關WiFi
+							
+							while(Net.checkEnableingWifiStatus(context)==true){//一旦關了Wifi,才關程式
+								Activity activity=(Activity)context;
+								activity.finish();
+							}
+							
+						}
+						
+					};
+					RssReader.handler1.postDelayed(a, 5000);//讓取消連線視窗維持5秒,才去執行run()
+					
+
+							
+							
+				}}
+				
+			);
+			pd.show();
+	
 			new Thread(){
 				public void run(){
 					try {
@@ -728,11 +760,14 @@ public class BackStage extends Service{
 							sleep(1000);	
 						}
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						Log.i(tag, e.getMessage());
 					}finally{
-						pd.dismiss();
-						ifWifiPassThenSendMessage(context);
-						Log.i(tag, "close progressDialog");
+						if(runStop==false){
+							pd.dismiss();
+							ifWifiPassThenSendMessage(context);
+							Log.i(tag, "close progressDialog");
+						}
+						
 					}
 				}
 			}.start();
@@ -768,9 +803,9 @@ public class BackStage extends Service{
     /**
      * 讓執行緒休眠1秒
      */
-	public static void letThreadSleep(){
+	public static void letThreadSleep(int sleepTime){
 		try {
-			Thread.currentThread().sleep(1000);
+			Thread.currentThread().sleep(sleepTime);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

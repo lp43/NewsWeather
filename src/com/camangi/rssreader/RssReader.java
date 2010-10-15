@@ -53,7 +53,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0045b5";
+	private String softVersion="v1.0045b6";
 	/**
 	 * 描述 : 這個變數用來進階控制上面按鈕的被選取狀態<br/>
 	 * 依照滑動的動作，和最左邊x軸的位置，去判斷現在是在第幾個畫面，
@@ -258,7 +258,7 @@ public class RssReader extends Activity implements OnTouchListener {
 											@Override
 											public void onClick(View v) {
 												Log.i(tag, "you press reload!");
-												BackStage.letThreadSleep();
+												BackStage.letThreadSleep(1000);
 												//要先將資料庫的版本設回none，重新載入時才會更新
 												BackStage.DatabaseNumber="none";
 												Log.i(tag, "BackStage.databasenum set to none");
@@ -369,7 +369,7 @@ public class RssReader extends Activity implements OnTouchListener {
 			public void run(){
 				Looper.prepare();
 				
-				Net.autoWifi(RssReader.this);
+				Net.switchWifi(RssReader.this,true);
 				Log.i(tag, "WifiStatus: "+Net./*checkInitWifiStatus*/checkEnableingWifiStatus(RssReader.this));
 
 			}

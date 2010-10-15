@@ -22,7 +22,7 @@ public class Net extends Service{
 	@Override
 	public void onCreate() {
 		if(!(Net.check3GConnectStatus(Net.this)|Net./*checkInitWifiStatus*/checkEnableingWifiStatus(Net.this))){
-			autoWifi(Net.this);
+			switchWifi(Net.this,true);
 		}
 	
 		super.onCreate();
@@ -76,14 +76,20 @@ public class Net extends Service{
 	 * @param context 程式主體，用來顯示Toast
 	 * @return 連線完成後，回傳連線狀態為True
 	 */
-	public static void autoWifi(Context context){
+	public static void switchWifi(Context context,boolean open){
 		Log.i(tag, "into autoWifi");
-		if(!/*checkInitWifiStatus*/checkEnableingWifiStatus(context)){
-
-//			wm.setWifiEnabled(false);
+//		if(!/*checkInitWifiStatus*/checkEnableingWifiStatus(context)){
+//
+//			wm.setWifiEnabled(true);
+//			
+//		}	
+		if(open==true){
+			if(!/*checkInitWifiStatus*/checkEnableingWifiStatus(context)){
 			wm.setWifiEnabled(true);
-			
-		}	
+			}
+		}else{
+			wm.setWifiEnabled(false);
+		}
 	}
 
 
