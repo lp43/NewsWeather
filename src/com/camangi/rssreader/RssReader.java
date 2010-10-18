@@ -53,7 +53,7 @@ public class RssReader extends Activity implements OnTouchListener {
 	/**
 	 * 顯示在"關於"Menu的版本編號
 	 */
-	private String softVersion="v1.0045b7";
+	private String softVersion="v1.0045b8";
 	/**
 	 * 描述 : 這個變數用來進階控制上面按鈕的被選取狀態<br/>
 	 * 依照滑動的動作，和最左邊x軸的位置，去判斷現在是在第幾個畫面，

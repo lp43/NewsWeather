@@ -77,7 +77,6 @@ public class Net extends Service{
 	 * @return 連線完成後，回傳連線狀態為True
 	 */
 	public static void switchWifi(Context context,boolean open){
-		Log.i(tag, "into autoWifi");
 //		if(!/*checkInitWifiStatus*/checkEnableingWifiStatus(context)){
 //
 //			wm.setWifiEnabled(true);
