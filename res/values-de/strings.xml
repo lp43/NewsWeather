@@ -51,4 +51,6 @@
 	<string name="no_internet_what_do_you_want">Kein Internet verfügbar, willst du ...?</string>
 	<string name="connect_to_default_WIFI">Verbinden Sie die Standard-WiFi</string>
 	<string name="back_to_set">Zurück und Ihren eigenen Einstellung</string>
+	<string name="program_finishing">程式關閉中...</string>
+	<string name="wifi_closing">WiFi關閉中...</string>
 </resources>

@@ -51,4 +51,6 @@
 	<string name="no_internet_what_do_you_want">ここで、ネットワークに接続されていない、あなたがする...？</string>
 	<string name="connect_to_default_WIFI">デフォルトのWiFi に接続してください</string>
 	<string name="back_to_set">戻ると、独自の設定</string>
+	<string name="program_finishing">程式關閉中...</string>
+	<string name="wifi_closing">WiFi關閉中...</string>
 </resources>

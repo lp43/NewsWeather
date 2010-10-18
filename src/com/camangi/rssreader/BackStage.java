@@ -721,31 +721,61 @@ public class BackStage extends Service{
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					runStop=true;
-					ProgressDialog.show(context, context.getString(R.string.please_wait), context.getString(R.string.wifi_connecting));
-					RssReader.handler1=new Handler();
-					Runnable a =new Runnable(){
-
-						@Override
-						public void run() {
-							//一旦針測到WiFi有網路連線就繼續等到關閉為止
-							Log.i(tag, "wifi status: "+String.valueOf(Net.checkEnableingWifiStatus(context)));
-							while(Net.checkEnableingWifiStatus(context)==false){
-								letThreadSleep(1000);
-							}
-							Net.switchWifi(context, false);//一旦偵測到WiFi打開後，就關WiFi
-							
-							while(Net.checkEnableingWifiStatus(context)==true){//一旦關了Wifi,才關程式
-								Activity activity=(Activity)context;
-								activity.finish();
-							}
-							
-						}
-						
-					};
-					RssReader.handler1.postDelayed(a, 5000);//讓取消連線視窗維持5秒,才去執行run()
+					//main Thread被拿來顯示ProgressDialog
+					ProgressDialog.show(context, context.getString(R.string.please_wait), context.getString(R.string.wifi_closing));
 					
-
-							
+					
+		
+					
+						new Thread(){//這段讓WiFi關閉中的畫面可以持續顯示至WiFi關了為止
+							public void run(){
+								
+								Looper.prepare();
+								while(Net.checkEnableingWifiStatus(context)==false){
+									Log.i(tag, "because Wifi is: "+String.valueOf(Net.checkEnableingWifiStatus(context))+", let Thread sleep 1000");
+									letThreadSleep(1000);//讓當下的Thread,也就是new Thread睡1秒
+								}
+								
+								
+								
+								Runnable r=new Runnable(){
+									public void run(){
+										
+										RssReader.handler1=new Handler();
+										ProgressDialog.show(context, context.getString(R.string.please_wait), context.getString(R.string.program_finishing));
+										
+										new Thread(){
+											public void run(){
+												while(Net.checkEnableingWifiStatus(context)==true){
+													letThreadSleep(1000);//讓當下的Thread,也就是這個new Thread睡1秒,這個動作不影響另一個Thread關閉WiFi
+												}
+												Log.i(tag, "Wifi closed finish");
+												//確定WiFi關了才關閉主程式
+												Activity activity=(Activity)context;
+												activity.finish();
+											}
+										}.start();
+									}
+								};
+								
+								RssReader.handler1.post(r);//使用Post的方式，當WiFi關了以後，讓主畫面的ProgressDialog改成"程式關閉中"
+								
+								//一旦偵測到WiFi打開後，就關WiFi,這個關閉的動作後續絕對不能有其它動作
+								//否則會造成干擾,只能再建new Thread去做別的事
+								Net.switchWifi(context, false);
+								
+								Log.i(tag, "close wifi");
+								
+								
+								//以下如果再做任何動作，都會打擾到新Thead去關WiFi,會當
+//								while(Net.checkEnableingWifiStatus(context)==true){
+//									letThreadSleep(1000);//close wifi後好像不能直接睡,會當
+//									Log.i(tag, "WiFi closing...");
+//								}
+								
+							}
+						}.start();
+					
 							
 				}}
 				

@@ -110,6 +110,7 @@ public final class R {
         public static final int please_enter_the_URL=0x7f060003;
         public static final int please_enter_the_title=0x7f060002;
         public static final int please_wait=0x7f060023;
+        public static final int program_finishing=0x7f060033;
         public static final int reloading=0x7f06001c;
         public static final int rename=0x7f060010;
         public static final int rename_for=0x7f060011;
@@ -120,6 +121,7 @@ public final class R {
         public static final int verify=0x7f060006;
         public static final int verifying=0x7f060007;
         public static final int what_do_you_want=0x7f06000e;
+        public static final int wifi_closing=0x7f060034;
         public static final int wifi_connecting=0x7f06002b;
     }
     public static final class xml {
